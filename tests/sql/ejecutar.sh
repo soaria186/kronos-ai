@@ -75,5 +75,9 @@ pgbench_worker "$TC" 8 100 >"$TMP/b.log" 2>&1 || {
 resumen_pgbench "$TMP/b.log"
 psql_como kronos_worker "$BASE" -v tc="$TC" -v conexiones=8 -v filas=100 <"$DIR/b_concurrencia.sql"
 
+titulo "c) UPDATE/DELETE/TRUNCATE rechazados"
+psql_como kronos_worker "$BASE" -v tc="$TC" <"$DIR/c_inmutabilidad.sql"
+psql_como kronos_admin "$BASE" -v tc="$TC" <"$DIR/c_inmutabilidad.sql"
+
 rm -rf "$TMP"
 titulo "Todas las pruebas pasaron"
