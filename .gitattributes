@@ -1,0 +1,9 @@
+# Normaliza todos los archivos de texto a LF en el repositorio y en la copia de trabajo
+* text=auto eol=lf
+
+# Archivos que deben usar LF siempre (scripts, SQL, configuración, contenedores)
+*.sh        text eol=lf
+*.sql       text eol=lf
+*.yml       text eol=lf
+*.yaml      text eol=lf
+Dockerfile  text eol=lf
