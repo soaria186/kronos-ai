@@ -16,3 +16,4 @@ infra/wazuh/config/wazuh_dashboard/wazuh.yml
 # Python
 .venv/
 __pycache__/
+infra/docker/secrets/

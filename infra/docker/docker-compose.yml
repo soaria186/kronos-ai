@@ -1,0 +1,44 @@
+# PostgreSQL 17 para desarrollo local.
+#
+# No se publica ningún puerto al host: la base sólo es alcanzable desde la red
+# interna de Docker. Para conectarse:
+#   docker compose -f infra/docker/docker-compose.yml exec db psql -U kronos_admin -d kronos
+#
+# Antes del primer arranque, generar los secretos locales (no se versionan):
+#   bash infra/docker/generar_secretos.sh
+name: kronos
+
+services:
+  db:
+    image: postgres:17.11
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: kronos_admin
+      POSTGRES_DB: kronos
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
+    secrets:
+      - postgres_password
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      # Los scripts sólo se ejecutan al inicializar un volumen vacío.
+      # Los *.example se ignoran; 03_roles.sql lo crea generar_secretos.sh.
+      - ./initdb:/docker-entrypoint-initdb.d:ro
+    networks:
+      - interna
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U kronos_admin -d kronos"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+networks:
+  interna:
+    # Sin salida a Internet ni acceso desde el host.
+    internal: true
+
+volumes:
+  pgdata:
+
+secrets:
+  postgres_password:
+    file: ./secrets/postgres_password
