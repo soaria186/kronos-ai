@@ -1,0 +1,36 @@
+-- Roles de aplicación. PLANTILLA: no contiene contraseñas reales.
+--
+-- El 03_roles.sql real está en .gitignore. Para crearlo con contraseñas
+-- aleatorias (sin mostrarlas) ejecutar infra/docker/generar_secretos.sh, o
+-- copiar este archivo y reemplazar a mano cada PLACEHOLDER_*.
+-- El entrypoint de PostgreSQL ignora los archivos *.example.
+
+-- Servicio de ejecución: escribe tickets, cola y temporizadores; en auditoria y
+-- cortacircuito sólo puede insertar y leer, nunca UPDATE ni DELETE.
+CREATE ROLE kronos_worker
+    LOGIN PASSWORD 'PLACEHOLDER_KRONOS_WORKER'
+    NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS NOINHERIT;
+
+-- Panel web: sólo lectura y sólo sobre el esquema frontend.
+CREATE ROLE kronos_frontend
+    LOGIN PASSWORD 'PLACEHOLDER_KRONOS_FRONTEND'
+    NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS NOINHERIT;
+
+DO $$
+BEGIN
+    EXECUTE format('GRANT CONNECT ON DATABASE %I TO kronos_worker, kronos_frontend',
+                   current_database());
+END;
+$$;
+
+-- kronos_worker
+GRANT USAGE ON SCHEMA public TO kronos_worker;
+GRANT SELECT, INSERT, UPDATE ON tickets TO kronos_worker;
+GRANT SELECT, INSERT, UPDATE, DELETE ON cola_inferencia, temporizadores TO kronos_worker;
+GRANT SELECT, INSERT ON auditoria, cortacircuito TO kronos_worker;
+REVOKE UPDATE, DELETE, TRUNCATE ON auditoria, cortacircuito FROM kronos_worker;
+
+-- kronos_frontend
+GRANT USAGE ON SCHEMA frontend TO kronos_frontend;
+GRANT SELECT ON ALL TABLES IN SCHEMA frontend TO kronos_frontend;
+ALTER DEFAULT PRIVILEGES IN SCHEMA frontend GRANT SELECT ON TABLES TO kronos_frontend;
