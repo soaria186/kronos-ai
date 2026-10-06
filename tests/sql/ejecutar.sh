@@ -79,5 +79,12 @@ titulo "c) UPDATE/DELETE/TRUNCATE rechazados"
 psql_como kronos_worker "$BASE" -v tc="$TC" <"$DIR/c_inmutabilidad.sql"
 psql_como kronos_admin "$BASE" -v tc="$TC" <"$DIR/c_inmutabilidad.sql"
 
+titulo "d) Manipulación detectada (sobre una copia)"
+borrar_copia
+psql_como kronos_admin postgres -c "CREATE DATABASE $COPIA TEMPLATE $BASE"
+psql_como kronos_admin "$COPIA" -v ta="$TA" -v tb="$TB" -v tc="$TC" <"$DIR/d_manipular.sql"
+psql_como kronos_worker "$COPIA" -v ta="$TA" -v tb="$TB" -v tc="$TC" <"$DIR/d_verificar.sql"
+psql_como kronos_worker "$BASE" -v ta="$TA" -v tb="$TB" -v tc="$TC" <"$DIR/d_original_intacta.sql"
+
 rm -rf "$TMP"
 titulo "Todas las pruebas pasaron"
