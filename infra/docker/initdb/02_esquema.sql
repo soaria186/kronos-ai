@@ -288,3 +288,64 @@ BEGIN
     RETURN NULL;
 END;
 $$;
+
+-- ---------------------------------------------------------------------------
+-- Aislamiento por inquilino (RLS)
+-- ---------------------------------------------------------------------------
+
+-- Sin app.tenant_id fijado, current_setting() lanza un error: se falla cerrado.
+-- FORCE aplica la política también al propietario cuando no sea superusuario.
+DO $$
+DECLARE
+    t text;
+BEGIN
+    FOREACH t IN ARRAY ARRAY['tickets', 'auditoria', 'cola_inferencia',
+                             'temporizadores', 'cortacircuito']
+    LOOP
+        EXECUTE format('ALTER TABLE %I ENABLE ROW LEVEL SECURITY', t);
+        EXECUTE format('ALTER TABLE %I FORCE ROW LEVEL SECURITY', t);
+        EXECUTE format(
+            'CREATE POLICY %I ON %I
+                 USING (tenant_id = current_setting(''app.tenant_id'')::int)
+                 WITH CHECK (tenant_id = current_setting(''app.tenant_id'')::int)',
+            t || '_inquilino', t);
+    END LOOP;
+END;
+$$;
+
+-- ---------------------------------------------------------------------------
+-- Esquema frontend: vistas de sólo lectura para el panel
+-- ---------------------------------------------------------------------------
+
+-- Las vistas se ejecutan con los permisos de su propietario, así que filtran el
+-- inquilino explícitamente; el rol del frontend no necesita acceso a public.
+CREATE SCHEMA frontend;
+
+CREATE VIEW frontend.tickets WITH (security_barrier = true) AS
+SELECT id, alerta_ref, titulo, severidad, playbook, confianza, autonomia_aplicada,
+       execution_status, rechazo_motivo, creado_en, actualizado_en
+  FROM public.tickets
+ WHERE tenant_id = current_setting('app.tenant_id')::int;
+
+CREATE VIEW frontend.auditoria WITH (security_barrier = true) AS
+SELECT seq, ticket_id, evento, actor, detalle, creado_en
+  FROM public.auditoria
+ WHERE tenant_id = current_setting('app.tenant_id')::int;
+
+CREATE VIEW frontend.cortacircuito WITH (security_barrier = true) AS
+SELECT DISTINCT ON (ambito) ambito, abierto, motivo, creado_en
+  FROM public.cortacircuito
+ WHERE tenant_id = current_setting('app.tenant_id')::int
+ ORDER BY ambito, creado_en DESC, id DESC;
+
+-- ---------------------------------------------------------------------------
+-- Privilegios por defecto: nadie entra salvo lo que conceda 03_roles.sql
+-- ---------------------------------------------------------------------------
+
+DO $$
+BEGIN
+    EXECUTE format('REVOKE ALL ON DATABASE %I FROM PUBLIC', current_database());
+END;
+$$;
+REVOKE ALL ON SCHEMA public FROM PUBLIC;
+REVOKE ALL ON SCHEMA frontend FROM PUBLIC;
