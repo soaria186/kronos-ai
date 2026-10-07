@@ -1,0 +1,102 @@
+[
+  {
+    "id": "CP-01",
+    "texto": "Rule: 5763 (level 10) -> 'sshd: brute force trying to get access to the system. Authentication failed.' | Agent: srv-web-01 (192.0.2.10) | Location: /var/log/auth.log | Src IP: 192.0.2.77 | User: root | firedtimes: 18 en 90 s | full_log: 'sshd[2211]: Failed password for root from 192.0.2.77 port 51122 ssh2'",
+    "familia_esperada": "F1"
+  },
+  {
+    "id": "CP-02",
+    "texto": "Rule: 100201 (level 12) -> 'PowerShell con comando codificado lanzado por una aplicación ofimática' | Agent: pc-adm-07 (192.0.2.31) | Location: EventChannel | win.system.eventID: 1 (Sysmon) | win.eventdata.parentImage: C:\\Program Files\\Office\\root\\Office16\\WINWORD.EXE | win.eventdata.image: C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe | win.eventdata.commandLine: powershell.exe -nop -w hidden -enc SQBFAFgAIAAoAE4AZQB3AC0ATwBiAGoAZQBjAHQA | win.eventdata.user: EJEMPLO\\usuario01",
+    "familia_esperada": "F2"
+  },
+  {
+    "id": "CP-03",
+    "texto": "Rule: 92652 (level 6) -> 'Successful Remote Logon Detected - User:\\admin.local - NTLM authentication, possible pass-the-hash attack.' | Agent: srv-fich-01 (192.0.2.12) | Location: EventChannel | win.system.eventID: 4624 | win.eventdata.logonType: 3 | win.eventdata.authenticationPackageName: NTLM | win.eventdata.keyLength: 0 | win.eventdata.ipAddress: 192.0.2.31 | win.eventdata.workstationName: PC-ADM-07 | win.eventdata.targetUserName: admin.local | Contexto: el mismo origen abrió sesiones NTLM en srv-bd-02 y srv-dc-01 en los 5 min anteriores",
+    "familia_esperada": "F3"
+  },
+  {
+    "id": "CP-04",
+    "texto": "Rule: 100510 (level 12) -> 'Posible túnel DNS: consultas TXT con subdominios de alta entropía' | Agent: pc-contab-03 (192.0.2.36) | Location: EventChannel | win.system.eventID: 22 (Sysmon DNSEvent) | win.eventdata.queryName: 4f6a2b9c1e7d0a3f5b8c2e9d1a7f3b6c0e4d8a2f.t.datos-sync.example | win.eventdata.image: C:\\Users\\usuario03\\AppData\\Roaming\\sync\\upd.exe | firedtimes: 1840 consultas al mismo dominio en 10 min | longitud media del subdominio: 58 caracteres",
+    "familia_esperada": "F4"
+  },
+  {
+    "id": "CP-05",
+    "texto": "Rule: 550 (level 7) -> 'Integrity checksum changed.' | Agent: srv-app-03 (192.0.2.22) | Location: syscheck | syscheck.path: /etc/sudoers | syscheck.md5_before: 3b1f0c9a7d2e4f6081a5c3e9b7d1f2a4 | syscheck.md5_after: 9e47d2b1c0a8f3e65b7d9c1a2e4f6b80 | syscheck.diff: '+operador02 ALL=(ALL) NOPASSWD: ALL' | syscheck.audit.user.name: operador02 | syscheck.audit.process.name: /usr/bin/vi",
+    "familia_esperada": "F5"
+  },
+  {
+    "id": "CP-06",
+    "texto": "Rule: 40704 (level 5) -> 'Systemd: Service has entered a failed state, and likely has not started.' | Agent: srv-web-01 (192.0.2.10) | Location: journald | full_log: 'systemd[1]: nginx.service: Failed with result exit-code.' | firedtimes: 5 reinicios fallidos en 3 min | Contexto: el balanceador marca srv-web-01 como no disponible; sin cambios recientes en archivos monitorizados",
+    "familia_esperada": "F6"
+  },
+  {
+    "id": "CP-07",
+    "texto": "Rule: 60204 (level 10) -> 'Multiple Windows Logon Failures' | Agent: srv-dc-01 (192.0.2.5) | Location: EventChannel | win.system.eventID: 4625 | win.eventdata.ipAddress: 192.0.2.88 | win.eventdata.logonType: 3 | win.eventdata.status: 0xc000006d | win.eventdata.subStatus: 0xc000006a | Contexto: 23 cuentas distintas (usuario01, usuario02, operador02, ...) con 1 o 2 fallos cada una en 5 min desde el mismo origen; ningún inicio de sesión correcto",
+    "familia_esperada": "F1"
+  },
+  {
+    "id": "CP-08",
+    "texto": "Rule: 87105 (level 12) -> 'VirusTotal: Alert - /tmp/.x/kworkerd - 41 engines detected this file' | Agent: srv-app-03 (192.0.2.22) | Location: virustotal | data.virustotal.source.file: /tmp/.x/kworkerd | data.virustotal.positives: 41 | data.virustotal.total: 68 | Contexto: el binario está en ejecución (PID 31877, usuario www-data, proceso padre apache2)",
+    "familia_esperada": "F2"
+  },
+  {
+    "id": "CP-09",
+    "texto": "Rule: 100310 (level 12) -> 'Ejecución remota vía WMI: WmiPrvSE.exe lanza cmd.exe con salida redirigida a ADMIN$' | Agent: srv-bd-02 (192.0.2.20) | Location: EventChannel | win.system.eventID: 1 (Sysmon) | win.eventdata.parentImage: C:\\Windows\\System32\\wbem\\WmiPrvSE.exe | win.eventdata.image: C:\\Windows\\System32\\cmd.exe | win.eventdata.commandLine: cmd.exe /Q /c whoami 1> \\\\localhost\\ADMIN$\\__1759830000.12 2>&1 | win.eventdata.user: EJEMPLO\\admin.local | Contexto: inicio de sesión de red (4624, logonType 3) desde 192.0.2.31 (pc-adm-07) 2 s antes",
+    "familia_esperada": "F3"
+  },
+  {
+    "id": "CP-10",
+    "texto": "Rule: 100520 (level 10) -> 'Volumen de subida anómalo hacia almacenamiento en la nube no aprobado' | Agent: srv-proxy-01 (192.0.2.3) | Location: /var/log/proxy/access.log | srcip: 192.0.2.36 (pc-contab-03) | user: usuario03 | dsthost: archivos-compartidos.example | dstip: 192.0.2.220 | method: PUT | bytes_out: 4,7 GB en 25 min (línea base del equipo: 30 MB al día) | url_category: almacenamiento en la nube no aprobado",
+    "familia_esperada": "F4"
+  },
+  {
+    "id": "CP-11",
+    "texto": "Rule: 5902 (level 8) -> 'New user added to the system.' | Agent: srv-bd-02 (192.0.2.20) | Location: /var/log/auth.log | full_log: 'useradd[4410]: new user: name=soporte_tmp, UID=0, GID=0, home=/root, shell=/bin/bash' | Contexto: creado a las 02:47, fuera de la ventana de cambios",
+    "familia_esperada": "F5"
+  },
+  {
+    "id": "CP-12",
+    "texto": "Rule: 100610 (level 10) -> 'Pico de peticiones HTTP entrantes con degradación del servicio' | Agent: srv-web-01 (192.0.2.10) | Location: /var/log/nginx/access.log | firedtimes: 48000 peticiones GET /buscar?q=... en 60 s desde 180 IP distintas de 192.0.2.0/24 | tiempo de respuesta medio: 9800 ms | respuestas 503: 71 % | tráfico saliente sin variación",
+    "familia_esperada": "F6"
+  },
+  {
+    "id": "CP-13",
+    "texto": "Rule: 100330 (level 10) -> 'Sesiones SSH en cadena desde un mismo servidor interno' | Agent: srv-bd-02 (192.0.2.20) | Location: /var/log/auth.log | Src IP: 192.0.2.22 (srv-app-03) | User: root | full_log: 'sshd[8121]: Accepted publickey for root from 192.0.2.22 port 40112 ssh2' | Contexto: primera conexión SSH registrada entre estos equipos; en los 10 min previos srv-app-03 abrió sesiones SSH en otros 6 servidores internos",
+    "familia_esperada": "F3"
+  },
+  {
+    "id": "CP-14",
+    "texto": "Rule: 100130 (level 10) -> 'Inicio de sesión VPN desde dos ubicaciones incompatibles (viaje imposible)' | Agent: srv-vpn-01 (192.0.2.4) | Location: /var/log/vpn/auth.log | User: usuario.prueba | Src IP: 192.0.2.150 (geo: país B) | Contexto: inicio de sesión correcto anterior 20 min antes desde 192.0.2.151 (geo: país A, a 9000 km); autenticación solo con contraseña",
+    "familia_esperada": "F1"
+  },
+  {
+    "id": "CP-15",
+    "texto": "Rule: 100220 (level 12) -> 'Intérprete de comandos lanzado por el proceso del servidor web' | Agent: srv-web-01 (192.0.2.10) | Location: /var/log/audit/audit.log | audit.type: EXECVE | audit.exe: /bin/sh | audit.execve.a0: sh | audit.execve.a1: -c | audit.execve.a2: id; uname -a; cat /etc/passwd | audit.uid: 33 (www-data) | proceso padre: /usr/sbin/php-fpm8.2 (PID 1022)",
+    "familia_esperada": "F2"
+  },
+  {
+    "id": "CP-16",
+    "texto": "Rule: 531 (level 7) -> 'Partition usage reached 100% (disk space monitor).' | Agent: srv-bd-02 (192.0.2.20) | Location: df -P | full_log: 'ossec: output: df -P: /dev/sdb1 524288000 524288000 0 100% /var/lib/postgresql' | Contexto: la base de datos rechaza escrituras (could not extend file: No space left on device)",
+    "familia_esperada": "F6"
+  },
+  {
+    "id": "CP-17",
+    "texto": "Rule: 100340 (level 10) -> 'Herramienta de control remoto no autorizada con sesión entrante' | Agent: pc-ventas-12 (192.0.2.47) | Location: EventChannel | win.eventdata.image: C:\\Users\\usuario02\\Downloads\\RemoteDeskPortable.exe | win.eventdata.user: EJEMPLO\\usuario02 | conexión entrante establecida desde 192.0.2.210:5938 | duración de la sesión: 34 min | Contexto: la herramienta no figura en el inventario de software autorizado",
+    "familia_esperada": "F3"
+  },
+  {
+    "id": "CP-AMB-01",
+    "texto": "Rule: 100120 (level 12) -> 'Inicio de sesión correcto tras múltiples fallos desde el mismo origen' | Agent: srv-fich-01 (192.0.2.12) | Location: EventChannel | win.system.eventID: 4624 | win.eventdata.logonType: 10 (RemoteInteractive, RDP) | win.eventdata.targetUserName: usuario.prueba | win.eventdata.ipAddress: 192.0.2.45 | Contexto: 14 eventos 4625 desde 192.0.2.45 contra la misma cuenta en los 3 min anteriores",
+    "familia_esperada": "F1"
+  },
+  {
+    "id": "CP-AMB-02",
+    "texto": "Rule: 100230 (level 12) -> 'Proceso schtasks.exe lanzado desde PowerShell oculto' | Agent: pc-adm-07 (192.0.2.31) | Location: EventChannel | win.system.eventID: 1 (Sysmon) | win.eventdata.parentImage: C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe | win.eventdata.parentCommandLine: powershell.exe -w hidden -nop | win.eventdata.image: C:\\Windows\\System32\\schtasks.exe | win.eventdata.commandLine: schtasks /create /sc onlogon /tn ActualizadorSistema /tr C:\\Users\\Public\\upd.exe /ru SYSTEM /f | win.eventdata.user: EJEMPLO\\usuario01",
+    "familia_esperada": "F5"
+  },
+  {
+    "id": "CP-AMB-03",
+    "texto": "Rule: 100530 (level 12) -> 'Saturación del enlace de salida' | Agent: srv-fw-01 (192.0.2.1) | Location: /var/log/firewall.log | srcip: 192.0.2.22 (srv-app-03) | dstip: 192.0.2.230 | dstport: 443 | dst_zone: internet | bytes_out: 38 GB en 40 min | bytes_in: 210 MB | uso del enlace de salida: 98 % | Contexto: destino sin conexiones previas desde la organización; el portal interno responde con 6 s de latencia",
+    "familia_esperada": "F4"
+  }
+]
