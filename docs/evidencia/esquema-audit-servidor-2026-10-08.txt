@@ -1,0 +1,160 @@
+Inquilinos de esta ejecución: a=1 y 2, b=3
+
+==================== a) Dos inquilinos en paralelo ====================
+  pgbench inquilino 1:
+    number of clients: 4
+    number of transactions actually processed: 1000/1000
+    number of failed transactions: 0 (0.000%)
+    tps = 1341.786589 (without initial connection time)
+  pgbench inquilino 2:
+    number of clients: 4
+    number of transactions actually processed: 1000/1000
+    number of failed transactions: 0 (0.000%)
+    tps = 1345.217885 (without initial connection time)
+--- Vista del inquilino 1
+      rol      | inquilino | filas_visibles | filas_ajenas | seq_min | seq_max | cadena_integra 
+---------------+-----------+----------------+--------------+---------+---------+----------------
+ kronos_worker |         1 |           1000 |            0 |       1 |    1000 | t
+(1 row)
+
+ filas_visibles_del_otro_inquilino 
+-----------------------------------
+                                 0
+(1 row)
+
+--- Vista del inquilino 2
+      rol      | inquilino | filas_visibles | filas_ajenas | seq_min | seq_max | cadena_integra 
+---------------+-----------+----------------+--------------+---------+---------+----------------
+ kronos_worker |         2 |           1000 |            0 |       1 |    1000 | t
+(1 row)
+
+ filas_visibles_del_otro_inquilino 
+-----------------------------------
+                                 0
+(1 row)
+
+--- Comprobaciones
+NOTICE:  OK inquilino 1: 1000 filas, seq 1..1000, 0 filas ajenas, cadena íntegra
+NOTICE:  OK inquilino 1 no puede verificar la cadena de 2: [42501] fn_verificar_cadena(2): la sesión está fijada al inquilino 1
+NOTICE:  OK inquilino 1 no puede insertar como 2: [42501] new row violates row-level security policy for table "auditoria"
+NOTICE:  OK inquilino 2: 1000 filas, seq 1..1000, 0 filas ajenas, cadena íntegra
+NOTICE:  OK inquilino 2 no puede verificar la cadena de 1: [42501] fn_verificar_cadena(1): la sesión está fijada al inquilino 2
+NOTICE:  OK inquilino 2 no puede insertar como 1: [42501] new row violates row-level security policy for table "auditoria"
+NOTICE:  Escrituras de 1 y 2 solapadas en el tiempo: t
+PRUEBA A: OK
+
+==================== b) Un inquilino, 8 conexiones x 100 filas ====================
+    number of clients: 8
+    number of transactions actually processed: 800/800
+    number of failed transactions: 0 (0.000%)
+    tps = 1803.755871 (without initial connection time)
+      rol      | inquilino | filas | seq_distintas | seq_min | seq_max | conexiones | discontinuidad | cadena_integra 
+---------------+-----------+-------+---------------+---------+---------+------------+----------------+----------------
+ kronos_worker |         3 |   800 |           800 |       1 |     800 |          8 |                | t
+(1 row)
+
+  conexion  | filas | primera_seq | ultima_seq 
+------------+-------+-------------+------------
+ conexion-0 |   100 |           6 |        798
+ conexion-1 |   100 |           8 |        800
+ conexion-2 |   100 |           1 |        793
+ conexion-3 |   100 |           4 |        796
+ conexion-4 |   100 |           3 |        795
+ conexion-5 |   100 |           7 |        799
+ conexion-6 |   100 |           5 |        797
+ conexion-7 |   100 |           2 |        794
+(8 rows)
+
+ cambios_de_conexion_entre_seq_consecutivas 
+--------------------------------------------
+                                        799
+(1 row)
+
+NOTICE:  OK 800 filas de 8 conexiones, seq 1..800 sin huecos ni duplicados, cadena íntegra
+PRUEBA B: OK
+
+==================== c) UPDATE/DELETE/TRUNCATE rechazados ====================
+      rol      | superusuario | salta_rls 
+---------------+--------------+-----------
+ kronos_worker | f            | f
+(1 row)
+
+NOTICE:  OK rechazado | kronos_worker | replication_role=origin | UPDATE auditoria SET evento = 'alterado' WHERE seq = 1 | [42501] permission denied for table auditoria
+NOTICE:  OK rechazado | kronos_worker | replication_role=origin | UPDATE auditoria SET evento = 'alterado' WHERE false | [42501] permission denied for table auditoria
+NOTICE:  OK rechazado | kronos_worker | replication_role=origin | DELETE FROM auditoria WHERE seq = 1 | [42501] permission denied for table auditoria
+NOTICE:  OK rechazado | kronos_worker | replication_role=origin | DELETE FROM auditoria WHERE false | [42501] permission denied for table auditoria
+NOTICE:  OK rechazado | kronos_worker | replication_role=origin | TRUNCATE auditoria | [42501] permission denied for table auditoria
+NOTICE:  OK rechazado | kronos_worker | replication_role=origin | UPDATE cortacircuito SET abierto = false | [42501] permission denied for table cortacircuito
+NOTICE:  OK rechazado | kronos_worker | replication_role=origin | DELETE FROM cortacircuito | [42501] permission denied for table cortacircuito
+NOTICE:  OK rechazado | kronos_worker | replication_role=origin | TRUNCATE cortacircuito | [42501] permission denied for table cortacircuito
+ filas_auditoria_inquilino | cadena_integra 
+---------------------------+----------------
+                       800 | t
+(1 row)
+
+PRUEBA C: OK para kronos_worker
+     rol      | superusuario | salta_rls 
+--------------+--------------+-----------
+ kronos_admin | t            | t
+(1 row)
+
+NOTICE:  OK rechazado | kronos_admin | replication_role=origin | UPDATE auditoria SET evento = 'alterado' WHERE seq = 1 | [42501] la tabla auditoria sólo admite INSERT: UPDATE rechazado
+NOTICE:  OK rechazado | kronos_admin | replication_role=origin | UPDATE auditoria SET evento = 'alterado' WHERE false | [42501] la tabla auditoria sólo admite INSERT: UPDATE rechazado
+NOTICE:  OK rechazado | kronos_admin | replication_role=origin | DELETE FROM auditoria WHERE seq = 1 | [42501] la tabla auditoria sólo admite INSERT: DELETE rechazado
+NOTICE:  OK rechazado | kronos_admin | replication_role=origin | DELETE FROM auditoria WHERE false | [42501] la tabla auditoria sólo admite INSERT: DELETE rechazado
+NOTICE:  OK rechazado | kronos_admin | replication_role=origin | TRUNCATE auditoria | [42501] la tabla auditoria sólo admite INSERT: TRUNCATE rechazado
+NOTICE:  OK rechazado | kronos_admin | replication_role=origin | UPDATE cortacircuito SET abierto = false | [42501] la tabla cortacircuito sólo admite INSERT: UPDATE rechazado
+NOTICE:  OK rechazado | kronos_admin | replication_role=origin | DELETE FROM cortacircuito | [42501] la tabla cortacircuito sólo admite INSERT: DELETE rechazado
+NOTICE:  OK rechazado | kronos_admin | replication_role=origin | TRUNCATE cortacircuito | [42501] la tabla cortacircuito sólo admite INSERT: TRUNCATE rechazado
+NOTICE:  OK rechazado | kronos_admin | replication_role=replica | UPDATE auditoria SET evento = 'alterado' WHERE seq = 1 | [42501] la tabla auditoria sólo admite INSERT: UPDATE rechazado
+NOTICE:  OK rechazado | kronos_admin | replication_role=replica | UPDATE auditoria SET evento = 'alterado' WHERE false | [42501] la tabla auditoria sólo admite INSERT: UPDATE rechazado
+NOTICE:  OK rechazado | kronos_admin | replication_role=replica | DELETE FROM auditoria WHERE seq = 1 | [42501] la tabla auditoria sólo admite INSERT: DELETE rechazado
+NOTICE:  OK rechazado | kronos_admin | replication_role=replica | DELETE FROM auditoria WHERE false | [42501] la tabla auditoria sólo admite INSERT: DELETE rechazado
+NOTICE:  OK rechazado | kronos_admin | replication_role=replica | TRUNCATE auditoria | [42501] la tabla auditoria sólo admite INSERT: TRUNCATE rechazado
+NOTICE:  OK rechazado | kronos_admin | replication_role=replica | UPDATE cortacircuito SET abierto = false | [42501] la tabla cortacircuito sólo admite INSERT: UPDATE rechazado
+NOTICE:  OK rechazado | kronos_admin | replication_role=replica | DELETE FROM cortacircuito | [42501] la tabla cortacircuito sólo admite INSERT: DELETE rechazado
+NOTICE:  OK rechazado | kronos_admin | replication_role=replica | TRUNCATE cortacircuito | [42501] la tabla cortacircuito sólo admite INSERT: TRUNCATE rechazado
+ filas_auditoria_inquilino | cadena_integra 
+---------------------------+----------------
+                       800 | t
+(1 row)
+
+PRUEBA C: OK para kronos_admin
+
+==================== d) Manipulación detectada (sobre una copia) ====================
+        base         |     rol      
+---------------------+--------------
+ kronos_copia_prueba | kronos_admin
+(1 row)
+
+Manipulaciones aplicadas en la copia.
+        base         |      rol      
+---------------------+---------------
+ kronos_copia_prueba | kronos_worker
+(1 row)
+
+ inquilino |        manipulacion         | seq |                     motivo                      
+-----------+-----------------------------+-----+-------------------------------------------------
+         3 | detalle de seq 400 alterado | 400 | el hash no coincide con el contenido de la fila
+(1 row)
+
+ inquilino |              manipulacion              | seq |                        motivo                         
+-----------+----------------------------------------+-----+-------------------------------------------------------
+         1 | seq 100 alterada y su hash recalculado | 101 | hash_anterior no enlaza con el hash de la fila previa
+(1 row)
+
+ inquilino |   manipulacion   | seq |              motivo               
+-----------+------------------+-----+-----------------------------------
+         2 | seq 50 eliminada |  50 | falta seq 50 (la siguiente es 51)
+(1 row)
+
+NOTICE:  OK inquilino 3: discontinuidad detectada en seq 400 (el hash no coincide con el contenido de la fila)
+NOTICE:  OK inquilino 1: discontinuidad detectada en seq 101 (hash_anterior no enlaza con el hash de la fila previa)
+NOTICE:  OK inquilino 2: discontinuidad detectada en seq 50 (falta seq 50 (la siguiente es 51))
+Manipulaciones detectadas en la copia.
+NOTICE:  OK base kronos: cadena del inquilino 1 íntegra
+NOTICE:  OK base kronos: cadena del inquilino 2 íntegra
+NOTICE:  OK base kronos: cadena del inquilino 3 íntegra
+PRUEBA D: OK
+
+==================== Todas las pruebas pasaron ====================
