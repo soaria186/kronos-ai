@@ -1,0 +1,120 @@
+<!--
+  Kronos AI - Reglas de sobre (borrador 0.1, 14-10-2026)
+
+  Reglas propias montadas sobre reglas nativas de Wazuh 4.14.8. Cada una etiqueta la
+  alerta con la familia candidata (kronos_f1 a kronos_f6) para SOAR-VALIDATE y el modelo.
+  La familia es una pista: la clasificación final la hace el paso 1 del modelo y la
+  valida SOAR-VALIDATE.
+
+  Rango de identificadores: 100101 a 100115 (rango reservado para reglas propias).
+  Los niveles son una propuesta: se ajustan cuando se fije el mapa de severidad.
+  Los números de las reglas nativas se verificaron en el manager el 14-10-2026.
+
+  Ubicación en el servidor: /var/ossec/etc/rules/kronos_reglas_sobre.xml
+-->
+
+<group name="kronos,">
+
+  <!-- F1 - Abuso de credenciales -->
+
+  <rule id="100101" level="10">
+    <if_sid>5712, 5720, 5763</if_sid>
+    <description>Kronos F1: fuerza bruta por SSH desde $(srcip)</description>
+    <group>kronos_f1,</group>
+  </rule>
+
+  <rule id="100102" level="10">
+    <if_sid>5551, 5404</if_sid>
+    <description>Kronos F1: fallos repetidos de autenticación local (PAM o sudo)</description>
+    <group>kronos_f1,</group>
+  </rule>
+
+  <rule id="100103" level="10">
+    <if_sid>60204, 60115</if_sid>
+    <description>Kronos F1: fallos repetidos de inicio de sesión en Windows o cuenta bloqueada</description>
+    <group>kronos_f1,</group>
+  </rule>
+
+  <!-- F2 - Proceso sospechoso en ejecución -->
+
+  <rule id="100104" level="12">
+    <if_sid>91809, 92057, 92071</if_sid>
+    <description>Kronos F2: PowerShell con comando codificado en Base64</description>
+    <group>kronos_f2,</group>
+  </rule>
+
+  <rule id="100105" level="12">
+    <if_sid>92047, 92048, 92018, 92403, 92900</if_sid>
+    <description>Kronos F2: ejecución sospechosa (Office lanza mshta, certutil decodifica o acceso a LSASS)</description>
+    <group>kronos_f2,</group>
+  </rule>
+
+  <rule id="100106" level="10">
+    <if_sid>92204, 92207, 92601</if_sid>
+    <description>Kronos F2: ejecutable o script en carpeta temporal o de usuario</description>
+    <group>kronos_f2,</group>
+  </rule>
+
+  <!-- F3 - Movimiento lateral o acceso remoto -->
+
+  <rule id="100107" level="8">
+    <if_sid>92653, 92657</if_sid>
+    <description>Kronos F3: inicio de sesión remoto (RDP o NTLM de red)</description>
+    <group>kronos_f3,</group>
+  </rule>
+
+  <rule id="100108" level="12">
+    <if_sid>92068, 92650, 92202, 92218, 92220, 92602, 92656</if_sid>
+    <description>Kronos F3: ejecución remota o uso de recursos administrativos (PsExec, servicios, WinRM, Impacket)</description>
+    <group>kronos_f3,</group>
+  </rule>
+
+  <!-- F4 - Exfiltración o salida anómala -->
+
+  <rule id="100109" level="12">
+    <if_sid>92104</if_sid>
+    <description>Kronos F4: binario sospechoso abrió una conexión de salida</description>
+    <group>kronos_f4,</group>
+  </rule>
+
+  <!-- F5 - Alteración de integridad o persistencia -->
+
+  <rule id="100110" level="7">
+    <if_sid>550, 553, 554</if_sid>
+    <description>Kronos F5: archivo vigilado modificado, agregado o borrado</description>
+    <group>kronos_f5,</group>
+  </rule>
+
+  <rule id="100111" level="10">
+    <if_sid>5902, 2961, 60138, 92040</if_sid>
+    <description>Kronos F5: cuenta o grupo nuevo, o usuario agregado a sudo</description>
+    <group>kronos_f5,</group>
+  </rule>
+
+  <rule id="100112" level="10">
+    <if_sid>60228, 2832, 2833, 92301, 92303</if_sid>
+    <description>Kronos F5: persistencia programada (tarea, cron o arranque automático)</description>
+    <group>kronos_f5,</group>
+  </rule>
+
+  <rule id="100113" level="12">
+    <if_sid>60117, 18118, 63103</if_sid>
+    <description>Kronos F5: registro de auditoría borrado</description>
+    <group>kronos_f5,</group>
+  </rule>
+
+  <!-- F6 - Disponibilidad del servicio -->
+
+  <rule id="100114" level="7">
+    <if_sid>531, 1007</if_sid>
+    <description>Kronos F6: disco lleno</description>
+    <group>kronos_f6,</group>
+  </rule>
+
+  <rule id="100115" level="7">
+    <if_sid>504, 506</if_sid>
+    <description>Kronos F6: agente de Wazuh desconectado o detenido</description>
+    <group>kronos_f6,</group>
+  </rule>
+
+</group>
