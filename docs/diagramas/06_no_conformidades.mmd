@@ -1,0 +1,8 @@
+flowchart TB
+    A["Detección<br/>(check fallido, revisión,<br/>prueba o auditoría)"] --> B["Registro<br/>(issue o registro de trabajo)"]
+    B --> C["Análisis de causa"]
+    C --> D["Corrección en una rama<br/>y PR revisado"]
+    D --> E["Verificación<br/>(checks y prueba que lo cubre)"]
+    E --> F{"¿Resuelta?"}
+    F -- "no" --> C
+    F -- "sí" --> G["Cierre y lección<br/>en el informe del sprint"]

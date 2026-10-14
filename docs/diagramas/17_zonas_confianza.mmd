@@ -1,0 +1,33 @@
+flowchart TB
+    subgraph Z0["Zona no confiable"]
+        ATK["Atacante<br/>controla el texto de la alerta"]
+    end
+    subgraph Z1["Zona del cliente"]
+        AGT["SOAR-COLLECT<br/>(el atacante puede apagarlo)"]
+    end
+    subgraph Z2["Zona de decisión"]
+        DET2["SOAR-DETECT"]
+        CLS["SOAR-CLASSIFY<br/>sólo elige un identificador"]
+        VAL2["SOAR-VALIDATE<br/>seis chequeos deterministas"]
+    end
+    subgraph Z3["Zona de efectos"]
+        EXE2["SOAR-EXECUTE<br/>usuario de API de permisos mínimos"]
+        AUD2[("SOAR-AUDIT<br/>sólo inserción + cadena")]
+    end
+    subgraph Z4["Aprobaciones (D-31)"]
+        NOT2["SOAR-NOTIFY<br/>Telegram"]
+        CON2["SOAR-CONSOLE<br/>443 con TLS"]
+    end
+    ADM["Equipo Kronos"]
+    ATK -. "texto malicioso" .-> AGT
+    AGT -- "1514" --> DET2
+    DET2 --> VAL2
+    VAL2 <--> CLS
+    VAL2 -- "sólo playbook del catálogo" --> EXE2
+    VAL2 --> AUD2
+    EXE2 --> AUD2
+    VAL2 -- "nivel 2 y 3" --> NOT2
+    NOT2 --> ADM
+    ADM -- "aprueba o rechaza" --> CON2
+    CON2 --> EXE2
+    ADM -. "administración por NetBird" .-> DET2

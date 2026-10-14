@@ -1,0 +1,4 @@
+flowchart LR
+    F["feat/eN-tema<br/>una rama por tarea<br/>(push diario)"] -- "PR con 3 checks<br/>y revisión cruzada" --> DEV["develop<br/>integración"]
+    D["docs/tema<br/>documentación<br/>y evidencia"] -- "PR revisado" --> DEV
+    DEV -- "etapa cerrada con su hito<br/>merge --no-ff + etiqueta" --> MAIN["main<br/>estado estable<br/>(línea base)"]

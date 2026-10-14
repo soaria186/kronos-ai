@@ -1,0 +1,11 @@
+flowchart TB
+    P["Planificación del sprint<br/>hito verificable"] --> T["Tarea por integrante<br/>(capa propia)"]
+    T --> R["Rama feat/eN-tema"]
+    R --> D["Push diario"]
+    D --> PR["PR a develop<br/>revisado por otro integrante"]
+    PR --> E["Evidencia: commit, PR<br/>o salida de terminal"]
+    E --> L["Registro de trabajo<br/>KRO-LOG-iniciales-fecha"]
+    L --> H{"¿Hito del sprint<br/>cumplido?"}
+    H -- "no" --> T
+    H -- "sí" --> M["Cierre de etapa:<br/>main + etiqueta y revisión"]
+    M --> P

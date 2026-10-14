@@ -1,0 +1,10 @@
+flowchart TB
+    A["Rama feat/eN-tema desde develop<br/>commits con pre-commit (gitleaks)<br/>push diario"] --> D["Pull request a develop"]
+    D --> E["GitHub Actions: gitleaks 8.30.1,<br/>ruff 0.16.10 y R1"]
+    E --> F{"¿Tres checks<br/>en verde?"}
+    F -- "no" --> A
+    F -- "sí" --> R{"¿Revisión de<br/>otro integrante?"}
+    R -- "cambios" --> A
+    R -- "aprobada" --> M["Merge a develop"]
+    M --> S{"¿Etapa cerrada<br/>con su hito?"}
+    S -- "sí" --> T["Merge a main sin avance rápido<br/>(no-ff) y etiqueta de etapa"]

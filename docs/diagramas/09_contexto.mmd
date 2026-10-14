@@ -1,0 +1,18 @@
+flowchart TB
+    EQC["Equipos del cliente<br/>puesto Windows o servidor Linux<br/>con SOAR-COLLECT"]
+    ENC["Encargado del cliente"]
+    K["Kronos AI<br/>SOAR-CORE-01<br/>(nube, Francia, UTC)"]
+    TG["Telegram<br/>sólo el equipo"]
+    OP["Integrante del<br/>equipo Kronos"]
+    MAIL["Correo<br/>(envío manual)"]
+    PA["Persona afectada<br/>(nivel 2)"]
+    NB["NetBird<br/>red privada"]
+    GH["GitHub<br/>repositorio y CI"]
+    EQC -- "telemetría<br/>1514 saliente" --> K
+    K -. "Active Response" .-> EQC
+    ENC -- "HTTPS 443" --> K
+    K -- "avisos y<br/>aprobaciones" --> TG --> OP
+    OP -- "aprueba, rechaza,<br/>revierte" --> K
+    OP -- "aviso D-35" --> MAIL --> PA
+    OP -- "administración" --> NB --> K
+    OP -- "código y PR" --> GH

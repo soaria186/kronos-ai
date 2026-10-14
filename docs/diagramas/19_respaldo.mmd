@@ -1,0 +1,14 @@
+flowchart TB
+    subgraph CORE["SOAR-CORE-01"]
+        T["Temporizador de systemd<br/>diario (pendiente)"] --> D["pg_dump de SOAR-AUDIT<br/>+ configuración de Wazuh,<br/>certificados y client.keys"]
+        D --> C["Propuesta: cifrar en el servidor<br/>(llave fuera del PC destino)"]
+        C --> L["Copia local en el servidor"]
+    end
+    subgraph NB["NetBird"]
+        X["Propuesta: transferencia<br/>sólo por NetBird"]
+    end
+    subgraph PCN["PC de Nicolás"]
+        DC["PC de escritorio (D-26)<br/>Propuesta: disco cifrado<br/>y acceso sólo de Nicolás"]
+    end
+    L --> X --> DC
+    DC -. "restauración probada<br/>restaurar_prueba.sh (pendiente)" .-> V["Base de prueba:<br/>fn_verificar_cadena = NULL"]

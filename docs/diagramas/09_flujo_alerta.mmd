@@ -1,0 +1,18 @@
+flowchart TB
+    A["SOAR-COLLECT<br/>agente"] -- "1514" --> B["SOAR-DETECT<br/>alerts.json"]
+    B --> C["SOAR-VALIDATE<br/>crea el ticket"]
+    C -- "paso 1: texto" --> D["SOAR-CLASSIFY"]
+    D -- "familia" --> C
+    C -- "paso 2: candidatos" --> D
+    D -- "playbook<br/>y confianza" --> C
+    C --> E{"Seis<br/>chequeos"}
+    E -- "falla" --> F["MANUAL_TRIAGE<br/>con motivo"]
+    E -- "pasa" --> G["Registro de la decisión<br/>en SOAR-AUDIT,<br/>antes de actuar"]
+    G --> H{"Nivel"}
+    H -- "0, 1 y 2" --> I["SOAR-EXECUTE"]
+    H -- "2" --> N["SOAR-NOTIFY<br/>aviso"]
+    H -- "3" --> K["Aprobación humana<br/>CONSOLE o NOTIFY"]
+    K --> I
+    I -- "API de Wazuh" --> B
+    B -. "Active Response" .-> A
+    I --> J["Resultado y<br/>temporizador<br/>en SOAR-AUDIT"]

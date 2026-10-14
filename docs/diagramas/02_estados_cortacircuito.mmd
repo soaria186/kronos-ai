@@ -1,0 +1,10 @@
+stateDiagram-v2
+    [*] --> Cerrado
+    Cerrado: Cerrado (operación automática permitida)
+    Abierto: Abierto (sin acciones automáticas, todo va a MANUAL_TRIAGE)
+    Cerrado --> Abierto: un contador de tasa llega a su tope o un integrante lo abre
+    Abierto --> Cerrado: sólo un integrante del equipo lo cierra, con motivo
+    note right of Abierto
+        Cada transición es una fila nueva en la tabla cortacircuito
+        (sólo inserción). El estado vigente de un ámbito es su fila más reciente.
+    end note
