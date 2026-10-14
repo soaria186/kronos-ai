@@ -18,7 +18,8 @@ ventaja de la condición tibia será pequeña. Eso también es un resultado de l
 Todas las llamadas usan options.temperature = 0, options.num_ctx = 4096 y un esquema JSON
 en el campo "format". Los tiempos son de reloj, medidos desde el cliente. Antes de medir
 se hace una llamada de calentamiento que no cuenta. Si el paso 1 no devuelve un JSON
-válido, el paso 2 no se ejecuta y el caso queda sin tiempo total.
+válido, el paso 2 no se ejecuta y el caso queda sin tiempo total. Las columnas
+confianza_paso1 y confianza_paso2 guardan la confianza que declaró el modelo en cada paso.
 
 El CSV se guarda en resultados/ y se escribe fila a fila, así que si la ejecución se
 interrumpe se conservan los casos ya medidos. Las columnas json_valido y acierto_familia
@@ -29,6 +30,7 @@ Solo usa la biblioteca estándar y no importa ejecucion, persistencia ni conecto
 
 Uso:
     python decision/mediciones/medir_inferencia.py MODELO [--url URL] [--timeout SEGUNDOS]
+        [--casos ARCHIVO_JSON]
 """
 
 from __future__ import annotations
@@ -81,8 +83,10 @@ COLUMNAS = (
     "eval_count_paso2",
     "json_valido",
     "familia_obtenida",
+    "confianza_paso1",
     "acierto_familia",
     "playbook_obtenido",
+    "confianza_paso2",
 )
 
 ESQUEMA_PASO1 = {
@@ -195,21 +199,19 @@ def cargar_paso2() -> tuple[str, dict[str, Familia]]:
     return plantilla, familias
 
 
-def cargar_casos() -> list[Caso]:
-    datos = json.loads(RUTA_CASOS.read_text(encoding="utf-8"))
+def cargar_casos(ruta: Path) -> list[Caso]:
+    datos = json.loads(ruta.read_text(encoding="utf-8"))
     casos = []
     for posicion, dato in enumerate(datos, start=1):
         try:
             caso = Caso(dato["id"], dato["texto"], dato["familia_esperada"])
         except (KeyError, TypeError) as exc:
-            raise ErrorMedicion(
-                f"{RUTA_CASOS.name}: caso {posicion} incompleto"
-            ) from exc
+            raise ErrorMedicion(f"{ruta.name}: caso {posicion} incompleto") from exc
         if caso.familia_esperada not in FAMILIAS:
             raise ErrorMedicion(f"{caso.id}: familia esperada desconocida")
         casos.append(caso)
     if len({caso.id for caso in casos}) != len(casos):
-        raise ErrorMedicion(f"{RUTA_CASOS.name}: hay identificadores repetidos")
+        raise ErrorMedicion(f"{ruta.name}: hay identificadores repetidos")
     return casos
 
 
@@ -321,6 +323,10 @@ def entero(valor: int | None) -> str:
     return "" if valor is None else str(valor)
 
 
+def confianza(datos: dict | None) -> str:
+    return "" if datos is None else f"{float(datos['confianza']):.2f}"
+
+
 def medir_caso(
     caso: Caso,
     condicion: str,
@@ -384,8 +390,10 @@ def medir_caso(
         "eval_count_paso2": entero(paso2.eval_count if paso2 else None),
         "json_valido": "1" if json_valido else "0",
         "familia_obtenida": familia or "",
+        "confianza_paso1": confianza(paso1.datos),
         "acierto_familia": "1" if familia == caso.familia_esperada else "0",
         "playbook_obtenido": paso2.datos["playbook_id"] if json_valido else "",
+        "confianza_paso2": confianza(paso2.datos if paso2 else None),
     }
 
 
@@ -439,10 +447,13 @@ def calentar(url: str, modelo: str, timeout: float) -> None:
     print(f"Calentamiento: {duracion:.2f} s (no cuenta)", flush=True)
 
 
-def ruta_salida(modelo: str) -> Path:
+def ruta_salida(modelo: str, casos: Path) -> Path:
     marca = datetime.now().astimezone().strftime("%Y%m%d-%H%M%S")
     nombre = re.sub(r"[^A-Za-z0-9._-]+", "_", modelo)
-    return DIR_RESULTADOS / f"inferencia_{nombre}_{marca}.csv"
+    prefijo = (
+        "inferencia" if casos.resolve() == RUTA_CASOS else f"inferencia_{casos.stem}"
+    )
+    return DIR_RESULTADOS / f"{prefijo}_{nombre}_{marca}.csv"
 
 
 def leer_argumentos(argv: list[str]) -> argparse.Namespace:
@@ -461,6 +472,12 @@ def leer_argumentos(argv: list[str]) -> argparse.Namespace:
         default=TIMEOUT_POR_DEFECTO,
         help=f"segundos máximos por llamada (por defecto {TIMEOUT_POR_DEFECTO:.0f})",
     )
+    parser.add_argument(
+        "--casos",
+        type=Path,
+        default=RUTA_CASOS,
+        help=f"archivo JSON de casos (por defecto {RUTA_CASOS.name})",
+    )
     return parser.parse_args(argv)
 
 
@@ -472,14 +489,14 @@ def main(argv: list[str]) -> int:
     try:
         plantilla1 = cargar_paso1()
         plantilla2, familias = cargar_paso2()
-        casos = cargar_casos()
+        casos = cargar_casos(argumentos.casos)
 
         print(
             f"Modelo {modelo} en {url}: {len(casos)} casos x {len(CONDICIONES)} condiciones"
         )
         calentar(url, modelo, timeout)
 
-        salida = ruta_salida(modelo)
+        salida = ruta_salida(modelo, argumentos.casos)
         salida.parent.mkdir(parents=True, exist_ok=True)
         with salida.open("w", encoding="utf-8", newline="") as archivo:
             print(f"Resultados en {salida}", flush=True)
