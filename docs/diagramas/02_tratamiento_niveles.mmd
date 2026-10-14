@@ -5,7 +5,7 @@ flowchart LR
     N -- "2" --> N2["Ejecuta y avisa<br/>al equipo por<br/>Telegram"]
     N2 --> M2["Correo manual<br/>a la persona<br/>afectada (D-35)"]
     N2 --> P2{"¿Revisada<br/>en 2 días?"}
-    P2 -- "sí" --> F2["Un integrante<br/>la revierte o<br/>la mantiene"]
+    P2 -- "sí" --> F2["Un integrante<br/>la revierte"]
     P2 -- "no" --> D2["Recordatorio<br/>diario; sigue<br/>vigente (D-33)"] --> F2
     N -- "3" --> N3["Pide aprobación<br/>por Telegram y<br/>en la consola"]
     N3 --> P3{"¿Respuesta<br/>en 2 días?<br/>(D-32)"}

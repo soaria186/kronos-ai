@@ -7,4 +7,4 @@ flowchart TB
     R -- "cambios" --> A
     R -- "aprobada" --> M["Merge a develop"]
     M --> S{"¿Etapa cerrada<br/>con su hito?"}
-    S -- "sí" --> T["Merge --no-ff a main<br/>y etiqueta de etapa"]
+    S -- "sí" --> T["Merge a main sin avance rápido<br/>(no-ff) y etiqueta de etapa"]

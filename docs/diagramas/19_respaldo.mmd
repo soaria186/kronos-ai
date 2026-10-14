@@ -5,10 +5,10 @@ flowchart TB
         C --> L["Copia local en el servidor"]
     end
     subgraph NB["NetBird"]
-        X["Transferencia"]
+        X["Propuesta: transferencia<br/>sólo por NetBird"]
     end
     subgraph PCN["PC de Nicolás"]
-        DC["PC de escritorio (D-26)<br/>disco cifrado<br/>acceso sólo de Nicolás"]
+        DC["PC de escritorio (D-26)<br/>Propuesta: disco cifrado<br/>y acceso sólo de Nicolás"]
     end
     L --> X --> DC
     DC -. "restauración probada<br/>restaurar_prueba.sh (pendiente)" .-> V["Base de prueba:<br/>fn_verificar_cadena = NULL"]
