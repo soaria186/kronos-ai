@@ -1,0 +1,566 @@
+{
+  "codigo": "KRO-CAT-01",
+  "version": "0.1",
+  "estado": "version_de_trabajo",
+  "fuente": "Anexo — Catálogo de medidas de Kronos AI, borrador 0.1 (08-10-2026)",
+  "nota": "Versión de trabajo: el catálogo definitivo se cierra en la etapa 3. Los identificadores coinciden con los del catálogo provisional de decision/prompts/paso2_plantilla.txt pero significan otras medidas; ese catálogo provisional sólo sirve para medir la inferencia.",
+  "acciones": {
+    "consulta": {
+      "descripcion": "Consulta de sólo lectura",
+      "origen": "nivel_0"
+    },
+    "bloquear_ip": {
+      "descripcion": "Bloquear IP",
+      "origen": "basica"
+    },
+    "cerrar_sesion": {
+      "descripcion": "Cerrar sesión",
+      "origen": "basica"
+    },
+    "deshabilitar_cuenta": {
+      "descripcion": "Deshabilitar cuenta local",
+      "origen": "basica"
+    },
+    "terminar_proceso": {
+      "descripcion": "Terminar proceso",
+      "origen": "basica"
+    },
+    "cuarentena": {
+      "descripcion": "Poner un archivo en cuarentena",
+      "origen": "basica"
+    },
+    "aislar_equipo": {
+      "descripcion": "Aislar el equipo por firewall local",
+      "origen": "basica"
+    },
+    "detener_servicio": {
+      "descripcion": "Detener un servicio",
+      "origen": "basica"
+    },
+    "bloquear_destino": {
+      "descripcion": "Bloquear un destino de salida",
+      "origen": "adicional"
+    },
+    "limitar_conexiones": {
+      "descripcion": "Limitar conexiones por origen",
+      "origen": "adicional"
+    },
+    "revertir_tarea": {
+      "descripcion": "Revertir una tarea programada",
+      "origen": "adicional"
+    }
+  },
+  "puntos_abiertos": [
+    "Plazos de las medidas de nivel 1; cada una necesita certificar que su reversión es segura antes de habilitarse",
+    "Si la cuarentena y la reversión de tareas se restauran solas al vencer un plazo o sólo a mano",
+    "Implementar las tres acciones adicionales o reemplazarlas por una de las siete básicas",
+    "Cómo se ejecutan las consultas de sólo lectura del nivel 0",
+    "Carpeta de cuarentena y plazo de conservación de lo que se guarda en ella",
+    "Si los playbooks serán de varios pasos (decisión pendiente del equipo)"
+  ],
+  "playbooks": [
+    {
+      "id": "PB-F1-01",
+      "familia": "F1",
+      "medida": "Reunir contexto de la cuenta y del origen",
+      "accion": "consulta",
+      "nivel": 0,
+      "arquetipos": [
+        "puesto",
+        "servidor"
+      ],
+      "en_el_equipo": "Se consulta el historial de inicios de sesión de la cuenta y de la dirección de origen. No se modifica nada",
+      "efecto_en_la_persona": "Nada",
+      "reversion": {
+        "tipo": "no_aplica",
+        "plazo_minutos": null,
+        "como": "No aplica"
+      },
+      "pendiente": [
+        "Cómo se ejecutan las consultas de sólo lectura"
+      ]
+    },
+    {
+      "id": "PB-F1-02",
+      "familia": "F1",
+      "medida": "Bloquear la IP externa que intenta entrar",
+      "accion": "bloquear_ip",
+      "nivel": 1,
+      "arquetipos": [
+        "puesto",
+        "servidor"
+      ],
+      "en_el_equipo": "Se agrega una regla al firewall local que bloquea esa dirección externa; la regla lleva el nombre de Kronos y su hora de vencimiento",
+      "efecto_en_la_persona": "Nada, salvo que alguien legítimo use esa dirección",
+      "reversion": {
+        "tipo": "automatica_al_vencer",
+        "plazo_minutos": null,
+        "como": "Se quita sola al vencer el plazo, o antes desde la consola"
+      },
+      "pendiente": [
+        "Plazo de reversión"
+      ]
+    },
+    {
+      "id": "PB-F1-03",
+      "familia": "F1",
+      "medida": "Bloquear la IP de otro equipo de la organización que intenta entrar",
+      "accion": "bloquear_ip",
+      "nivel": 2,
+      "arquetipos": [
+        "puesto",
+        "servidor"
+      ],
+      "en_el_equipo": "Igual que PB-F1-02, con la dirección de otro equipo de la organización",
+      "efecto_en_la_persona": "El equipo deja de comunicarse con ese otro equipo y lo que dependa de él puede fallar",
+      "reversion": {
+        "tipo": "manual",
+        "plazo_minutos": null,
+        "como": "Una persona la quita desde la consola; no se revierte sola"
+      },
+      "pendiente": []
+    },
+    {
+      "id": "PB-F1-04",
+      "familia": "F1",
+      "medida": "Cerrar la sesión del usuario",
+      "accion": "cerrar_sesion",
+      "nivel": 2,
+      "arquetipos": [
+        "puesto",
+        "servidor"
+      ],
+      "en_el_equipo": "Se cierra la sesión de ese usuario",
+      "efecto_en_la_persona": "La pantalla vuelve al inicio de sesión y se pierde lo que no estaba guardado",
+      "reversion": {
+        "tipo": "accion_de_la_persona",
+        "plazo_minutos": null,
+        "como": "La persona vuelve a iniciar sesión"
+      },
+      "pendiente": []
+    },
+    {
+      "id": "PB-F1-05",
+      "familia": "F1",
+      "medida": "Deshabilitar la cuenta local",
+      "accion": "deshabilitar_cuenta",
+      "nivel": 2,
+      "arquetipos": [
+        "puesto",
+        "servidor"
+      ],
+      "en_el_equipo": "La cuenta local queda deshabilitada; no se borra ni se cambia su contraseña",
+      "efecto_en_la_persona": "No puede iniciar sesión hasta que se rehabilite",
+      "reversion": {
+        "tipo": "manual",
+        "plazo_minutos": null,
+        "como": "Botón en la consola, a cargo de una persona autorizada; no se revierte sola"
+      },
+      "pendiente": [
+        "Confirmar que no se borra ni se cambia la contraseña"
+      ]
+    },
+    {
+      "id": "PB-F2-01",
+      "familia": "F2",
+      "medida": "Reunir contexto del proceso",
+      "accion": "consulta",
+      "nivel": 0,
+      "arquetipos": [
+        "puesto",
+        "servidor"
+      ],
+      "en_el_equipo": "Se consultan el programa que lo lanzó, su línea de comandos, su huella y su firma digital. No se modifica nada",
+      "efecto_en_la_persona": "Nada",
+      "reversion": {
+        "tipo": "no_aplica",
+        "plazo_minutos": null,
+        "como": "No aplica"
+      },
+      "pendiente": [
+        "Cómo se ejecutan las consultas de sólo lectura"
+      ]
+    },
+    {
+      "id": "PB-F2-02",
+      "familia": "F2",
+      "medida": "Poner en cuarentena el archivo del proceso",
+      "accion": "cuarentena",
+      "nivel": 1,
+      "arquetipos": [
+        "puesto",
+        "servidor"
+      ],
+      "en_el_equipo": "El archivo se mueve a una carpeta protegida y deja de poder ejecutarse; se guardan su ubicación original y su huella",
+      "efecto_en_la_persona": "Si el programa se usaba, deja de abrirse",
+      "reversion": {
+        "tipo": "manual",
+        "plazo_minutos": null,
+        "como": "Se restaura desde la consola"
+      },
+      "pendiente": [
+        "Carpeta de cuarentena y su conservación",
+        "Nivel 1 sin reversión automática: decidir si se restaura sola al vencer un plazo"
+      ]
+    },
+    {
+      "id": "PB-F2-03",
+      "familia": "F2",
+      "medida": "Terminar el proceso",
+      "accion": "terminar_proceso",
+      "nivel": 2,
+      "arquetipos": [
+        "puesto",
+        "servidor"
+      ],
+      "en_el_equipo": "El programa se cierra a la fuerza",
+      "efecto_en_la_persona": "Se pierde lo que no estaba guardado en ese programa",
+      "reversion": {
+        "tipo": "accion_de_la_persona",
+        "plazo_minutos": null,
+        "como": "Se vuelve a abrir"
+      },
+      "pendiente": []
+    },
+    {
+      "id": "PB-F3-01",
+      "familia": "F3",
+      "medida": "Bloquear la IP externa de un acceso remoto sospechoso",
+      "accion": "bloquear_ip",
+      "nivel": 1,
+      "arquetipos": [
+        "puesto",
+        "servidor"
+      ],
+      "en_el_equipo": "Regla del firewall local que bloquea esa dirección externa",
+      "efecto_en_la_persona": "Nada",
+      "reversion": {
+        "tipo": "automatica_al_vencer",
+        "plazo_minutos": null,
+        "como": "Se quita sola al vencer el plazo"
+      },
+      "pendiente": [
+        "Plazo de reversión"
+      ]
+    },
+    {
+      "id": "PB-F3-02",
+      "familia": "F3",
+      "medida": "Bloquear la IP de otro equipo que se mueve entre equipos",
+      "accion": "bloquear_ip",
+      "nivel": 2,
+      "arquetipos": [
+        "puesto",
+        "servidor"
+      ],
+      "en_el_equipo": "Regla del firewall local que bloquea el otro equipo de la organización",
+      "efecto_en_la_persona": "El equipo deja de comunicarse con él",
+      "reversion": {
+        "tipo": "manual",
+        "plazo_minutos": null,
+        "como": "Una persona la quita desde la consola"
+      },
+      "pendiente": []
+    },
+    {
+      "id": "PB-F3-03",
+      "familia": "F3",
+      "medida": "Aislar un equipo de trabajo por firewall local",
+      "accion": "aislar_equipo",
+      "nivel": 3,
+      "arquetipos": [
+        "puesto"
+      ],
+      "en_el_equipo": "Reglas del firewall que bloquean todo el tráfico del equipo, salvo el canal con Kronos",
+      "efecto_en_la_persona": "Sin internet ni red: los programas que las usen dejan de funcionar",
+      "reversion": {
+        "tipo": "manual",
+        "plazo_minutos": null,
+        "como": "Se quitan las reglas desde la consola, por una persona autorizada"
+      },
+      "pendiente": [
+        "Confirmar que el aislamiento deja abierto el canal con Kronos"
+      ]
+    },
+    {
+      "id": "PB-F3-04",
+      "familia": "F3",
+      "medida": "Aislar un servidor por firewall local",
+      "accion": "aislar_equipo",
+      "nivel": 3,
+      "arquetipos": [
+        "servidor"
+      ],
+      "en_el_equipo": "Lo mismo que PB-F3-03, sobre un servidor",
+      "efecto_en_la_persona": "Los servicios que aloja dejan de estar disponibles",
+      "reversion": {
+        "tipo": "manual",
+        "plazo_minutos": null,
+        "como": "Desde la consola, por una persona autorizada"
+      },
+      "pendiente": []
+    },
+    {
+      "id": "PB-F4-01",
+      "familia": "F4",
+      "medida": "Bloquear el destino externo de una salida anómala",
+      "accion": "bloquear_destino",
+      "nivel": 1,
+      "arquetipos": [
+        "puesto",
+        "servidor"
+      ],
+      "en_el_equipo": "Regla del firewall que bloquea las conexiones salientes hacia el destino sospechoso",
+      "efecto_en_la_persona": "No se puede entrar a ese destino",
+      "reversion": {
+        "tipo": "automatica_al_vencer",
+        "plazo_minutos": null,
+        "como": "Se quita sola al vencer el plazo"
+      },
+      "pendiente": [
+        "Plazo de reversión",
+        "Cómo se bloquea un dominio",
+        "Acción adicional: implementarla o reemplazarla por una de las siete"
+      ]
+    },
+    {
+      "id": "PB-F4-02",
+      "familia": "F4",
+      "medida": "Aislar un equipo de trabajo",
+      "accion": "aislar_equipo",
+      "nivel": 3,
+      "arquetipos": [
+        "puesto"
+      ],
+      "en_el_equipo": "Aislamiento del equipo, como en PB-F3-03",
+      "efecto_en_la_persona": "Sin internet ni red",
+      "reversion": {
+        "tipo": "manual",
+        "plazo_minutos": null,
+        "como": "Desde la consola, por una persona autorizada"
+      },
+      "pendiente": []
+    },
+    {
+      "id": "PB-F4-03",
+      "familia": "F4",
+      "medida": "Aislar un servidor",
+      "accion": "aislar_equipo",
+      "nivel": 3,
+      "arquetipos": [
+        "servidor"
+      ],
+      "en_el_equipo": "Aislamiento de un servidor",
+      "efecto_en_la_persona": "Los servicios que aloja dejan de estar disponibles",
+      "reversion": {
+        "tipo": "manual",
+        "plazo_minutos": null,
+        "como": "Desde la consola, por una persona autorizada"
+      },
+      "pendiente": []
+    },
+    {
+      "id": "PB-F5-01",
+      "familia": "F5",
+      "medida": "Poner en cuarentena el archivo de persistencia",
+      "accion": "cuarentena",
+      "nivel": 1,
+      "arquetipos": [
+        "puesto",
+        "servidor"
+      ],
+      "en_el_equipo": "Se pone en cuarentena el archivo que provoca el arranque automático",
+      "efecto_en_la_persona": "El programa deja de abrirse al iniciar",
+      "reversion": {
+        "tipo": "manual",
+        "plazo_minutos": null,
+        "como": "Se restaura desde la consola"
+      },
+      "pendiente": [
+        "Carpeta de cuarentena y su conservación",
+        "Nivel 1 sin reversión automática: decidir si se restaura sola al vencer un plazo"
+      ]
+    },
+    {
+      "id": "PB-F5-02",
+      "familia": "F5",
+      "medida": "Revertir la tarea programada nueva",
+      "accion": "revertir_tarea",
+      "nivel": 1,
+      "arquetipos": [
+        "puesto",
+        "servidor"
+      ],
+      "en_el_equipo": "La tarea programada nueva se desactiva y se guarda su definición para poder restaurarla",
+      "efecto_en_la_persona": "Esa tarea deja de ejecutarse",
+      "reversion": {
+        "tipo": "manual",
+        "plazo_minutos": null,
+        "como": "Se restaura desde la consola"
+      },
+      "pendiente": [
+        "Confirmar que se guarda la definición de la tarea",
+        "Nivel 1 sin reversión automática: decidir si se restaura sola al vencer un plazo",
+        "Acción adicional: implementarla o reemplazarla por una de las siete"
+      ]
+    },
+    {
+      "id": "PB-F5-03",
+      "familia": "F5",
+      "medida": "Poner en cuarentena un archivo de sistema o de aplicación alterado",
+      "accion": "cuarentena",
+      "nivel": 3,
+      "arquetipos": [
+        "puesto",
+        "servidor"
+      ],
+      "en_el_equipo": "Se pone en cuarentena un archivo del sistema o de una aplicación que fue alterado",
+      "efecto_en_la_persona": "El programa o el sistema puede dejar de funcionar",
+      "reversion": {
+        "tipo": "manual",
+        "plazo_minutos": null,
+        "como": "Se restaura desde la consola, por una persona autorizada"
+      },
+      "pendiente": [
+        "Carpeta de cuarentena y su conservación"
+      ]
+    },
+    {
+      "id": "PB-F5-04",
+      "familia": "F5",
+      "medida": "Aislar un equipo de trabajo",
+      "accion": "aislar_equipo",
+      "nivel": 3,
+      "arquetipos": [
+        "puesto"
+      ],
+      "en_el_equipo": "Aislamiento del equipo, como en PB-F3-03",
+      "efecto_en_la_persona": "Sin internet ni red",
+      "reversion": {
+        "tipo": "manual",
+        "plazo_minutos": null,
+        "como": "Desde la consola, por una persona autorizada"
+      },
+      "pendiente": []
+    },
+    {
+      "id": "PB-F5-05",
+      "familia": "F5",
+      "medida": "Aislar un servidor",
+      "accion": "aislar_equipo",
+      "nivel": 3,
+      "arquetipos": [
+        "servidor"
+      ],
+      "en_el_equipo": "Aislamiento de un servidor",
+      "efecto_en_la_persona": "Los servicios que aloja dejan de estar disponibles",
+      "reversion": {
+        "tipo": "manual",
+        "plazo_minutos": null,
+        "como": "Desde la consola, por una persona autorizada"
+      },
+      "pendiente": []
+    },
+    {
+      "id": "PB-F6-01",
+      "familia": "F6",
+      "medida": "Reunir contexto de carga y conexiones",
+      "accion": "consulta",
+      "nivel": 0,
+      "arquetipos": [
+        "puesto",
+        "servidor"
+      ],
+      "en_el_equipo": "Se consultan la carga del equipo y las conexiones activas. No se modifica nada",
+      "efecto_en_la_persona": "Nada",
+      "reversion": {
+        "tipo": "no_aplica",
+        "plazo_minutos": null,
+        "como": "No aplica"
+      },
+      "pendiente": [
+        "Cómo se ejecutan las consultas de sólo lectura"
+      ]
+    },
+    {
+      "id": "PB-F6-02",
+      "familia": "F6",
+      "medida": "Bloquear la IP de origen del tráfico abusivo",
+      "accion": "bloquear_ip",
+      "nivel": 1,
+      "arquetipos": [
+        "puesto",
+        "servidor"
+      ],
+      "en_el_equipo": "Regla del firewall que bloquea la dirección que genera el tráfico abusivo",
+      "efecto_en_la_persona": "Nada, salvo que sea un usuario legítimo",
+      "reversion": {
+        "tipo": "automatica_al_vencer",
+        "plazo_minutos": null,
+        "como": "Se quita sola al vencer el plazo"
+      },
+      "pendiente": [
+        "Plazo de reversión"
+      ]
+    },
+    {
+      "id": "PB-F6-03",
+      "familia": "F6",
+      "medida": "Limitar las conexiones por origen",
+      "accion": "limitar_conexiones",
+      "nivel": 1,
+      "arquetipos": [
+        "puesto",
+        "servidor"
+      ],
+      "en_el_equipo": "Se aplica un límite de conexiones simultáneas por origen mediante el firewall",
+      "efecto_en_la_persona": "Un origen muy activo ve rechazadas sus conexiones",
+      "reversion": {
+        "tipo": "automatica_al_vencer",
+        "plazo_minutos": null,
+        "como": "Se quita sola al vencer el plazo"
+      },
+      "pendiente": [
+        "Plazo de reversión",
+        "Confirmar cómo se limita con el firewall",
+        "Acción adicional: implementarla o reemplazarla por una de las siete"
+      ]
+    },
+    {
+      "id": "PB-F6-04",
+      "familia": "F6",
+      "medida": "Detener un servicio público del servidor",
+      "accion": "detener_servicio",
+      "nivel": 3,
+      "arquetipos": [
+        "servidor"
+      ],
+      "en_el_equipo": "Se detiene un servicio público del servidor",
+      "efecto_en_la_persona": "El servicio deja de estar disponible",
+      "reversion": {
+        "tipo": "manual",
+        "plazo_minutos": null,
+        "como": "Se reinicia desde la consola, por una persona autorizada"
+      },
+      "pendiente": []
+    },
+    {
+      "id": "PB-F6-05",
+      "familia": "F6",
+      "medida": "Detener un servicio de apoyo del equipo",
+      "accion": "detener_servicio",
+      "nivel": 3,
+      "arquetipos": [
+        "puesto"
+      ],
+      "en_el_equipo": "Se detiene un servicio del equipo (por ejemplo, el de impresión)",
+      "efecto_en_la_persona": "El servicio deja de funcionar hasta que se reinicie",
+      "reversion": {
+        "tipo": "manual",
+        "plazo_minutos": null,
+        "como": "Se reinicia desde la consola, por una persona autorizada"
+      },
+      "pendiente": []
+    }
+  ]
+}
