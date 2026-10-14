@@ -1,0 +1,28 @@
+flowchart LR
+    OP(["Integrante del<br/>equipo Kronos"])
+    ENC(["Encargado<br/>del cliente"])
+    AG(["Agente<br/>SOAR-COLLECT"])
+    SIS(["Sistema<br/>temporizador"])
+    PA(["Persona<br/>afectada"])
+    subgraph K["Kronos AI"]
+        CU1(["CU-01 Resolver una alerta<br/>en nivel 1 con reversión"])
+        CU2(["CU-02 Aprobar o rechazar<br/>una medida de nivel 3"])
+        CU3(["CU-03 Vencer la aprobación<br/>de nivel 3 (Propuesta D-34)"])
+        CU4(["CU-04 Revisar y revertir<br/>una acción de nivel 2"])
+        CU5(["CU-05 Rechazar por chequeo<br/>(MANUAL_TRIAGE)"])
+        CU6(["CU-06 Operar el<br/>cortacircuito"])
+        CU7(["CU-07 Verificar la cadena<br/>de la bitácora"])
+        CU8(["CU-08 Dar de alta<br/>un inquilino"])
+    end
+    AG --> CU1
+    AG --> CU5
+    SIS --> CU1
+    SIS --> CU3
+    SIS --> CU4
+    OP --> CU2
+    OP --> CU4
+    OP --> CU6
+    OP --> CU7
+    OP --> CU8
+    ENC --> CU7
+    CU4 -. "correo manual (D-35)" .-> PA

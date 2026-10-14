@@ -1,0 +1,18 @@
+sequenceDiagram
+    autonumber
+    participant V as SOAR-VALIDATE
+    participant M as SOAR-CLASSIFY
+    participant C as Contrato JSON
+    Note over V,M: Un plazo total para los dos pasos
+    V->>M: Paso 1 (familia)
+    M-->>V: familia y confianza
+    V->>C: leer_familia
+    alt Falla
+        C-->>V: motivo de falla segura
+        Note over V: MANUAL_TRIAGE
+    else Válida
+        V->>M: Paso 2 (candidatos de la familia)
+        M-->>V: playbook_id y confianza
+        V->>C: leer_playbook
+        Note over V: Chequeos 2 a 6
+    end

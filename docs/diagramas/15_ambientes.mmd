@@ -1,0 +1,8 @@
+flowchart TB
+    U["Unitarias<br/>tests/unit, 72 pruebas"] --> I["Integración<br/>tests/sql a–d y medición"]
+    I --> S["Sistema<br/>flujo completo (pendiente)"]
+    S --> A["Aceptación<br/>puerta para la farmacia (pendiente)"]
+    U -.- PC1["PC con Docker Desktop"]
+    I -.- CORE1["PC y SOAR-CORE-01"]
+    S -.- LAB1["Laboratorio<br/>EP-WKS-01 y EP-SRV-01"]
+    A -.- LAB1

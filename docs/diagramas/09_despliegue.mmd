@@ -1,0 +1,18 @@
+flowchart TB
+    AG["Agentes del laboratorio (EP-WKS-01 y EP-SRV-01, VM en red NAT)<br/>y de clientes: 1514/TCP público, sin NetBird"]
+    EQ["Equipo Kronos por NetBird:<br/>22, 55000, 9200 y 5601"]
+    US["Usuarios de la consola:<br/>443/TCP (pendiente)"]
+    subgraph CORE["SOAR-CORE-01"]
+        FW["Contabo Cloud VDS XL, Francia, UTC<br/>16 vCPU, 64 GB RAM, 480 GB NVMe, sin GPU<br/>Firewall: deniega por defecto"]
+        subgraph DOCKER["Docker"]
+            WZ["wazuh.manager: 1514 público, 55000 NetBird<br/>wazuh.indexer: 9200 NetBird<br/>wazuh.dashboard: 5601 NetBird<br/>Ollama: 11434 interno"]
+            PG[("PostgreSQL 17.11<br/>red interna<br/>sin puertos")]
+        end
+        FUT["Pendientes: SOAR-VALIDATE, SOAR-EXECUTE,<br/>SOAR-NOTIFY y SOAR-CONSOLE (443 con TLS)"]
+    end
+    AG --> FW
+    EQ --> FW
+    US --> FW
+    FW --> WZ
+    WZ ~~~ FUT
+    PG ~~~ FUT

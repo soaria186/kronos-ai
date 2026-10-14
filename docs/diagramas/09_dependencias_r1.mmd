@@ -1,0 +1,10 @@
+flowchart TB
+    DEC["decision/<br/>prompts, inferencia, cliente de Ollama"]
+    VALI["validacion/<br/>contrato JSON, chequeos, catálogo"]
+    EJE["ejecucion/"]
+    PER["persistencia/"]
+    CON2["conectores/"]
+    DEC -- "permitido" --> VALI
+    DEC -. "prohibido por R1 (check_r1.py en el CI)" .-x EJE
+    DEC -. "prohibido por R1" .-x PER
+    DEC -. "prohibido por R1" .-x CON2

@@ -1,0 +1,27 @@
+---
+config:
+  gantt:
+    fontSize: 17
+    sectionFontSize: 17
+    barHeight: 30
+    barGap: 8
+    leftPadding: 120
+    rightPadding: 40
+  themeVariables:
+    fontSize: 17px
+---
+gantt
+    title Sprints (plan del 25-09-2026)
+    dateFormat YYYY-MM-DD
+    axisFormat %d-%m
+    section Sprints
+    S1 Migración de infraestructura   :s1, 2026-09-25, 2026-10-06
+    S2 Núcleo de decisión             :s2, 2026-10-06, 2026-10-20
+    S3 Respuesta y niveles            :s3, 2026-10-20, 2026-11-03
+    S4 Capa SaaS                      :s4, 2026-11-03, 2026-11-17
+    S5 Medición y endurecimiento      :s5, 2026-11-17, 2026-12-01
+    S6 Cierre académico               :s6, 2026-12-01, 2026-12-10
+    section Hitos
+    Entrega de documentos             :milestone, m1, 2026-10-16, 0d
+    Punto de no retorno               :crit, milestone, m2, 2026-11-07, 0d
+    Fin del contrato del servidor     :milestone, m3, 2026-12-10, 0d
