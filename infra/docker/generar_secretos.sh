@@ -4,6 +4,8 @@
 #   - initdb/03_roles.sql: copia de 03_roles.sql.example con contraseñas aleatorias.
 #   - secrets/kronos_worker_password: la misma contraseña de kronos_worker, para los
 #     servicios.
+#   - secrets/kronos_console_password e initdb/05_clave_consola.sql: contraseña del rol
+#     kronos_console de SOAR-CONSOLE (el rol lo crea 04_consola.sql).
 # Ambos están en .gitignore. Si ya existen, no se sobrescriben.
 set -euo pipefail
 cd "$(dirname "$0")"
@@ -45,4 +47,14 @@ if [ ! -f secrets/kronos_worker_password ]; then
 		exit 1
 	fi
 	echo "Creado secrets/kronos_worker_password (tomada de 03_roles.sql)."
+fi
+
+if [ ! -f secrets/kronos_console_password ]; then
+	aleatoria >secrets/kronos_console_password
+	echo "Creado secrets/kronos_console_password."
+fi
+if [ ! -f initdb/05_clave_consola.sql ]; then
+	printf "ALTER ROLE kronos_console LOGIN PASSWORD '%s';\n" \
+		"$(cat secrets/kronos_console_password)" >initdb/05_clave_consola.sql
+	echo "Creado initdb/05_clave_consola.sql."
 fi

@@ -365,16 +365,18 @@ class Repositorio:
 
     # ------------------------------------------------------------- nivel 3
 
+    # Las transiciones que decide una persona están en el esquema consola de la base
+    # (infra/docker/initdb/04_consola.sql), para que SOAR-CONSOLE y SOAR-NOTIFY usen
+    # exactamente la misma lógica.
+
     def aprobar(self, tenant_id: int, ticket_id: int, aprobador: str) -> None:
         """Un integrante aprueba un nivel 3: pasa a PENDING y EXECUTE lo tomará."""
-        self._resolver_aprobacion(
-            tenant_id, ticket_id, aprobador, "PENDING", EVENTO_APROBACION_CONCEDIDA, ""
-        )
+        self._consola(tenant_id, "SELECT consola.aprobar(%s, %s)", ticket_id, aprobador)
 
     def denegar(self, tenant_id: int, ticket_id: int, aprobador: str, motivo: str) -> None:
-        """Un integrante rechaza un nivel 3: queda en REJECTED y no se ejecuta."""
-        self._resolver_aprobacion(
-            tenant_id, ticket_id, aprobador, "REJECTED", EVENTO_APROBACION_DENEGADA, motivo
+        """Un integrante rechaza un nivel 3 con su motivo (CU-02): queda en REJECTED."""
+        self._consola(
+            tenant_id, "SELECT consola.denegar(%s, %s, %s)", ticket_id, aprobador, motivo
         )
 
     def vencer_aprobaciones(self, tenant_id: int) -> list[int]:
@@ -415,33 +417,17 @@ class Repositorio:
         Deja un temporizador de reversión vencido ahora mismo; EXECUTE lo toma en su
         próximo ciclo. Si ya había uno pendiente, lo adelanta.
         """
-        solicitante = _persona(solicitante)
-        with self._transaccion(tenant_id) as cur:
-            cur.execute(
-                """
-                SELECT 1 FROM tickets
-                 WHERE tenant_id = %s AND id = %s AND execution_status = 'SUCCESS'
-                   FOR UPDATE
-                """,
-                (tenant_id, ticket_id),
-            )
-            if cur.fetchone() is None:
-                raise EstadoInvalido(f"ticket {ticket_id}: sólo se revierte una medida en SUCCESS")
-            if _revertido(cur, tenant_id, ticket_id):
-                raise EstadoInvalido(f"ticket {ticket_id}: la medida ya fue revertida")
-            cur.execute(
-                """
-                UPDATE temporizadores SET vence_en = now()
-                 WHERE tenant_id = %s AND ticket_id = %s AND tipo = %s
-                   AND disparado_en IS NULL
-                """,
-                (tenant_id, ticket_id, TEMPORIZADOR_REVERSION),
-            )
-            if cur.rowcount == 0:
-                _temporizador(cur, tenant_id, ticket_id, TEMPORIZADOR_REVERSION, 0)
-            self._evento(
-                cur, tenant_id, ticket_id, EVENTO_REVERSION_SOLICITADA, {}, actor=solicitante
-            )
+        self._consola(
+            tenant_id, "SELECT consola.solicitar_reversion(%s, %s)", ticket_id, solicitante
+        )
+
+    def cerrar_cortacircuito(
+        self, tenant_id: int, persona: str, motivo: str, ambito: str = AMBITO_INQUILINO
+    ) -> None:
+        """Una persona vuelve a habilitar la ejecución automática, con su motivo."""
+        self._consola(
+            tenant_id, "SELECT consola.cerrar_cortacircuito(%s, %s, %s)", persona, motivo, ambito
+        )
 
     def tomar_reversion(self, tenant_id: int) -> ReversionPendiente | None:
         """Toma la reversión vencida más antigua y la marca como disparada."""
@@ -670,27 +656,16 @@ class Repositorio:
 
     # ------------------------------------------------------------------- interno
 
-    def _resolver_aprobacion(
-        self,
-        tenant_id: int,
-        ticket_id: int,
-        aprobador: str,
-        estado: str,
-        evento: str,
-        motivo: str,
-    ) -> None:
-        aprobador = _persona(aprobador)
-        with self._transaccion(tenant_id) as cur:
-            _cambiar_estado(cur, tenant_id, ticket_id, "AWAITING_APPROVAL", estado)
-            cur.execute(
-                """
-                UPDATE temporizadores SET disparado_en = now()
-                 WHERE tenant_id = %s AND ticket_id = %s AND tipo = %s
-                   AND disparado_en IS NULL
-                """,
-                (tenant_id, ticket_id, TEMPORIZADOR_APROBACION),
-            )
-            self._evento(cur, tenant_id, ticket_id, evento, {"motivo": motivo}, actor=aprobador)
+    def _consola(self, tenant_id: int, sql: str, *parametros: Any) -> None:
+        try:
+            with self._transaccion(tenant_id) as cur:
+                cur.execute(sql, parametros)
+        except psycopg.Error as exc:
+            if exc.sqlstate == "KR001":
+                raise EstadoInvalido(_mensaje_db(exc)) from None
+            if exc.sqlstate == "KR002":
+                raise ValueError(_mensaje_db(exc)) from None
+            raise
 
     @contextmanager
     def _transaccion(self, tenant_id: int) -> Iterator[psycopg.Cursor]:
@@ -804,23 +779,9 @@ def _alerta(cur: psycopg.Cursor, tenant_id: int, ticket_id: int) -> dict[str, An
     return fila[0] if fila else {}
 
 
-def _revertido(cur: psycopg.Cursor, tenant_id: int, ticket_id: int) -> bool:
-    cur.execute(
-        """
-        SELECT 1 FROM auditoria
-         WHERE tenant_id = %s AND ticket_id = %s AND evento = %s
-         LIMIT 1
-        """,
-        (tenant_id, ticket_id, EVENTO_REVERSION_OK),
-    )
-    return cur.fetchone() is not None
-
-
-def _persona(nombre: str) -> str:
-    """Quien aprueba o revierte queda como actor del evento: no puede ir vacío."""
-    if not isinstance(nombre, str) or not nombre.strip():
-        raise ValueError("falta el nombre de la persona")
-    return nombre.strip()
+def _mensaje_db(exc: psycopg.Error) -> str:
+    diagnostico = getattr(exc, "diag", None)
+    return (diagnostico.message_primary if diagnostico else None) or str(exc)
 
 
 def _filtro_contador(
