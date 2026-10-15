@@ -1,0 +1,35 @@
+{
+  "codigo": "KRO-VAL-CONF",
+  "version": "0.1",
+  "estado": "propuesta",
+  "nota": "Valores propuestos por Patricio el 15-10-2026 para revisión del equipo. Ninguno está decidido. Las entradas de la lista de exclusión se cargan con los datos de cada cliente.",
+  "mapa_severidad": [
+    {"desde": 0, "hasta": 6, "nivel_maximo": 0, "motivo": "Severidad baja: sólo reunir contexto"},
+    {"desde": 7, "hasta": 9, "nivel_maximo": 1, "motivo": "Archivo vigilado modificado, disco lleno, agente caído, RDP remoto: sólo medidas reversibles"},
+    {"desde": 10, "hasta": 11, "nivel_maximo": 2, "motivo": "Fuerza bruta, cuentas nuevas, persistencia: puede afectar a una persona"},
+    {"desde": 12, "hasta": 15, "nivel_maximo": 3, "motivo": "PowerShell codificado, ejecución remota, borrado de auditoría: puede pedir aprobación de nivel 3"}
+  ],
+  "exclusion": {
+    "categorias": {
+      "equipo": "Nombre del equipo, tal como lo reporta el agente",
+      "cuenta": "Cuenta local o de dominio, sin distinguir mayúsculas",
+      "programa": "Ruta completa del ejecutable o su huella SHA-256",
+      "servicio": "Nombre del servicio de Windows o unidad de systemd",
+      "ip": "Dirección IP propia: servidores, puerta de enlace, impresoras",
+      "destino": "Dominio o dirección externa permitida"
+    },
+    "entradas": []
+  },
+  "contadores": [
+    {"nombre": "acciones_por_inquilino", "descripcion": "Acciones automáticas de un cliente en la última hora", "ventana_minutos": 60, "tope": 10},
+    {"nombre": "acciones_por_equipo", "descripcion": "Acciones automáticas sobre un mismo equipo en la última hora", "ventana_minutos": 60, "tope": 3},
+    {"nombre": "acciones_por_playbook", "descripcion": "Ejecuciones automáticas de un mismo playbook en la última hora", "ventana_minutos": 60, "tope": 5},
+    {"nombre": "acciones_nivel_2", "descripcion": "Acciones de nivel 2 de un cliente en el último día", "ventana_minutos": 1440, "tope": 5}
+  ],
+  "disparo_cortacircuito": {
+    "nombre": "alertas_por_ventana",
+    "descripcion": "Alertas de un cliente que llegan a VALIDATE; al alcanzar el tope se abre el cortacircuito y sólo una persona lo cierra",
+    "ventana_minutos": 10,
+    "tope": 30
+  }
+}
