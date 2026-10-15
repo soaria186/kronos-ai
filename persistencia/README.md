@@ -4,7 +4,7 @@ Acceso a SOAR-AUDIT (PostgreSQL) desde los servicios de Kronos.
 
 ## `repositorio.py`
 
-Capa que usan SOAR-VALIDATE y SOAR-EXECUTE, conectada como `kronos_worker`.
+Capa que usan SOAR-VALIDATE, SOAR-EXECUTE y SOAR-NOTIFY, conectada como `kronos_worker`.
 
 ### VALIDATE
 
@@ -16,7 +16,7 @@ Capa que usan SOAR-VALIDATE y SOAR-EXECUTE, conectada como `kronos_worker`.
 | `alertas_en_ventana` | Tickets creados en la ventana: lo que mide el disparo del cortacircuito |
 | `cortacircuito_abierto` / `abrir_cortacircuito` | Estado vigente y apertura, con su evento en la bitácora. Cerrarlo lo hace una persona desde SOAR-CONSOLE |
 
-### EXECUTE y aprobaciones
+### EXECUTE, aprobaciones y avisos
 
 | Método | Qué hace |
 | :--- | :--- |
@@ -27,6 +27,7 @@ Capa que usan SOAR-VALIDATE y SOAR-EXECUTE, conectada como `kronos_worker`.
 | `solicitar_reversion` | Una persona pide revertir una medida en `SUCCESS` (nivel 2, o nivel 1 antes de su plazo) |
 | `tomar_reversion` / `registrar_reversion` | Reversión vencida o pedida: `REVERSION_INICIADA` y luego `REVERSION_OK` o `REVERSION_FALLIDA`. Tras revertir, terminan los recordatorios |
 | `tomar_recordatorios` | Nivel 2 con el plazo de revisión vencido: `RECORDATORIO_REVISION` y el siguiente en un día. La medida nunca se revierte sola |
+| `eventos_para_avisar` / `registrar_aviso` | SOAR-NOTIFY: eventos a avisar desde el último `AVISO_ENVIADO`, y la constancia de cada aviso |
 
 ### Estados del ticket
 
@@ -52,4 +53,4 @@ Reglas:
 
 ## Pruebas
 
-`tests/integracion/test_repositorio.py` y `test_ejecucion.py`, contra la base de `infra/docker` (ver el Dockerfile de esa carpeta). Sin la variable `KRONOS_DSN`, se omiten.
+`tests/integracion/test_repositorio.py`, `test_ejecucion.py` y `test_notificacion.py`, contra la base de `infra/docker` (ver el Dockerfile de esa carpeta). Sin la variable `KRONOS_DSN`, se omiten.
