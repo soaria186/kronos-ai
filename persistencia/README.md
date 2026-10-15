@@ -22,9 +22,10 @@ Capa que usan SOAR-VALIDATE, SOAR-EXECUTE y SOAR-NOTIFY, conectada como `kronos_
 | :--- | :--- |
 | `tomar_para_ejecutar` | Pasa a `EXECUTING` el `PENDING` con playbook más antiguo (`FOR UPDATE SKIP LOCKED`) y deja `EJECUCION_INICIADA` antes de enviar la orden. Devuelve la alerta que guardó VALIDATE |
 | `registrar_ejecucion` | `EXECUTING` → `SUCCESS` o `FAILED`, con `EJECUCION_OK` o `EJECUCION_FALLIDA`. Si salió bien: temporizador `REVERSION` (nivel 1 con plazo) o `REVISION` de 2 días (nivel 2, D-33) |
-| `aprobar` / `denegar` | Nivel 3: `AWAITING_APPROVAL` → `PENDING` o `REJECTED`. La persona queda como actor del evento |
+| `aprobar` / `denegar` | Nivel 3: `AWAITING_APPROVAL` → `PENDING` o `REJECTED` (el rechazo exige motivo). La persona queda como actor del evento |
 | `vencer_aprobaciones` | Nivel 3 sin respuesta en 2 días → `MANUAL_TRIAGE` con `APROBACION_VENCIDA` (D-34) |
 | `solicitar_reversion` | Una persona pide revertir una medida en `SUCCESS` (nivel 2, o nivel 1 antes de su plazo) |
+| `cerrar_cortacircuito` | Una persona vuelve a habilitar la ejecución automática, con su motivo |
 | `tomar_reversion` / `registrar_reversion` | Reversión vencida o pedida: `REVERSION_INICIADA` y luego `REVERSION_OK` o `REVERSION_FALLIDA`. Tras revertir, terminan los recordatorios |
 | `tomar_recordatorios` | Nivel 2 con el plazo de revisión vencido: `RECORDATORIO_REVISION` y el siguiente en un día. La medida nunca se revierte sola |
 | `eventos_para_avisar` / `registrar_aviso` | SOAR-NOTIFY: eventos a avisar desde el último `AVISO_ENVIADO`, y la constancia de cada aviso |
@@ -44,6 +45,11 @@ EXECUTING ──> SUCCESS | FAILED
 - `FAILED` no se reintenta solo; una persona decide.
 - Un ticket que quedó en `EXECUTING` (EXECUTE se cayó tras enviar) no se retoma solo: la orden pudo haber llegado.
 - La reversión no cambia el estado: queda en la bitácora y en `temporizadores`.
+
+Las cuatro operaciones que decide una persona (`aprobar`, `denegar`, `solicitar_reversion`
+y `cerrar_cortacircuito`) llaman a funciones del esquema `consola` de la base
+(`infra/docker/initdb/04_consola.sql`). SOAR-CONSOLE, con el rol `kronos_console`, sólo
+puede escribir a través de ellas; así la consola, Telegram y el código usan la misma lógica.
 
 Reglas:
 

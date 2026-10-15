@@ -6,6 +6,7 @@ id_ed25519*
 
 # Credenciales generadas de infraestructura
 infra/docker/initdb/03_roles.sql
+infra/docker/initdb/05_clave_consola.sql
 infra/wazuh/config/wazuh_indexer_ssl_certs/
 infra/wazuh/config/wazuh_indexer/internal_users.yml
 infra/wazuh/config/wazuh_dashboard/wazuh.yml
