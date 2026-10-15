@@ -1,0 +1,11 @@
+[Unit]
+Description=Kronos: respaldo diario de PostgreSQL a las 04:15 UTC
+
+[Timer]
+# 15 minutos después del respaldo de Wazuh (04:00 UTC), para no coincidir.
+OnCalendar=*-*-* 04:15:00 UTC
+Persistent=true
+RandomizedDelaySec=120
+
+[Install]
+WantedBy=timers.target
