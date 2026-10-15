@@ -81,6 +81,7 @@ class ClienteOllamaPruebas(unittest.TestCase):
         self.assertIs(cuerpo["stream"], False)
         self.assertEqual(cuerpo["format"], ESQUEMA)
         self.assertEqual(cuerpo["options"], {"temperature": 0, "num_ctx": 4096})
+        self.assertEqual(cuerpo["keep_alive"], -1)
 
     def test_demora(self):
         with self.assertRaises(TiempoExcedido):

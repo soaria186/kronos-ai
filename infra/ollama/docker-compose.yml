@@ -1,0 +1,34 @@
+# SOAR-CLASSIFY: Ollama con los modelos de Kronos AI.
+# Instalación paso a paso: docs/instalacion/06-ollama.md
+#
+# - Imagen fijada: una actualización de Ollama cambia los tiempos y puede cambiar las
+#   respuestas; las mediciones del 14-10-2026 se hicieron con la 0.40.0.
+# - Sólo escucha en 127.0.0.1: no se publica a internet ni a NetBird. Desde el PC se usa
+#   un túnel SSH. SOAR-VALIDATE llegará por la red kronos_inferencia.
+# - OLLAMA_KEEP_ALIVE=-1: el modelo queda cargado en memoria. En frío el 7B tarda unos
+#   58 s por alerta, al borde del límite de 60 s; en tibio, unos 20 s.
+# - Sin secretos: Ollama no usa credenciales.
+
+name: kronos-ollama
+
+services:
+  ollama:
+    image: ollama/ollama:0.40.0
+    container_name: ollama
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:11434:11434"
+    environment:
+      OLLAMA_KEEP_ALIVE: "-1"
+    volumes:
+      - modelos:/root/.ollama
+    networks:
+      - inferencia
+
+volumes:
+  modelos:
+    name: kronos_ollama_modelos
+
+networks:
+  inferencia:
+    name: kronos_inferencia
