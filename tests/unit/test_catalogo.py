@@ -34,6 +34,24 @@ class CatalogoVersionado(unittest.TestCase):
         self.assertEqual(p["PB-F3-03"].nivel, 3)
         self.assertEqual(p["PB-F6-01"].nivel, 0)
 
+    def test_la_reversion_automatica_trae_su_plazo(self):
+        # Sin plazo, EXECUTE deja la medida en FAILED (PLAZO_DE_REVERSION_SIN_DEFINIR).
+        con_plazo = [
+            p
+            for p in ORIGINAL["playbooks"]
+            if p["reversion"]["tipo"] == "automatica_al_vencer"
+        ]
+        self.assertEqual(
+            {p["id"] for p in con_plazo},
+            {"PB-F1-02", "PB-F3-01", "PB-F4-01", "PB-F6-02", "PB-F6-03"},
+        )
+        for p in con_plazo:
+            with self.subTest(p["id"]):
+                self.assertEqual(p["nivel"], 1)
+                plazo = p["reversion"]["plazo_minutos"]
+                self.assertIs(type(plazo), int)
+                self.assertGreater(plazo, 0)
+
     def test_es_version_de_trabajo(self):
         self.assertEqual(ORIGINAL["estado"], "version_de_trabajo")
 

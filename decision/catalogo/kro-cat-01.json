@@ -1,6 +1,6 @@
 {
   "codigo": "KRO-CAT-01",
-  "version": "0.1",
+  "version": "0.2",
   "estado": "version_de_trabajo",
   "fuente": "Anexo — Catálogo de medidas de Kronos AI, borrador 0.1 (08-10-2026)",
   "nota": "Versión de trabajo: el catálogo definitivo se cierra en la etapa 3. Los identificadores coinciden con los del catálogo provisional de decision/prompts/paso2_plantilla.txt pero significan otras medidas; ese catálogo provisional sólo sirve para medir la inferencia.",
@@ -51,7 +51,7 @@
     }
   },
   "puntos_abiertos": [
-    "Plazos de las medidas de nivel 1; cada una necesita certificar que su reversión es segura antes de habilitarse",
+    "Plazos de las medidas de nivel 1: la versión 0.2 propone 60 minutos para las cinco con reversión automática; falta que el equipo los confirme y que cada una certifique que su reversión es segura antes de habilitarse",
     "Si la cuarentena y la reversión de tareas se restauran solas al vencer un plazo o sólo a mano",
     "Implementar las tres acciones adicionales o reemplazarlas por una de las siete básicas",
     "Cómo se ejecutan las consultas de sólo lectura del nivel 0",
@@ -94,12 +94,10 @@
       "efecto_en_la_persona": "Nada, salvo que alguien legítimo use esa dirección",
       "reversion": {
         "tipo": "automatica_al_vencer",
-        "plazo_minutos": null,
+        "plazo_minutos": 60,
         "como": "Se quita sola al vencer el plazo, o antes desde la consola"
       },
-      "pendiente": [
-        "Plazo de reversión"
-      ]
+      "pendiente": []
     },
     {
       "id": "PB-F1-03",
@@ -236,12 +234,10 @@
       "efecto_en_la_persona": "Nada",
       "reversion": {
         "tipo": "automatica_al_vencer",
-        "plazo_minutos": null,
+        "plazo_minutos": 60,
         "como": "Se quita sola al vencer el plazo"
       },
-      "pendiente": [
-        "Plazo de reversión"
-      ]
+      "pendiente": []
     },
     {
       "id": "PB-F3-02",
@@ -314,11 +310,10 @@
       "efecto_en_la_persona": "No se puede entrar a ese destino",
       "reversion": {
         "tipo": "automatica_al_vencer",
-        "plazo_minutos": null,
+        "plazo_minutos": 60,
         "como": "Se quita sola al vencer el plazo"
       },
       "pendiente": [
-        "Plazo de reversión",
         "Cómo se bloquea un dominio",
         "Acción adicional: implementarla o reemplazarla por una de las siete"
       ]
@@ -496,12 +491,10 @@
       "efecto_en_la_persona": "Nada, salvo que sea un usuario legítimo",
       "reversion": {
         "tipo": "automatica_al_vencer",
-        "plazo_minutos": null,
+        "plazo_minutos": 60,
         "como": "Se quita sola al vencer el plazo"
       },
-      "pendiente": [
-        "Plazo de reversión"
-      ]
+      "pendiente": []
     },
     {
       "id": "PB-F6-03",
@@ -517,11 +510,10 @@
       "efecto_en_la_persona": "Un origen muy activo ve rechazadas sus conexiones",
       "reversion": {
         "tipo": "automatica_al_vencer",
-        "plazo_minutos": null,
+        "plazo_minutos": 60,
         "como": "Se quita sola al vencer el plazo"
       },
       "pendiente": [
-        "Plazo de reversión",
         "Confirmar cómo se limita con el firewall",
         "Acción adicional: implementarla o reemplazarla por una de las siete"
       ]
