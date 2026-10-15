@@ -30,7 +30,7 @@ Solo usa la biblioteca estándar y no importa ejecucion, persistencia ni conecto
 
 Uso:
     python decision/mediciones/medir_inferencia.py MODELO [--url URL] [--timeout SEGUNDOS]
-        [--casos ARCHIVO_JSON]
+        [--casos ARCHIVO_JSON] [--condiciones frio tibio]
 """
 
 from __future__ import annotations
@@ -473,6 +473,13 @@ def leer_argumentos(argv: list[str]) -> argparse.Namespace:
         help=f"segundos máximos por llamada (por defecto {TIMEOUT_POR_DEFECTO:.0f})",
     )
     parser.add_argument(
+        "--condiciones",
+        nargs="+",
+        choices=CONDICIONES,
+        default=list(CONDICIONES),
+        help="condiciones a medir (por defecto frio y tibio; 'tibio' sola es más rápida)",
+    )
+    parser.add_argument(
         "--casos",
         type=Path,
         default=RUTA_CASOS,
@@ -484,6 +491,7 @@ def leer_argumentos(argv: list[str]) -> argparse.Namespace:
 def main(argv: list[str]) -> int:
     argumentos = leer_argumentos(argv)
     modelo, url, timeout = argumentos.modelo, argumentos.url, argumentos.timeout
+    condiciones = [c for c in CONDICIONES if c in argumentos.condiciones]
     filas: list[dict[str, str]] = []
     excesos: list[str] = []
     try:
@@ -492,7 +500,7 @@ def main(argv: list[str]) -> int:
         casos = cargar_casos(argumentos.casos)
 
         print(
-            f"Modelo {modelo} en {url}: {len(casos)} casos x {len(CONDICIONES)} condiciones"
+            f"Modelo {modelo} en {url}: {len(casos)} casos x {len(condiciones)} condiciones"
         )
         calentar(url, modelo, timeout)
 
@@ -502,7 +510,7 @@ def main(argv: list[str]) -> int:
             print(f"Resultados en {salida}", flush=True)
             escritor = csv.DictWriter(archivo, fieldnames=COLUMNAS)
             escritor.writeheader()
-            for condicion in CONDICIONES:
+            for condicion in condiciones:
                 for caso in casos:
                     fila = medir_caso(
                         caso,
