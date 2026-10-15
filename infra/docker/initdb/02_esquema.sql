@@ -27,8 +27,11 @@ CREATE TABLE tickets (
     -- Destino de las FK compuestas: impide referenciar tickets de otro inquilino.
     CONSTRAINT tickets_tenant_id_id_key UNIQUE (tenant_id, id),
 
+    -- AWAITING_APPROVAL: nivel 3 a la espera de que el equipo lo apruebe (plazo de 2 días).
+    -- SOAR-EXECUTE sólo toma tickets en PENDING.
     CONSTRAINT tickets_execution_status_check CHECK (execution_status IN (
-        'PENDING', 'EXECUTING', 'SUCCESS', 'FAILED', 'REJECTED', 'MANUAL_TRIAGE'
+        'PENDING', 'AWAITING_APPROVAL', 'EXECUTING', 'SUCCESS', 'FAILED', 'REJECTED',
+        'MANUAL_TRIAGE'
     )),
     CONSTRAINT tickets_autonomia_aplicada_check CHECK (autonomia_aplicada BETWEEN 0 AND 3),
     CONSTRAINT tickets_rechazo_motivo_check CHECK (rechazo_motivo IN (
@@ -115,7 +118,7 @@ CREATE INDEX tickets_tenant_creado_idx
 
 CREATE INDEX tickets_activos_idx
     ON tickets (tenant_id, execution_status)
-    WHERE execution_status IN ('PENDING', 'EXECUTING');
+    WHERE execution_status IN ('PENDING', 'AWAITING_APPROVAL', 'EXECUTING');
 
 CREATE INDEX tickets_triage_manual_idx
     ON tickets (tenant_id, creado_en)
