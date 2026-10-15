@@ -40,8 +40,14 @@ CREATE TABLE tickets (
         'CORTACIRCUITO_ABIERTO',
         'NIVEL_NO_PERMITIDO_POR_SEVERIDAD',
         'MOTOR_INFERENCIA_NO_DISPONIBLE',
-        'TIEMPO_EXCEDIDO'
-    ))
+        'TIEMPO_EXCEDIDO',
+        -- La familia del modelo no coincide con la de la regla de sobre (chequeo de VALIDATE).
+        'FAMILIA_NO_COINCIDE',
+        -- Nadie aprobó ni rechazó un nivel 3 dentro del plazo de 2 días.
+        'APROBACION_VENCIDA'
+    )),
+    -- Una alerta releída (por rotación o reinicio de VALIDATE) no crea un segundo ticket.
+    CONSTRAINT tickets_tenant_id_alerta_ref_key UNIQUE (tenant_id, alerta_ref)
 );
 
 -- Sin FK a tickets: el registro de auditoría debe sobrevivir a cualquier borrado
