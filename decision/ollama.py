@@ -1,7 +1,8 @@
 """Cliente mínimo de la API de Ollama que cumple el protocolo decision.inferencia.Modelo.
 
 Usa /api/generate sin streaming, con temperature = 0, num_ctx = 4096 y el esquema JSON en
-el campo "format", igual que la medición de la etapa 1. Traduce los errores de red a las
+el campo "format", igual que la medición de la etapa 1, y pide keep_alive = -1 para que el
+modelo no se descargue de la memoria entre alertas. Traduce los errores de red a las
 excepciones de la falla segura: timeout -> TiempoExcedido; servidor caído, error HTTP o
 respuesta ilegible -> MotorNoDisponible. Va directo al servidor, sin proxies.
 """
@@ -16,6 +17,9 @@ from decision.inferencia import MotorNoDisponible, TiempoExcedido
 
 URL_POR_DEFECTO = "http://127.0.0.1:11435"
 OPCIONES = {"temperature": 0, "num_ctx": 4096}
+# -1 = el modelo queda cargado en memoria indefinidamente. En frío el 7B tarda unos 58 s
+# por alerta y en tibio unos 20 s (medición del 14-10); el límite es 60 s.
+KEEP_ALIVE = -1
 
 _ABRIDOR = urllib.request.build_opener(urllib.request.ProxyHandler({}))
 
@@ -32,6 +36,7 @@ class ClienteOllama:
             "stream": False,
             "format": esquema,
             "options": OPCIONES,
+            "keep_alive": KEEP_ALIVE,
         }
         peticion = urllib.request.Request(
             self.url,
