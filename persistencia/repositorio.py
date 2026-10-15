@@ -1,4 +1,4 @@
-"""Acceso a SOAR-AUDIT para SOAR-VALIDATE (y, más adelante, SOAR-EXECUTE).
+"""Acceso a SOAR-AUDIT para SOAR-VALIDATE y SOAR-EXECUTE.
 
 Reglas de esta capa:
 
@@ -13,6 +13,22 @@ Reglas de esta capa:
   simples, para que la persistencia no dependa de la lógica que la usa.
 - Se conecta como ``kronos_worker``, que puede insertar en ``auditoria`` y
   ``cortacircuito`` pero nunca modificarlas.
+
+Estados del ticket (``tickets.execution_status``):
+
+    PENDING sin playbook ── decisión rechazada ──> MANUAL_TRIAGE
+         │ aprobada nivel 0-2           │ aprobada nivel 3
+         v                              v
+    PENDING con playbook <── aprobar ── AWAITING_APPROVAL ── denegar ──> REJECTED
+         │ EXECUTE la toma                    └── vence el plazo ──> MANUAL_TRIAGE
+         v                                                     (APROBACION_VENCIDA)
+    EXECUTING ──> SUCCESS | FAILED
+
+- FAILED no se reintenta solo: una persona decide (falla segura).
+- Un ticket que queda en EXECUTING (EXECUTE se cayó tras enviar la orden) tampoco se
+  retoma solo, porque la orden pudo haber llegado al equipo.
+- La reversión no cambia el estado: queda en la bitácora (REVERSION_*) y en
+  ``temporizadores``. El ticket sigue en SUCCESS.
 """
 
 from __future__ import annotations
@@ -26,10 +42,31 @@ import psycopg
 from psycopg.types.json import Jsonb
 
 ACTOR_VALIDATE = "soar-validate"
+ACTOR_EXECUTE = "soar-execute"
 
 EVENTO_ALERTA = "ALERTA_RECIBIDA"
 EVENTO_DECISION = "DECISION"
 EVENTO_CORTACIRCUITO = "CORTACIRCUITO_ABIERTO"
+EVENTO_EJECUCION_INICIADA = "EJECUCION_INICIADA"
+EVENTO_EJECUCION_OK = "EJECUCION_OK"
+EVENTO_EJECUCION_FALLIDA = "EJECUCION_FALLIDA"
+EVENTO_APROBACION_CONCEDIDA = "APROBACION_CONCEDIDA"
+EVENTO_APROBACION_DENEGADA = "APROBACION_DENEGADA"
+EVENTO_APROBACION_VENCIDA = "APROBACION_VENCIDA"
+EVENTO_REVERSION_SOLICITADA = "REVERSION_SOLICITADA"
+EVENTO_REVERSION_INICIADA = "REVERSION_INICIADA"
+EVENTO_REVERSION_OK = "REVERSION_OK"
+EVENTO_REVERSION_FALLIDA = "REVERSION_FALLIDA"
+EVENTO_RECORDATORIO = "RECORDATORIO_REVISION"
+
+# Tipos de temporizadores.
+TEMPORIZADOR_APROBACION = "APROBACION"  # nivel 3: plazo para aprobar (D-32)
+TEMPORIZADOR_REVERSION = "REVERSION"  # nivel 1 al vencer, o pedida por una persona
+TEMPORIZADOR_REVISION = "REVISION"  # nivel 2: plazo de revisión y recordatorios (D-33)
+
+PLAZO_APROBACION_MINUTOS = 2 * 24 * 60  # D-32
+PLAZO_REVISION_MINUTOS = 2 * 24 * 60  # D-33
+INTERVALO_RECORDATORIO_MINUTOS = 24 * 60  # D-33: recordatorio diario al vencer
 
 # Ámbito del cortacircuito que detiene toda acción automática de un inquilino.
 AMBITO_INQUILINO = "inquilino"
@@ -44,6 +81,10 @@ NIVELES_AUTOMATICOS = (1, 2)
 
 class TicketYaDecidido(RuntimeError):
     """El ticket no existe para este inquilino o ya tiene una decisión registrada."""
+
+
+class EstadoInvalido(RuntimeError):
+    """El ticket no existe para este inquilino o no está en el estado que pide la operación."""
 
 
 @dataclass(frozen=True)
@@ -73,6 +114,26 @@ class Decision:
     @property
     def aprobada(self) -> bool:
         return self.motivo is None
+
+
+@dataclass(frozen=True)
+class TicketAEjecutar:
+    """Ticket que SOAR-EXECUTE acaba de pasar a EXECUTING."""
+
+    ticket_id: int
+    playbook_id: str
+    nivel: int
+    # Detalle del evento ALERTA_RECIBIDA que escribió VALIDATE.
+    alerta: dict[str, Any]
+
+
+@dataclass(frozen=True)
+class ReversionPendiente:
+    """Reversión que SOAR-EXECUTE debe ejecutar ahora."""
+
+    ticket_id: int
+    playbook_id: str
+    alerta: dict[str, Any]
 
 
 @dataclass(frozen=True)
@@ -135,8 +196,10 @@ class Repositorio:
     def registrar_decision(self, tenant_id: int, ticket_id: int, decision: Decision) -> int:
         """Escribe la decisión en la bitácora y actualiza el ticket. Devuelve el seq.
 
-        Aprobada: el ticket queda en PENDING con su playbook y su nivel, a la espera
-        de SOAR-EXECUTE (o de la aprobación humana, si es nivel 3).
+        Aprobada de nivel 0 a 2: el ticket queda en PENDING con su playbook y su nivel,
+        a la espera de SOAR-EXECUTE.
+        Aprobada de nivel 3: queda en AWAITING_APPROVAL, con un temporizador de 2 días
+        para que el equipo la apruebe (D-32).
         Rechazada: el ticket pasa a MANUAL_TRIAGE con su motivo.
 
         Un ticket se decide una sola vez. Si ya tenía decisión, se lanza
@@ -155,7 +218,12 @@ class Repositorio:
             "detalle": decision.detalle,
             "equipo": decision.equipo,
         }
-        estado = "PENDING" if decision.aprobada else "MANUAL_TRIAGE"
+        if not decision.aprobada:
+            estado = "MANUAL_TRIAGE"
+        elif decision.nivel == 3:
+            estado = "AWAITING_APPROVAL"
+        else:
+            estado = "PENDING"
         confianza = None if decision.confianza is None else round(decision.confianza, 3)
 
         with self._transaccion(tenant_id) as cur:
@@ -190,7 +258,245 @@ class Repositorio:
                     f"ticket {ticket_id}: no existe para el inquilino {tenant_id} "
                     "o ya tiene una decisión"
                 )
+            if estado == "AWAITING_APPROVAL":
+                _temporizador(
+                    cur, tenant_id, ticket_id, TEMPORIZADOR_APROBACION, PLAZO_APROBACION_MINUTOS
+                )
             return seq
+
+    # ---------------------------------------------------------------- ejecución
+
+    def tomar_para_ejecutar(self, tenant_id: int) -> TicketAEjecutar | None:
+        """Pasa a EXECUTING el ticket PENDING más antiguo con playbook y lo devuelve.
+
+        FOR UPDATE SKIP LOCKED: dos procesos de EXECUTE nunca toman el mismo ticket.
+        El evento EJECUCION_INICIADA queda en la bitácora antes de enviar la orden.
+        """
+        with self._transaccion(tenant_id) as cur:
+            cur.execute(
+                """
+                SELECT id, playbook, autonomia_aplicada
+                  FROM tickets
+                 WHERE tenant_id = %s
+                   AND execution_status = 'PENDING'
+                   AND playbook IS NOT NULL
+                 ORDER BY creado_en, id
+                 LIMIT 1
+                   FOR UPDATE SKIP LOCKED
+                """,
+                (tenant_id,),
+            )
+            fila = cur.fetchone()
+            if fila is None:
+                return None
+            ticket_id, playbook_id, nivel = fila
+            _cambiar_estado(cur, tenant_id, ticket_id, "PENDING", "EXECUTING")
+            self._evento(
+                cur,
+                tenant_id,
+                ticket_id,
+                EVENTO_EJECUCION_INICIADA,
+                {"playbook": playbook_id, "nivel": nivel},
+            )
+            return TicketAEjecutar(ticket_id, playbook_id, nivel, _alerta(cur, tenant_id, ticket_id))
+
+    def registrar_ejecucion(
+        self,
+        tenant_id: int,
+        ticket_id: int,
+        exito: bool,
+        detalle: Mapping[str, Any],
+        reversion_en_minutos: int | None = None,
+    ) -> None:
+        """Cierra la ejecución: EXECUTING pasa a SUCCESS o FAILED, con su evento.
+
+        Si salió bien:
+        - ``reversion_en_minutos`` programa la reversión automática (nivel 1).
+        - Un nivel 2 abre su plazo de revisión de 2 días (D-33).
+        """
+        if reversion_en_minutos is not None and reversion_en_minutos <= 0:
+            raise ValueError("reversion_en_minutos debe ser positivo")
+        with self._transaccion(tenant_id) as cur:
+            nivel = _cambiar_estado(
+                cur, tenant_id, ticket_id, "EXECUTING", "SUCCESS" if exito else "FAILED"
+            )
+            self._evento(
+                cur,
+                tenant_id,
+                ticket_id,
+                EVENTO_EJECUCION_OK if exito else EVENTO_EJECUCION_FALLIDA,
+                dict(detalle),
+            )
+            if not exito:
+                return
+            if reversion_en_minutos is not None:
+                _temporizador(
+                    cur, tenant_id, ticket_id, TEMPORIZADOR_REVERSION, reversion_en_minutos
+                )
+            if nivel == 2:
+                _temporizador(
+                    cur, tenant_id, ticket_id, TEMPORIZADOR_REVISION, PLAZO_REVISION_MINUTOS
+                )
+
+    # ------------------------------------------------------------- nivel 3
+
+    def aprobar(self, tenant_id: int, ticket_id: int, aprobador: str) -> None:
+        """Un integrante aprueba un nivel 3: pasa a PENDING y EXECUTE lo tomará."""
+        self._resolver_aprobacion(
+            tenant_id, ticket_id, aprobador, "PENDING", EVENTO_APROBACION_CONCEDIDA, ""
+        )
+
+    def denegar(self, tenant_id: int, ticket_id: int, aprobador: str, motivo: str) -> None:
+        """Un integrante rechaza un nivel 3: queda en REJECTED y no se ejecuta."""
+        self._resolver_aprobacion(
+            tenant_id, ticket_id, aprobador, "REJECTED", EVENTO_APROBACION_DENEGADA, motivo
+        )
+
+    def vencer_aprobaciones(self, tenant_id: int) -> list[int]:
+        """Niveles 3 sin respuesta en 2 días: MANUAL_TRIAGE con APROBACION_VENCIDA (D-34)."""
+        vencidos: list[int] = []
+        with self._transaccion(tenant_id) as cur:
+            for temporizador_id, ticket_id in _temporizadores_vencidos(
+                cur, tenant_id, TEMPORIZADOR_APROBACION
+            ):
+                _disparar(cur, temporizador_id)
+                cur.execute(
+                    """
+                    UPDATE tickets
+                       SET execution_status = 'MANUAL_TRIAGE',
+                           rechazo_motivo = 'APROBACION_VENCIDA',
+                           actualizado_en = now()
+                     WHERE tenant_id = %s AND id = %s
+                       AND execution_status = 'AWAITING_APPROVAL'
+                    """,
+                    (tenant_id, ticket_id),
+                )
+                if cur.rowcount == 1:
+                    self._evento(
+                        cur,
+                        tenant_id,
+                        ticket_id,
+                        EVENTO_APROBACION_VENCIDA,
+                        {"plazo_minutos": PLAZO_APROBACION_MINUTOS},
+                    )
+                    vencidos.append(ticket_id)
+        return vencidos
+
+    # ------------------------------------------------------------- reversión
+
+    def solicitar_reversion(self, tenant_id: int, ticket_id: int, solicitante: str) -> None:
+        """Una persona pide revertir una medida (nivel 2, o un nivel 1 antes de su plazo).
+
+        Deja un temporizador de reversión vencido ahora mismo; EXECUTE lo toma en su
+        próximo ciclo. Si ya había uno pendiente, lo adelanta.
+        """
+        solicitante = _persona(solicitante)
+        with self._transaccion(tenant_id) as cur:
+            cur.execute(
+                """
+                SELECT 1 FROM tickets
+                 WHERE tenant_id = %s AND id = %s AND execution_status = 'SUCCESS'
+                   FOR UPDATE
+                """,
+                (tenant_id, ticket_id),
+            )
+            if cur.fetchone() is None:
+                raise EstadoInvalido(f"ticket {ticket_id}: sólo se revierte una medida en SUCCESS")
+            if _revertido(cur, tenant_id, ticket_id):
+                raise EstadoInvalido(f"ticket {ticket_id}: la medida ya fue revertida")
+            cur.execute(
+                """
+                UPDATE temporizadores SET vence_en = now()
+                 WHERE tenant_id = %s AND ticket_id = %s AND tipo = %s
+                   AND disparado_en IS NULL
+                """,
+                (tenant_id, ticket_id, TEMPORIZADOR_REVERSION),
+            )
+            if cur.rowcount == 0:
+                _temporizador(cur, tenant_id, ticket_id, TEMPORIZADOR_REVERSION, 0)
+            self._evento(
+                cur, tenant_id, ticket_id, EVENTO_REVERSION_SOLICITADA, {}, actor=solicitante
+            )
+
+    def tomar_reversion(self, tenant_id: int) -> ReversionPendiente | None:
+        """Toma la reversión vencida más antigua y la marca como disparada."""
+        with self._transaccion(tenant_id) as cur:
+            cur.execute(
+                """
+                SELECT tm.id, tm.ticket_id, t.playbook
+                  FROM temporizadores tm
+                  JOIN tickets t ON t.tenant_id = tm.tenant_id AND t.id = tm.ticket_id
+                 WHERE tm.tenant_id = %s AND tm.tipo = %s
+                   AND tm.disparado_en IS NULL AND tm.vence_en <= now()
+                 ORDER BY tm.vence_en, tm.id
+                 LIMIT 1
+                   FOR UPDATE OF tm SKIP LOCKED
+                """,
+                (tenant_id, TEMPORIZADOR_REVERSION),
+            )
+            fila = cur.fetchone()
+            if fila is None:
+                return None
+            temporizador_id, ticket_id, playbook_id = fila
+            _disparar(cur, temporizador_id)
+            self._evento(
+                cur,
+                tenant_id,
+                ticket_id,
+                EVENTO_REVERSION_INICIADA,
+                {"temporizador": temporizador_id},
+            )
+            return ReversionPendiente(ticket_id, playbook_id, _alerta(cur, tenant_id, ticket_id))
+
+    def registrar_reversion(
+        self, tenant_id: int, ticket_id: int, exito: bool, detalle: Mapping[str, Any]
+    ) -> None:
+        """Resultado de una reversión. Si salió bien, termina los recordatorios del nivel 2.
+
+        Una reversión fallida no se reintenta sola: queda en la bitácora para que una
+        persona la resuelva (y puede volver a pedirla).
+        """
+        with self._transaccion(tenant_id) as cur:
+            self._evento(
+                cur,
+                tenant_id,
+                ticket_id,
+                EVENTO_REVERSION_OK if exito else EVENTO_REVERSION_FALLIDA,
+                dict(detalle),
+            )
+            if exito:
+                cur.execute(
+                    """
+                    UPDATE temporizadores SET disparado_en = now()
+                     WHERE tenant_id = %s AND ticket_id = %s AND tipo = %s
+                       AND disparado_en IS NULL
+                    """,
+                    (tenant_id, ticket_id, TEMPORIZADOR_REVISION),
+                )
+
+    def tomar_recordatorios(self, tenant_id: int) -> list[int]:
+        """Niveles 2 con el plazo de revisión vencido: un recordatorio diario (D-33).
+
+        Cada uno deja el evento RECORDATORIO_REVISION y programa el siguiente para
+        dentro de un día. La medida sigue vigente: nunca se revierte sola.
+        Devuelve los tickets a recordar (los avisa SOAR-NOTIFY).
+        """
+        tickets: list[int] = []
+        with self._transaccion(tenant_id) as cur:
+            for temporizador_id, ticket_id in _temporizadores_vencidos(
+                cur, tenant_id, TEMPORIZADOR_REVISION
+            ):
+                _disparar(cur, temporizador_id)
+                _temporizador(
+                    cur,
+                    tenant_id,
+                    ticket_id,
+                    TEMPORIZADOR_REVISION,
+                    INTERVALO_RECORDATORIO_MINUTOS,
+                )
+                self._evento(cur, tenant_id, ticket_id, EVENTO_RECORDATORIO, {})
+                tickets.append(ticket_id)
+        return tickets
 
     # ------------------------------------------------- contadores y cortacircuito
 
@@ -281,6 +587,28 @@ class Repositorio:
 
     # ------------------------------------------------------------------- interno
 
+    def _resolver_aprobacion(
+        self,
+        tenant_id: int,
+        ticket_id: int,
+        aprobador: str,
+        estado: str,
+        evento: str,
+        motivo: str,
+    ) -> None:
+        aprobador = _persona(aprobador)
+        with self._transaccion(tenant_id) as cur:
+            _cambiar_estado(cur, tenant_id, ticket_id, "AWAITING_APPROVAL", estado)
+            cur.execute(
+                """
+                UPDATE temporizadores SET disparado_en = now()
+                 WHERE tenant_id = %s AND ticket_id = %s AND tipo = %s
+                   AND disparado_en IS NULL
+                """,
+                (tenant_id, ticket_id, TEMPORIZADOR_APROBACION),
+            )
+            self._evento(cur, tenant_id, ticket_id, evento, {"motivo": motivo}, actor=aprobador)
+
     @contextmanager
     def _transaccion(self, tenant_id: int) -> Iterator[psycopg.Cursor]:
         if isinstance(tenant_id, bool) or not isinstance(tenant_id, int) or tenant_id <= 0:
@@ -296,6 +624,7 @@ class Repositorio:
         ticket_id: int | None,
         evento: str,
         detalle: dict[str, Any],
+        actor: str | None = None,
     ) -> int:
         # seq, hash_anterior, hash y creado_en los asigna el trigger de la cadena.
         cur.execute(
@@ -304,7 +633,7 @@ class Repositorio:
             VALUES (%s, %s, %s, %s, %s)
             RETURNING seq
             """,
-            (tenant_id, ticket_id, evento, self._actor, Jsonb(detalle)),
+            (tenant_id, ticket_id, evento, actor or self._actor, Jsonb(detalle)),
         )
         return cur.fetchone()[0]
 
@@ -322,6 +651,93 @@ def _cortacircuito_abierto(cur: psycopg.Cursor, tenant_id: int, ambito: str) -> 
     )
     fila = cur.fetchone()
     return bool(fila and fila[0])
+
+
+def _cambiar_estado(
+    cur: psycopg.Cursor, tenant_id: int, ticket_id: int, desde: str, hacia: str
+) -> int | None:
+    """Transición de estado condicionada al estado actual. Devuelve el nivel del ticket."""
+    cur.execute(
+        """
+        UPDATE tickets SET execution_status = %s, actualizado_en = now()
+         WHERE tenant_id = %s AND id = %s AND execution_status = %s
+        RETURNING autonomia_aplicada
+        """,
+        (hacia, tenant_id, ticket_id, desde),
+    )
+    fila = cur.fetchone()
+    if fila is None:
+        raise EstadoInvalido(
+            f"ticket {ticket_id}: no existe para el inquilino {tenant_id} o no está en {desde}"
+        )
+    return fila[0]
+
+
+def _temporizador(
+    cur: psycopg.Cursor, tenant_id: int, ticket_id: int, tipo: str, minutos: int
+) -> None:
+    cur.execute(
+        """
+        INSERT INTO temporizadores (tenant_id, ticket_id, tipo, vence_en)
+        VALUES (%s, %s, %s, now() + make_interval(mins => %s))
+        """,
+        (tenant_id, ticket_id, tipo, minutos),
+    )
+
+
+def _temporizadores_vencidos(
+    cur: psycopg.Cursor, tenant_id: int, tipo: str
+) -> list[tuple[int, int]]:
+    cur.execute(
+        """
+        SELECT id, ticket_id
+          FROM temporizadores
+         WHERE tenant_id = %s AND tipo = %s
+           AND disparado_en IS NULL AND vence_en <= now()
+         ORDER BY vence_en, id
+           FOR UPDATE SKIP LOCKED
+        """,
+        (tenant_id, tipo),
+    )
+    return cur.fetchall()
+
+
+def _disparar(cur: psycopg.Cursor, temporizador_id: int) -> None:
+    cur.execute(
+        "UPDATE temporizadores SET disparado_en = now() WHERE id = %s", (temporizador_id,)
+    )
+
+
+def _alerta(cur: psycopg.Cursor, tenant_id: int, ticket_id: int) -> dict[str, Any]:
+    cur.execute(
+        """
+        SELECT detalle FROM auditoria
+         WHERE tenant_id = %s AND ticket_id = %s AND evento = %s
+         ORDER BY seq LIMIT 1
+        """,
+        (tenant_id, ticket_id, EVENTO_ALERTA),
+    )
+    fila = cur.fetchone()
+    return fila[0] if fila else {}
+
+
+def _revertido(cur: psycopg.Cursor, tenant_id: int, ticket_id: int) -> bool:
+    cur.execute(
+        """
+        SELECT 1 FROM auditoria
+         WHERE tenant_id = %s AND ticket_id = %s AND evento = %s
+         LIMIT 1
+        """,
+        (tenant_id, ticket_id, EVENTO_REVERSION_OK),
+    )
+    return cur.fetchone() is not None
+
+
+def _persona(nombre: str) -> str:
+    """Quien aprueba o revierte queda como actor del evento: no puede ir vacío."""
+    if not isinstance(nombre, str) or not nombre.strip():
+        raise ValueError("falta el nombre de la persona")
+    return nombre.strip()
 
 
 def _filtro_contador(
