@@ -85,8 +85,8 @@ class ActuadorWazuh:
             url,
             usuario,
             clave,
-            ca=os.environ.get("KRONOS_WAZUH_CA"),
-            nombre_servidor=os.environ.get("KRONOS_WAZUH_NOMBRE_SERVIDOR"),
+            ca=os.environ.get("KRONOS_WAZUH_CA") or None,
+            nombre_servidor=os.environ.get("KRONOS_WAZUH_NOMBRE_SERVIDOR") or None,
         )
 
     def enviar(self, orden: Orden) -> str:

@@ -164,6 +164,27 @@ class Envio(Base):
 
 
 class Configuracion(unittest.TestCase):
+    def test_desde_entorno_con_opcionales_vacios(self):
+        import os
+        from unittest import mock
+
+        with tempfile.NamedTemporaryFile("w", suffix=".txt", delete=False) as f:
+            f.write("s3creta\n")
+        entorno = {
+            "KRONOS_WAZUH_URL": "https://wazuh.manager:55000",
+            "KRONOS_WAZUH_USUARIO": "kronos-execute",
+            "KRONOS_WAZUH_CLAVE_ARCHIVO": f.name,
+            "KRONOS_WAZUH_CA": "",
+            "KRONOS_WAZUH_NOMBRE_SERVIDOR": "",
+        }
+        try:
+            with mock.patch.dict(os.environ, entorno):
+                actuador = ActuadorWazuh.desde_entorno()
+            self.assertIsInstance(actuador._conectar(), http.client.HTTPSConnection)
+            self.assertEqual(actuador._clave, "s3creta")
+        finally:
+            os.unlink(f.name)
+
     def test_solo_https(self):
         with self.assertRaises(ValueError):
             ActuadorWazuh("http://wazuh:55000", "u", "c")
