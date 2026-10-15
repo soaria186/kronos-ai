@@ -1,0 +1,30 @@
+:root { --fondo: #f6f7f9; --tarjeta: #fff; --texto: #1d2129; --tenue: #5f6672; --borde: #dde1e6;
+        --acento: #1f5fbf; --alerta: #b3261e; --aviso: #1e6b34; }
+@media (prefers-color-scheme: dark) {
+  :root { --fondo: #14171c; --tarjeta: #1d2128; --texto: #e7e9ec; --tenue: #a0a7b2; --borde: #333a44;
+          --acento: #7aa7f0; --alerta: #f2867e; --aviso: #7cc98f; }
+}
+* { box-sizing: border-box; }
+body { margin: 0; font: 15px/1.5 system-ui, sans-serif; background: var(--fondo); color: var(--texto); }
+header { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; padding: 12px 16px; border-bottom: 1px solid var(--borde); }
+nav { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-left: auto; }
+nav a { color: var(--texto); text-decoration: none; padding: 4px 8px; border-radius: 6px; }
+nav a.actual { background: var(--tarjeta); border: 1px solid var(--borde); }
+main { max-width: 960px; margin: 0 auto; padding: 16px; }
+.tarjeta { background: var(--tarjeta); border: 1px solid var(--borde); border-radius: 10px; padding: 16px; margin-bottom: 16px; }
+.angosta { max-width: 380px; margin: 48px auto; }
+.alerta { border-color: var(--alerta); }
+article { border-top: 1px solid var(--borde); padding: 10px 0; }
+article.vencida h3::after { content: " · plazo vencido"; color: var(--alerta); font-weight: normal; }
+h1, h2 { margin: 0 0 12px; font-size: 1.15rem; } h3 { margin: 0; font-size: 1rem; }
+.tenue { color: var(--tenue); margin: 4px 0; }
+.error { color: var(--alerta); } .aviso { color: var(--aviso); }
+label { display: block; margin-bottom: 10px; }
+input { width: 100%; padding: 8px; border: 1px solid var(--borde); border-radius: 6px; background: var(--fondo); color: var(--texto); }
+.acciones { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+.acciones form { display: flex; gap: 8px; flex: 1 1 260px; }
+.enlinea { display: inline; }
+button { padding: 8px 14px; border: 0; border-radius: 6px; background: var(--acento); color: #fff; cursor: pointer; }
+button.secundario { background: transparent; color: var(--acento); border: 1px solid var(--acento); }
+table { width: 100%; border-collapse: collapse; font-size: 14px; }
+th, td { text-align: left; padding: 6px; border-top: 1px solid var(--borde); vertical-align: top; }

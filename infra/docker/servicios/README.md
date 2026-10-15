@@ -1,6 +1,6 @@
-# Despliegue de SOAR-EXECUTE y SOAR-NOTIFY
+# Despliegue de SOAR-EXECUTE, SOAR-NOTIFY y SOAR-CONSOLE
 
-Una sola imagen (`Dockerfile`) con dos servicios en `../servicios.yml`, que se suma al
+Una sola imagen (`Dockerfile`) con tres servicios en `../servicios.yml`, que se suma al
 `docker-compose.yml` de la base:
 
 ```bash
@@ -12,9 +12,11 @@ docker compose -f docker-compose.yml -f servicios.yml up -d --build
 | :--- | :--- | :--- |
 | `execute` | `interna` (base) y la red del compose de Wazuh | API de Wazuh (`wazuh.manager:55000`), sin internet ni NetBird |
 | `notify` | `interna` y `salida` | `api.telegram.org` |
+| `consola` | `interna` y `consola` | Nada: recibe en el 443 de la IP de NetBird (`KRONOS_CONSOLA_IP`) |
 
-Los dos corren con usuario sin privilegios (uid 10001), sistema de archivos de sólo
-lectura, sin capacidades y con `no-new-privileges`. Ninguno publica puertos.
+Los tres corren con usuario sin privilegios (uid 10001), sistema de archivos de sólo
+lectura, sin capacidades y con `no-new-privileges`. Sólo la consola publica un puerto, y
+sólo en la IP de NetBird.
 
 ## Secretos (`infra/docker/secrets/`, fuera del repositorio)
 
@@ -24,6 +26,9 @@ lectura, sin capacidades y con `no-new-privileges`. Ninguno publica puertos.
 | `wazuh_api_password` | Contraseña del usuario de API `kronos-execute` | A mano, desde el gestor |
 | `wazuh_api_ca.pem` | Certificado de la API de Wazuh | Copiado del manager (abajo) |
 | `telegram_token` | Token del bot | A mano, desde el gestor |
+| `kronos_console_password` | Contraseña de `kronos_console` | `generar_secretos.sh` (con `initdb/05_clave_consola.sql`) |
+| `consola_certificado.pem` / `consola_llave.pem` | TLS de la consola | `bash generar_certificado_consola.sh <IP de NetBird>` |
+| `consola_usuarios.json` | Cuentas de la consola | Cada integrante, con el comando de abajo |
 
 Los que se escriben a mano se cargan sin que la contraseña quede en pantalla ni en el
 historial:
@@ -36,9 +41,27 @@ read -rs CLAVE && printf '%s' "$CLAVE" > secrets/wazuh_api_password && unset CLA
 corre como root:
 
 ```bash
-sudo chown root:10001 secrets/kronos_worker_password secrets/wazuh_api_password secrets/wazuh_api_ca.pem secrets/telegram_token
-sudo chmod 640 secrets/kronos_worker_password secrets/wazuh_api_password secrets/wazuh_api_ca.pem secrets/telegram_token
+cd infra/docker/secrets
+sudo chown root:10001 kronos_worker_password wazuh_api_password wazuh_api_ca.pem telegram_token \
+    kronos_console_password consola_usuarios.json consola_certificado.pem consola_llave.pem
+sudo chmod 640 kronos_worker_password wazuh_api_password wazuh_api_ca.pem telegram_token \
+    kronos_console_password consola_usuarios.json consola_certificado.pem consola_llave.pem
 ```
+
+## Cuentas de la consola
+
+Cada integrante crea la suya; el comando pide la contraseña sin mostrarla (mínimo 12
+caracteres) y muestra **una sola vez** el secreto TOTP para la app de autenticación
+(Google Authenticator, Microsoft Authenticator, Aegis…):
+
+```bash
+docker run --rm -it --user root -v "$PWD/secrets:/s" kronos-servicios:local \
+    python -m consola.usuarios agregar nicolas --archivo /s/consola_usuarios.json
+```
+
+En una base que ya existía, la contraseña del rol se aplica una vez:
+`docker exec -i kronos-db-1 psql -U kronos_admin -d kronos < initdb/05_clave_consola.sql`
+(antes, `initdb/04_consola.sql` de la misma forma).
 
 ## Configuración (`infra/docker/.env`, fuera del repositorio)
 
@@ -68,9 +91,10 @@ es el nombre de la red del compose de Wazuh (`docker network ls`).
 
 ```bash
 docker compose -f docker-compose.yml -f servicios.yml ps
-docker compose -f docker-compose.yml -f servicios.yml logs --tail 20 execute notify
+docker compose -f docker-compose.yml -f servicios.yml logs --tail 20 execute notify consola
 ```
 
-`execute` debe mostrar `en marcha para los inquilinos [...]`, y `notify`, `en marcha ...;
+`consola` debe mostrar `en marcha: N cuentas`, y por NetBird se abre
+`https://<IP de NetBird>/`. `execute` debe mostrar `en marcha para los inquilinos [...]`, y `notify`, `en marcha ...;
 equipo de 3 cuentas`. Si falta algo, el servicio no arranca y el registro dice qué
 (`no arranca: falta la variable ...`).
