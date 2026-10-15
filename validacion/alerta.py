@@ -43,6 +43,7 @@ _OBJETIVO = {
         ("data", "win", "eventdata", "ipAddress"),
     ),
     "cuenta": (
+        ("syscheck", "audit", "user", "name"),
         ("data", "srcuser"),
         ("data", "dstuser"),
         ("data", "win", "eventdata", "targetUserName"),
@@ -50,6 +51,7 @@ _OBJETIVO = {
         ("data", "win", "eventdata", "user"),
     ),
     "programa": (
+        ("syscheck", "path"),
         ("data", "win", "eventdata", "image"),
         ("data", "audit", "exe"),
     ),
@@ -139,11 +141,14 @@ def _texto_para_el_modelo(alerta: dict) -> str:
     ]
     if alerta.get("location"):
         partes.append(f"Location: {_limpio(alerta['location'])}")
-    datos = alerta.get("data")
-    if isinstance(datos, dict):
-        partes += [
-            f"{clave}: {_limpio(valor)}" for clave, valor in _aplanar(datos, "data")
-        ]
+    # data: campos decodificados; syscheck: integridad de archivos (ruta, diff, quién).
+    for seccion in ("data", "syscheck"):
+        datos = alerta.get(seccion)
+        if isinstance(datos, dict):
+            partes += [
+                f"{clave}: {_limpio(valor)}"
+                for clave, valor in _aplanar(datos, seccion)
+            ]
     if alerta.get("full_log"):
         partes.append(f"full_log: {_limpio(alerta['full_log'])}")
     return _limpio(" | ".join(partes), LARGO_TEXTO)

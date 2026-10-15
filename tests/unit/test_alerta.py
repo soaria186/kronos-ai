@@ -87,6 +87,30 @@ class Preparar(unittest.TestCase):
         self.assertIn("data.win.eventdata.serviceName: PSEXESVC", texto)
         self.assertIn("data.win.system.eventID: 7045", texto)
 
+    def test_alerta_de_integridad_incluye_syscheck(self):
+        alerta = {
+            "rule": {
+                "level": 7,
+                "id": "100110",
+                "groups": ["ossec", "syscheck", "kronos_f5"],
+                "description": "Kronos F5: archivo vigilado modificado, agregado o borrado",
+            },
+            "agent": {"name": "srv-app-03", "ip": "192.0.2.22"},
+            "id": "1760412000.1",
+            "syscheck": {
+                "path": "/etc/sudoers",
+                "event": "modified",
+                "diff": "+operador02 ALL=(ALL) NOPASSWD: ALL",
+                "audit": {"user": {"name": "operador02"}},
+            },
+            "full_log": "File '/etc/sudoers' modified",
+        }
+        a = preparar(alerta)
+        self.assertIn("syscheck.path: /etc/sudoers", a.texto)
+        self.assertIn("syscheck.diff: +operador02", a.texto)
+        self.assertEqual(a.objetivo["cuenta"], ("operador02",))
+        self.assertEqual(a.objetivo["programa"], ("/etc/sudoers",))
+
     def test_sin_regla_de_sobre_no_se_procesa(self):
         alerta = copy.deepcopy(SSH)
         alerta["rule"]["groups"] = ["syslog", "sshd"]
