@@ -69,6 +69,12 @@ class Clasificar(unittest.TestCase):
         self.assertIn("F1 - Abuso de credenciales", prompt2)
         self.assertEqual((plazo1, plazo2), (30.0, 26.0))
 
+    def test_la_confianza_a_validar_es_la_menor_de_los_dos_pasos(self):
+        r = self.ejecutar(['{"familia": "F1", "confianza": 0.95}', PASO2])
+        self.assertEqual(r.confianza, 0.7)
+        r = self.ejecutar(['{"familia": "F1", "confianza": 0.6}', PASO2])
+        self.assertEqual(r.confianza, 0.6)
+
     def test_motor_caido_en_el_paso_1(self):
         r = self.ejecutar([MotorNoDisponible("conexión rechazada")])
         self.assertEqual(

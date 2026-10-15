@@ -59,6 +59,15 @@ class Clasificacion:
     playbook_id: str
     confianza_playbook: float
 
+    @property
+    def confianza(self) -> float:
+        """Confianza que revisa el chequeo 2: la menor de los dos pasos.
+
+        Una clasificación es tan confiable como su paso más dudoso: si el modelo dudó de
+        la familia, el playbook elegido dentro de ella tampoco es seguro.
+        """
+        return min(self.confianza_familia, self.confianza_playbook)
+
 
 @dataclass(frozen=True)
 class FallaSegura:
