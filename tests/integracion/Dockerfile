@@ -7,4 +7,4 @@ FROM python:3.12-slim
 WORKDIR /app
 COPY persistencia/requirements.txt /tmp/requirements.txt
 RUN pip install --no-cache-dir -r /tmp/requirements.txt
-CMD ["python", "-m", "unittest", "-v", "tests.integracion.test_repositorio", "tests.integracion.test_ejecucion"]
+CMD ["python", "-m", "unittest", "-v", "tests.integracion.test_repositorio", "tests.integracion.test_ejecucion", "tests.integracion.test_notificacion"]

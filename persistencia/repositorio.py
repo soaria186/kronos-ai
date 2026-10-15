@@ -43,6 +43,7 @@ from psycopg.types.json import Jsonb
 
 ACTOR_VALIDATE = "soar-validate"
 ACTOR_EXECUTE = "soar-execute"
+ACTOR_NOTIFY = "soar-notify"
 
 EVENTO_ALERTA = "ALERTA_RECIBIDA"
 EVENTO_DECISION = "DECISION"
@@ -58,6 +59,17 @@ EVENTO_REVERSION_INICIADA = "REVERSION_INICIADA"
 EVENTO_REVERSION_OK = "REVERSION_OK"
 EVENTO_REVERSION_FALLIDA = "REVERSION_FALLIDA"
 EVENTO_RECORDATORIO = "RECORDATORIO_REVISION"
+EVENTO_AVISO_ENVIADO = "AVISO_ENVIADO"
+
+# Eventos que SOAR-NOTIFY avisa siempre. Además: DECISION aprobada de nivel 3
+# (solicitud de aprobación) y EJECUCION_OK de nivel 2 (D-31).
+EVENTOS_AVISABLES = (
+    EVENTO_EJECUCION_FALLIDA,
+    EVENTO_REVERSION_FALLIDA,
+    EVENTO_RECORDATORIO,
+    EVENTO_APROBACION_VENCIDA,
+    EVENTO_CORTACIRCUITO,
+)
 
 # Tipos de temporizadores.
 TEMPORIZADOR_APROBACION = "APROBACION"  # nivel 3: plazo para aprobar (D-32)
@@ -134,6 +146,19 @@ class ReversionPendiente:
     ticket_id: int
     playbook_id: str
     alerta: dict[str, Any]
+
+
+@dataclass(frozen=True)
+class EventoAvisable:
+    """Evento de la bitácora que SOAR-NOTIFY puede tener que avisar."""
+
+    seq: int
+    evento: str
+    ticket_id: int | None
+    detalle: dict[str, Any]
+    titulo: str | None
+    playbook_id: str | None
+    nivel: int | None
 
 
 @dataclass(frozen=True)
@@ -584,6 +609,64 @@ class Repositorio:
                 cur, tenant_id, None, EVENTO_CORTACIRCUITO, {"ambito": ambito, "motivo": motivo}
             )
             return True
+
+    # ------------------------------------------------------------- avisos
+
+    def eventos_para_avisar(self, tenant_id: int, limite: int = 50) -> list[EventoAvisable]:
+        """Eventos a avisar posteriores al último aviso registrado, en orden de seq.
+
+        El punto de avance es el mayor ``seq_origen`` de los eventos AVISO_ENVIADO: un
+        aviso que no se pudo enviar se vuelve a ofrecer en el ciclo siguiente.
+        Supone un único proceso de SOAR-NOTIFY.
+        """
+        with self._transaccion(tenant_id) as cur:
+            cur.execute(
+                """
+                SELECT a.seq, a.evento, a.ticket_id, a.detalle,
+                       t.titulo, t.playbook, t.autonomia_aplicada
+                  FROM auditoria a
+                  LEFT JOIN tickets t ON t.tenant_id = a.tenant_id AND t.id = a.ticket_id
+                 WHERE a.tenant_id = %s
+                   AND (a.evento = ANY(%s)
+                        OR (a.evento = %s AND a.detalle->>'resultado' = 'aprobada'
+                            AND a.detalle->>'nivel' = '3')
+                        OR (a.evento = %s AND t.autonomia_aplicada = 2))
+                   AND a.seq > (
+                        SELECT coalesce(max((detalle->>'seq_origen')::bigint), 0)
+                          FROM auditoria
+                         WHERE tenant_id = %s AND evento = %s)
+                 ORDER BY a.seq
+                 LIMIT %s
+                """,
+                (
+                    tenant_id,
+                    list(EVENTOS_AVISABLES),
+                    EVENTO_DECISION,
+                    EVENTO_EJECUCION_OK,
+                    tenant_id,
+                    EVENTO_AVISO_ENVIADO,
+                    limite,
+                ),
+            )
+            return [EventoAvisable(*fila) for fila in cur.fetchall()]
+
+    def registrar_aviso(self, tenant_id: int, seq_origen: int, referencia: str) -> None:
+        """Deja en la bitácora que el evento ``seq_origen`` se avisó al equipo."""
+        with self._transaccion(tenant_id) as cur:
+            cur.execute(
+                "SELECT ticket_id FROM auditoria WHERE tenant_id = %s AND seq = %s",
+                (tenant_id, seq_origen),
+            )
+            fila = cur.fetchone()
+            if fila is None:
+                raise ValueError(f"no existe el evento {seq_origen} del inquilino {tenant_id}")
+            self._evento(
+                cur,
+                tenant_id,
+                fila[0],
+                EVENTO_AVISO_ENVIADO,
+                {"seq_origen": seq_origen, "referencia": referencia},
+            )
 
     # ------------------------------------------------------------------- interno
 
