@@ -317,23 +317,30 @@ class Ciclo(unittest.TestCase):
 
 
 class PromptYCatalogo(unittest.TestCase):
-    def test_el_prompt_de_medicion_no_describe_el_catalogo_real(self):
-        # El prompt del paso 2 sigue siendo el provisional: mismos identificadores, otras
-        # medidas. Mientras sea así, el servicio no debe arrancar.
+    def test_el_prompt_describe_el_catalogo_real(self):
+        comprobar_prompt(PLANTILLAS, cargar_catalogo())
+
+    def test_un_prompt_con_otras_medidas_no_pasa(self):
+        # Como el catálogo provisional de medición: mismos identificadores, otro significado.
+        familias = {
+            f: replace(d, nombres={i: "Bloqueo del origen" for i in d.candidatos})
+            for f, d in PLANTILLAS.familias.items()
+        }
+        ajeno = replace(PLANTILLAS, familias=familias)
         with self.assertRaises(PromptDistintoDelCatalogo) as ctx:
-            comprobar_prompt(PLANTILLAS, cargar_catalogo())
+            comprobar_prompt(ajeno, cargar_catalogo())
         self.assertIn("KRO-CAT-01", str(ctx.exception))
         with self.assertRaises(PromptDistintoDelCatalogo):
             Validador(
                 AlmacenFalso(),
                 acierta(),
-                PLANTILLAS,
+                ajeno,
                 cargar_catalogo(),
                 CONFIG,
                 DecisionFalsa,
             )
 
-    def test_un_catalogo_con_las_mismas_medidas_pasa(self):
+    def test_un_catalogo_de_prueba_con_las_mismas_medidas_pasa(self):
         comprobar_prompt(PLANTILLAS, catalogo_del_prompt())
 
     def test_un_candidato_que_no_esta_en_el_catalogo_falla(self):

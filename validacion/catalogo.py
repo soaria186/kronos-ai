@@ -94,6 +94,9 @@ def _leer_playbook(dato: object, acciones: dict) -> Playbook:
         raise CatalogoInvalido(
             f"{identificador}: sólo el nivel 1 puede revertirse solo"
         )
+    condicion = dato.get("condicion_de_uso")
+    if not isinstance(condicion, str) or not condicion.strip():
+        raise CatalogoInvalido(f"{identificador}: sin condición de uso")
     medida = dato.get("medida")
     if not isinstance(medida, str) or not medida.strip():
         raise CatalogoInvalido(f"{identificador}: sin nombre de la medida")

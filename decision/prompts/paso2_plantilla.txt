@@ -1,40 +1,46 @@
-=== CATALOGO PROVISIONAL ===
-Lista PROVISIONAL de playbooks genéricos, tres por familia, solo para medir la inferencia.
-El catálogo real (KRO-CAT-01) se define en la etapa 3 y sustituirá a este bloque.
+=== CATALOGO ===
+Candidatos tomados de KRO-CAT-01 versión 0.1; generado por decision/catalogo/generar_prompt.py, no se edita a mano.
 Este bloque no se envía al modelo tal cual: de él se obtienen el nombre de la familia
-y los tres playbooks candidatos con sus condiciones de uso, que rellenan la plantilla.
+y los playbooks candidatos con sus condiciones de uso, que rellenan la plantilla.
 Formato: "[Fx] nombre de la familia" y debajo "PB-Fx-0y | nombre | condición de uso".
-En cada familia, el playbook 03 es siempre el menos intrusivo (investigar o verificar).
+En cada familia van de menos a más intrusivo (nivel del catálogo).
 
 [F1] Abuso de credenciales
-PB-F1-01 | Bloqueo del origen de los intentos | Muchos intentos fallidos (fuerza bruta o password spraying) desde un mismo origen y ningún acceso correcto.
-PB-F1-02 | Restablecimiento de credenciales y cierre de sesiones | Hubo un acceso correcto sospechoso: tras varios fallos, desde un origen u horario imposible, o con una cuenta que no debía usarse.
-PB-F1-03 | Revisión de la cuenta con su responsable | Fallos pocos o dispersos y el origen podría ser legítimo (contraseña mal escrita, credencial guardada caducada).
+PB-F1-01 | Reunir contexto de la cuenta y del origen | Intentos de acceso aislados o poco claros, sin señal de que alguien haya entrado: conviene reunir contexto de la cuenta y del origen antes de actuar.
+PB-F1-02 | Bloquear la IP externa que intenta entrar | Fuerza bruta o password spraying desde una dirección EXTERNA a la organización, sin ningún acceso correcto.
+PB-F1-03 | Bloquear la IP de otro equipo de la organización que intenta entrar | Los intentos fallidos repetidos vienen de la dirección de OTRO equipo de la organización.
+PB-F1-04 | Cerrar la sesión del usuario | Hubo un acceso correcto sospechoso (tras varios fallos, o desde un origen u horario anómalo) y la sesión del usuario sigue abierta.
+PB-F1-05 | Deshabilitar la cuenta local | Una cuenta local se usa de forma anómala o está comprometida (acceso tras fallos, cuenta que no debía usarse) y hay que impedir nuevos inicios de sesión.
 
 [F2] Proceso sospechoso en ejecución
-PB-F2-01 | Aislamiento del equipo y detención del proceso | El proceso está confirmado como malicioso (detección antivirus, firma conocida) o abre un intérprete desde un servicio expuesto.
-PB-F2-02 | Detención del proceso y análisis del binario | La ejecución es sospechosa (ofuscación, ruta temporal, proceso padre inusual) pero no hay confirmación de malware.
-PB-F2-03 | Investigación del proceso sin interrumpirlo | El proceso podría ser una herramienta legítima de administración y conviene confirmarlo con el responsable del equipo.
+PB-F2-01 | Reunir contexto del proceso | El proceso es sospechoso pero podría ser una herramienta legítima: conviene confirmar quién lo lanzó, su línea de comandos y su firma antes de actuar.
+PB-F2-02 | Poner en cuarentena el archivo del proceso | El archivo ejecutable es sospechoso o malicioso (ruta temporal, binario desconocido, detectado como malware) y hay que impedir que vuelva a ejecutarse.
+PB-F2-03 | Terminar el proceso | El proceso está activo y haciendo daño ahora (minero, shell lanzada por un servicio, PowerShell codificado en ejecución) y hay que detenerlo ya.
 
 [F3] Movimiento lateral o acceso remoto
-PB-F3-01 | Aislamiento del equipo de origen y bloqueo de la cuenta usada | Ejecución remota o pass-the-hash entre equipos internos, o un mismo origen que accede a varios equipos en cadena.
-PB-F3-02 | Cierre de la sesión remota y bloqueo de la herramienta | Sesión de control remoto activa con una herramienta no autorizada o desde un origen no permitido.
-PB-F3-03 | Verificación del acceso con el equipo de administración | Acceso remoto aislado entre dos equipos que podría corresponder a tareas de administración.
+PB-F3-01 | Bloquear la IP externa de un acceso remoto sospechoso | Acceso remoto sospechoso (SSH, RDP, WinRM) desde una dirección EXTERNA a la organización.
+PB-F3-02 | Bloquear la IP de otro equipo que se mueve entre equipos | Un equipo de la organización accede a otros o ejecuta cosas en ellos a distancia (movimiento lateral) y basta con cortar la comunicación de ese origen.
+PB-F3-03 | Aislar un equipo de trabajo por firewall local | Movimiento lateral o control remoto confirmado desde o hacia un EQUIPO DE TRABAJO (puesto de un usuario).
+PB-F3-04 | Aislar un servidor por firewall local | Movimiento lateral o control remoto confirmado desde o hacia un SERVIDOR.
 
 [F4] Exfiltración o salida anómala
-PB-F4-01 | Bloqueo del destino y aislamiento del equipo | Salida activa de un volumen grande de datos, o comunicación periódica con un destino externo malicioso o desconocido.
-PB-F4-02 | Bloqueo del canal encubierto | La salida usa un canal encubierto (túnel DNS, protocolo no habitual), aunque el volumen sea bajo.
-PB-F4-03 | Revisión del destino y de los datos enviados | Salida anómala de volumen moderado hacia un destino que podría ser un servicio legítimo no aprobado.
+PB-F4-01 | Bloquear el destino externo de una salida anómala | Salida de datos o comunicación periódica hacia un destino externo concreto, sospechoso o desconocido, que se puede bloquear por sí solo.
+PB-F4-02 | Aislar un equipo de trabajo | Exfiltración o canal encubierto activo desde un EQUIPO DE TRABAJO, donde bloquear el destino no basta.
+PB-F4-03 | Aislar un servidor | Exfiltración o canal encubierto activo desde un SERVIDOR, donde bloquear el destino no basta.
 
 [F5] Alteración de integridad o persistencia
-PB-F5-01 | Aislamiento y restauración desde copia verificada | Cifrado o borrado masivo de archivos, binarios del sistema sustituidos o registros de auditoría borrados.
-PB-F5-02 | Eliminación del mecanismo de persistencia | Se creó una tarea programada, servicio, clave de arranque, entrada de cron o cuenta que permite volver a entrar.
-PB-F5-03 | Verificación del cambio con control de cambios | Se modificó un archivo o una configuración monitorizada y podría ser un cambio autorizado.
+PB-F5-01 | Poner en cuarentena el archivo de persistencia | Un archivo nuevo provoca el arranque automático (clave de arranque, cron, servicio) y es el mecanismo de persistencia.
+PB-F5-02 | Revertir la tarea programada nueva | Se creó una tarea programada nueva y sospechosa.
+PB-F5-03 | Poner en cuarentena un archivo de sistema o de aplicación alterado | Un archivo del sistema o de una aplicación fue modificado o sustituido sin explicación.
+PB-F5-04 | Aislar un equipo de trabajo | Cifrado o borrado masivo de archivos, o registros de auditoría borrados, en un EQUIPO DE TRABAJO.
+PB-F5-05 | Aislar un servidor | Cifrado o borrado masivo de archivos, o registros de auditoría borrados, en un SERVIDOR.
 
 [F6] Disponibilidad del servicio
-PB-F6-01 | Mitigación de la inundación de tráfico | La degradación se debe a un volumen anómalo de peticiones o de tráfico entrante.
-PB-F6-02 | Recuperación del servicio caído | Un servicio está detenido, en bucle de reinicios o sin recursos (disco, memoria o CPU agotados).
-PB-F6-03 | Seguimiento de la disponibilidad | Caída breve o parcial, o de un componente de monitorización (agente desconectado), sin impacto confirmado en el servicio.
+PB-F6-01 | Reunir contexto de carga y conexiones | Degradación o caída sin causa clara (disco lleno, agente que no responde, recursos agotados): conviene reunir contexto de carga y conexiones antes de actuar.
+PB-F6-02 | Bloquear la IP de origen del tráfico abusivo | Inundación de peticiones o tráfico abusivo desde una o pocas direcciones identificables.
+PB-F6-03 | Limitar las conexiones por origen | Volumen alto de conexiones desde un origen muy activo al que no conviene bloquear del todo.
+PB-F6-04 | Detener un servicio público del servidor | Un servicio PÚBLICO del servidor está siendo abusado o comprometido y hay que sacarlo de línea.
+PB-F6-05 | Detener un servicio de apoyo del equipo | Un servicio de APOYO del equipo (por ejemplo, impresión) falla o es el vector del problema.
 
 === PLANTILLA ===
 Eres un analista de un centro de operaciones de seguridad (SOC). Una alerta de Wazuh ya fue clasificada en una familia de incidentes en el paso anterior. Tu tarea es elegir UN playbook de respuesta entre los candidatos de esa familia.
@@ -44,7 +50,7 @@ CÓMO ELEGIR
 1. Compara lo observado en la alerta con la condición de uso de cada playbook candidato y elige el que mejor encaje.
 2. Elige solo entre los identificadores de la lista de candidatos. No inventes identificadores ni uses playbooks de otra familia.
 3. Decide por el comportamiento observado, no por los nombres de cuentas, equipos o procesos que aparezcan.
-4. Si la alerta no aporta datos suficientes para distinguir entre candidatos, elige el menos intrusivo (el de investigación o verificación) y baja la confianza.
+4. Si la alerta no aporta datos suficientes para distinguir entre candidatos, elige el primero de la lista (los candidatos van de menos a más intrusivo) y baja la confianza.
 
 CONFIANZA
 

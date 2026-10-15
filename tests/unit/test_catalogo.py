@@ -76,6 +76,12 @@ class CatalogoDefectuoso(unittest.TestCase):
             "consulta con nivel 1": lambda d: self.playbook(d, "PB-F1-01").update(
                 nivel=1
             ),
+            "sin condición de uso": lambda d: self.playbook(d, "PB-F1-02").update(
+                condicion_de_uso=" "
+            ),
+            "sin nombre de la medida": lambda d: self.playbook(d, "PB-F1-02").update(
+                medida=""
+            ),
             "sin playbooks": lambda d: d.update(playbooks=[]),
             "acción que no es texto": lambda d: self.playbook(d, "PB-F1-02").update(
                 accion=["x"]
