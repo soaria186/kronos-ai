@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+{% block cabecera %}
+<nav>
+  {% for t in inquilinos %}
+    <a href="/?inquilino={{ t }}" {% if t == inquilino %}class="actual"{% endif %}>Inquilino {{ t }}</a>
+  {% endfor %}
+  <form method="post" action="/salir" class="enlinea">
+    <input type="hidden" name="csrf" value="{{ csrf }}">
+    <button type="submit" class="secundario">Salir ({{ usuario }})</button>
+  </form>
+</nav>
+{% endblock %}
+{% block contenido %}
+{% if aviso %}<p class="aviso">{{ aviso }}</p>{% endif %}
+{% if error %}<p class="error">No se pudo: {{ error }}</p>{% endif %}
+
+{% for c in panel.cortacircuito if c.abierto %}
+<section class="tarjeta alerta">
+  <h2>Cortacircuito abierto ({{ c.ambito }})</h2>
+  <p>Ejecución automática detenida desde {{ c.creado_en|fecha }}. Motivo: {{ c.motivo }}</p>
+  <form method="post" action="/cortacircuito/cerrar">
+    <input type="hidden" name="csrf" value="{{ csrf }}">
+    <input type="hidden" name="inquilino" value="{{ inquilino }}">
+    <label>Motivo del cierre <input name="motivo" required maxlength="500"></label>
+    <button type="submit">Cerrar cortacircuito</button>
+  </form>
+</section>
+{% endfor %}
+
+<section class="tarjeta">
+  <h2>Nivel 3: esperan aprobación ({{ panel.pendientes|length }})</h2>
+  {% for t in panel.pendientes %}
+  <article>
+    <h3>#{{ t.id }} · {{ t.titulo }}</h3>
+    <p class="tenue">Medida {{ t.playbook }} · severidad {{ t.severidad }} · vence {{ t.vence_en|fecha }}</p>
+    <div class="acciones">
+      <form method="post" action="/tickets/{{ t.id }}/aprobar">
+        <input type="hidden" name="csrf" value="{{ csrf }}">
+        <input type="hidden" name="inquilino" value="{{ inquilino }}">
+        <button type="submit">Aprobar</button>
+      </form>
+      <form method="post" action="/tickets/{{ t.id }}/rechazar">
+        <input type="hidden" name="csrf" value="{{ csrf }}">
+        <input type="hidden" name="inquilino" value="{{ inquilino }}">
+        <input name="motivo" placeholder="Motivo del rechazo" required maxlength="500">
+        <button type="submit" class="secundario">Rechazar</button>
+      </form>
+    </div>
+  </article>
+  {% else %}<p class="tenue">Nada pendiente.</p>{% endfor %}
+</section>
+
+<section class="tarjeta">
+  <h2>Nivel 2: medidas vigentes ({{ panel.activas|length }})</h2>
+  {% for t in panel.activas %}
+  <article {% if t.revisar_antes_de and t.revisar_antes_de < ahora() %}class="vencida"{% endif %}>
+    <h3>#{{ t.id }} · {{ t.titulo }}</h3>
+    <p class="tenue">Medida {{ t.playbook }} · aplicada {{ t.ejecutada_en|fecha }} · revisar antes de {{ t.revisar_antes_de|fecha }}</p>
+    <p class="tenue">Recordar el aviso por correo a la persona afectada (D-35).</p>
+    {% if t.reversion_pedida %}
+      <p>Reversión en curso.</p>
+    {% else %}
+    <form method="post" action="/tickets/{{ t.id }}/revertir">
+      <input type="hidden" name="csrf" value="{{ csrf }}">
+      <input type="hidden" name="inquilino" value="{{ inquilino }}">
+      <button type="submit" class="secundario">Revertir</button>
+    </form>
+    {% endif %}
+  </article>
+  {% else %}<p class="tenue">Ninguna medida de nivel 2 vigente.</p>{% endfor %}
+</section>
+
+<section class="tarjeta">
+  <h2>Fallas de los últimos 7 días ({{ panel.fallidas|length }})</h2>
+  <table>
+    <tr><th>Ticket</th><th>Qué</th><th>Motivo</th><th>Cuándo</th></tr>
+    {% for f in panel.fallidas %}
+    <tr><td>#{{ f.id }}</td><td>{{ f.evento }}</td><td>{{ f.motivo or "" }} {{ f.error or "" }}</td><td>{{ f.creado_en|fecha }}</td></tr>
+    {% else %}<tr><td colspan="4" class="tenue">Sin fallas.</td></tr>{% endfor %}
+  </table>
+</section>
+
+<section class="tarjeta">
+  <h2>Revisión manual de los últimos 7 días ({{ panel.triage|length }})</h2>
+  <table>
+    <tr><th>Ticket</th><th>Título</th><th>Motivo</th><th>Cuándo</th></tr>
+    {% for t in panel.triage %}
+    <tr><td>#{{ t.id }}</td><td>{{ t.titulo }}</td><td>{{ t.rechazo_motivo }}</td><td>{{ t.creado_en|fecha }}</td></tr>
+    {% else %}<tr><td colspan="4" class="tenue">Nada en revisión manual.</td></tr>{% endfor %}
+  </table>
+</section>
+{% endblock %}

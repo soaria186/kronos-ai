@@ -1,4 +1,4 @@
-# SOAR-EXECUTE y SOAR-NOTIFY. Se suma al docker-compose.yml de la base:
+# SOAR-EXECUTE, SOAR-NOTIFY y SOAR-CONSOLE. Se suma al docker-compose.yml de la base:
 #
 #   docker compose -f docker-compose.yml -f servicios.yml up -d --build
 #
@@ -64,6 +64,38 @@ services:
     cap_drop: [ALL]
     security_opt: ["no-new-privileges:true"]
 
+  consola:
+    image: kronos-servicios:local
+    pull_policy: never  # la construye el servicio execute
+    command: ["python", "-m", "consola"]
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+      execute:
+        condition: service_started
+    environment:
+      KRONOS_DSN_CONSOLA: host=db dbname=kronos user=kronos_console
+      KRONOS_CONSOLA_CLAVE_ARCHIVO: /run/secrets/kronos_console_password
+      KRONOS_CONSOLA_USUARIOS: /run/secrets/consola_usuarios
+      KRONOS_INQUILINOS: ${KRONOS_INQUILINOS:?falta KRONOS_INQUILINOS en .env}
+      KRONOS_CONSOLA_CERTIFICADO: /run/secrets/consola_certificado
+      KRONOS_CONSOLA_LLAVE: /run/secrets/consola_llave
+    secrets:
+      - kronos_console_password
+      - consola_usuarios
+      - consola_certificado
+      - consola_llave
+    # Sólo en la IP de NetBird (D-17): nunca en 0.0.0.0.
+    ports:
+      - "${KRONOS_CONSOLA_IP:?falta KRONOS_CONSOLA_IP en .env}:443:8443"
+    networks:
+      - interna
+      - consola
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+
 networks:
   # Red del compose de Wazuh: EXECUTE llega a la API como wazuh.manager:55000, sin
   # pasar por internet ni por NetBird.
@@ -72,6 +104,8 @@ networks:
     name: ${KRONOS_WAZUH_RED:-single-node_default}
   # Salida a internet, sólo para Telegram.
   salida: {}
+  # Para publicar el 443 de la consola (una red internal no admite puertos publicados).
+  consola: {}
 
 secrets:
   kronos_worker_password:
@@ -82,3 +116,11 @@ secrets:
     file: ./secrets/wazuh_api_ca.pem
   telegram_token:
     file: ./secrets/telegram_token
+  kronos_console_password:
+    file: ./secrets/kronos_console_password
+  consola_usuarios:
+    file: ./secrets/consola_usuarios.json
+  consola_certificado:
+    file: ./secrets/consola_certificado.pem
+  consola_llave:
+    file: ./secrets/consola_llave.pem
