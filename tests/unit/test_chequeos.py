@@ -142,9 +142,20 @@ class Validar(unittest.TestCase):
             ejecutar(propuesta(), estado), MotivoRechazo.CORTACIRCUITO_ABIERTO
         )
 
+    def test_familia_que_no_coincide_con_la_regla_de_sobre(self):
+        r = ejecutar(propuesta(familia_candidata="F3"))
+        self.assertRechazo(r, MotivoRechazo.FAMILIA_NO_COINCIDE)
+        self.assertIn("F3", r.detalle)
+        self.assertIsInstance(ejecutar(propuesta(familia_candidata="F1")), Aprobada)
+
+    def test_exclusion_con_varios_valores_por_categoria(self):
+        r = ejecutar(propuesta(objetivo={"equipo": ["pc-ventas-12", "srv-bd-02"]}))
+        self.assertRechazo(r, MotivoRechazo.ACTIVO_EXCLUIDO)
+
     def test_motivos_coinciden_con_el_esquema_de_tickets(self):
+        # FAMILIA_NO_COINCIDE es nuevo y todavía falta en tickets.rechazo_motivo.
         self.assertEqual(
-            {m.value for m in MotivoRechazo},
+            {m.value for m in MotivoRechazo} - {"FAMILIA_NO_COINCIDE"},
             {
                 "CONFIANZA_BAJA",
                 "PLAYBOOK_FUERA_DE_CATALOGO",

@@ -5,6 +5,8 @@ van los otros cinco, en este orden; el primero que falla decide el motivo del re
 los mismos códigos que tickets.rechazo_motivo:
 
     2. confianza >= 0,70                          CONFIANZA_BAJA
+       y la familia del modelo coincide con la
+       de la regla de sobre de Wazuh              FAMILIA_NO_COINCIDE
     3. el playbook existe en el catálogo cerrado
        y pertenece a la familia clasificada       PLAYBOOK_FUERA_DE_CATALOGO
     4. el objetivo no está en la lista de
@@ -22,6 +24,7 @@ cortacircuito también entra como datos, porque vive en SOAR-AUDIT; esta capa no
 
 from __future__ import annotations
 
+from collections.abc import Iterable, Mapping
 from dataclasses import dataclass, field
 from enum import StrEnum
 
@@ -35,6 +38,8 @@ SEVERIDAD_MAXIMA = 15  # niveles de regla de Wazuh
 
 class MotivoRechazo(StrEnum):
     CONFIANZA_BAJA = "CONFIANZA_BAJA"
+    # Motivo nuevo: falta agregarlo a tickets.rechazo_motivo en el esquema de SOAR-AUDIT.
+    FAMILIA_NO_COINCIDE = "FAMILIA_NO_COINCIDE"
     PLAYBOOK_FUERA_DE_CATALOGO = "PLAYBOOK_FUERA_DE_CATALOGO"
     ACTIVO_EXCLUIDO = "ACTIVO_EXCLUIDO"
     CORTACIRCUITO_ABIERTO = "CORTACIRCUITO_ABIERTO"
@@ -81,11 +86,19 @@ class ListaExclusion:
     def desde(cls, pares: list[tuple[str, str]]) -> ListaExclusion:
         return cls(frozenset((_normalizar(c), _normalizar(v)) for c, v in pares))
 
-    def coincidencia(self, objetivo: dict[str, str]) -> tuple[str, str] | None:
-        for categoria, valor in sorted(objetivo.items()):
-            par = (_normalizar(categoria), _normalizar(valor))
-            if par in self.entradas:
-                return par
+    def coincidencia(
+        self, objetivo: Mapping[str, str | Iterable[str]]
+    ) -> tuple[str, str] | None:
+        """Primer par (categoría, valor) del objetivo que está excluido, o None.
+
+        Cada categoría puede traer un valor o varios (por ejemplo, la IP de origen y la
+        de destino): basta con que uno esté en la lista.
+        """
+        for categoria, valores in sorted(objetivo.items()):
+            for valor in [valores] if isinstance(valores, str) else sorted(valores):
+                par = (_normalizar(categoria), _normalizar(valor))
+                if par in self.entradas:
+                    return par
         return None
 
 
@@ -141,7 +154,10 @@ class Propuesta:
     playbook_id: str
     confianza: float
     severidad: int
-    objetivo: dict[str, str] = field(default_factory=dict)
+    objetivo: Mapping[str, str | Iterable[str]] = field(default_factory=dict)
+    # Familia que asignó la regla de sobre de Wazuh (kronos_f1 a kronos_f6). None
+    # desactiva el chequeo; la lectura de alerts.json siempre la entrega.
+    familia_candidata: str | None = None
 
 
 @dataclass(frozen=True)
@@ -167,6 +183,15 @@ def validar(
         return Rechazo(
             MotivoRechazo.CONFIANZA_BAJA,
             f"confianza {propuesta.confianza:.2f} < {UMBRAL_CONFIANZA:.2f}",
+        )
+    if (
+        propuesta.familia_candidata is not None
+        and propuesta.familia != propuesta.familia_candidata
+    ):
+        return Rechazo(
+            MotivoRechazo.FAMILIA_NO_COINCIDE,
+            f"el modelo dijo {propuesta.familia}; la regla de sobre, "
+            f"{propuesta.familia_candidata}",
         )
 
     playbook = catalogo.playbooks.get(propuesta.playbook_id)
