@@ -53,6 +53,9 @@ class Playbook:
     id: str
     familia: str
     nivel: int
+    # Nombre de la medida en el catálogo; sirve para comprobar que el prompt del paso 2
+    # habla de las mismas medidas (validacion.ciclo.comprobar_prompt).
+    medida: str = ""
 
     def __post_init__(self) -> None:
         if self.familia not in FAMILIAS:
@@ -227,13 +230,14 @@ def validar(
     return Aprobada(playbook.id, playbook.nivel)
 
 
-def _normalizar(texto: str) -> str:
+def normalizar(texto: str) -> str:
+    """Forma en que se comparan nombres: sin espacios en los extremos y sin mayúsculas."""
     return texto.strip().casefold()
 
 
 def _par(categoria: str, valor: str) -> tuple[str, str]:
-    categoria = _normalizar(categoria)
-    valor = _normalizar(valor)
+    categoria = normalizar(categoria)
+    valor = normalizar(valor)
     if categoria == "ip":
         valor = _ip_canonica(valor)
     return categoria, valor

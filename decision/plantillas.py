@@ -9,7 +9,7 @@ al inicio y {{alerta}} al final, para que el prefijo pueda reutilizarse en la ca
 from __future__ import annotations
 
 import re
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 
 from validacion.contrato import FAMILIAS
@@ -32,6 +32,8 @@ class Familia:
     nombre: str
     condiciones: str
     candidatos: tuple[str, ...]
+    # Nombre de cada candidato tal como lo ve el modelo.
+    nombres: dict[str, str] = field(default_factory=dict)
 
 
 @dataclass(frozen=True)
@@ -122,5 +124,6 @@ def _leer_catalogo(catalogo: str) -> dict[str, Familia]:
             candidatos=tuple(
                 identificador for identificador, _, _ in playbooks[familia]
             ),
+            nombres={i: n for i, n, _ in playbooks[familia]},
         )
     return familias
