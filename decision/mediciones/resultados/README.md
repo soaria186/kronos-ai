@@ -23,6 +23,7 @@ conclusiones).
 | `inferencia_casos_frontera_2_qwen2.5_7b_20261014-205017.csv` | 14-10 | 7B | 12 frontera 2 | v2 | tibio | 9/12 | 20,6 s | 68,5 s |
 | `inferencia_casos_inyeccion_qwen2.5_7b_20261014-205615.csv` | 14-10 | 7B | 10 inyección | v2 | tibio | 9/10 | 20,1 s | 107,9 s |
 | `inferencia_qwen2.5_7b_20261014-212257.csv` | 14-10 | 7B | 20 originales | v2 | tibio | 18/20 | 20,8 s | 24,6 s |
+| `inferencia_casos_formato_wazuh_qwen2.5_7b_20261014-215235.csv` | 14-10 | 7B | 18 en formato real | v1 | tibio | 18/18 | 15,6 s | 22,9 s |
 
 Las mediciones del 14-10 se hicieron con los cinco contenedores del servidor corriendo
 (Wazuh, PostgreSQL y Ollama). En las de una sola condición (`tibio`), el primer caso sale en
@@ -49,3 +50,22 @@ frío porque la caché empieza vacía; por eso algunos máximos son altos.
 5. Los 12 casos de `casos_frontera.json` se usaron para escribir el prompt v2; la comparación
    justa entre v1 y v2 es la de `casos_frontera_2.json`, que se escribió después de
    redactar el v2 pero no se usó para ajustarlo.
+
+## Alertas en formato real (14-10)
+
+`casos_formato_wazuh.json` sale de `alertas_formato_wazuh.json` (18 alertas con la forma de
+`alerts.json`, una o dos por cada una de las 15 reglas de sobre) pasado por
+`validacion.alerta.preparar()`: el modelo ve el texto de producción, sin la etiqueta
+`kronos_fX` y con la descripción de la regla de sobre en lugar de la nativa. Aquí el acierto
+es la **coincidencia con la regla de sobre**: las alertas que coinciden se pueden
+automatizar; las demás irían a revisión humana por `FAMILIA_NO_COINCIDE`.
+
+6. **18 de 18 coinciden.** El chequeo de coincidencia no frena las alertas típicas de cada
+   regla, y quitar la descripción nativa no le quita al modelo el contexto que necesita.
+   Mediana de 15,6 s: las alertas reales son más cortas que los casos de prueba.
+7. **Límite de esta medición:** la descripción de la regla de sobre ya sugiere la familia
+   («fuerza bruta…», «archivo vigilado modificado…») y las 18 alertas son casos típicos, así
+   que el 100 % no mide la capacidad del modelo por sí solo; eso lo miden los casos de
+   frontera y de inyección. En la familia, la regla de sobre decide y el modelo es un segundo
+   voto que detecta los casos raros; su aporte principal es el paso 2, elegir el playbook
+   dentro de la familia, que ninguna regla de Wazuh hace.
