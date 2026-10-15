@@ -1,0 +1,653 @@
+[
+  {
+    "id": "W-01",
+    "familia_esperada": "F1",
+    "alerta": {
+      "timestamp": "2026-10-15T03:14:22.000+0000",
+      "rule": {
+        "level": 10,
+        "description": "Kronos F1: fuerza bruta por SSH desde 192.0.2.77",
+        "id": "100101",
+        "firedtimes": 1,
+        "groups": [
+          "syslog",
+          "sshd",
+          "kronos",
+          "kronos_f1"
+        ]
+      },
+      "agent": {
+        "id": "003",
+        "name": "srv-web-01",
+        "ip": "192.0.2.10"
+      },
+      "id": "1760498062.1000",
+      "location": "/var/log/auth.log",
+      "data": {
+        "srcip": "192.0.2.77",
+        "srcport": "51122",
+        "dstuser": "root"
+      },
+      "full_log": "Oct 15 03:14:22 srv-web-01 sshd[2211]: Failed password for root from 192.0.2.77 port 51122 ssh2",
+      "decoder": {
+        "name": "sshd"
+      }
+    }
+  },
+  {
+    "id": "W-02",
+    "familia_esperada": "F1",
+    "alerta": {
+      "timestamp": "2026-10-15T03:14:22.000+0000",
+      "rule": {
+        "level": 10,
+        "description": "Kronos F1: fallos repetidos de autenticación local (PAM o sudo)",
+        "id": "100102",
+        "firedtimes": 1,
+        "groups": [
+          "syslog",
+          "sudo",
+          "kronos",
+          "kronos_f1"
+        ]
+      },
+      "agent": {
+        "id": "004",
+        "name": "srv-app-03",
+        "ip": "192.0.2.22"
+      },
+      "id": "1760498062.1001",
+      "location": "/var/log/auth.log",
+      "data": {
+        "srcuser": "operador02",
+        "dstuser": "root",
+        "tty": "pts/1",
+        "command": "/bin/bash"
+      },
+      "full_log": "Oct 15 03:20:10 srv-app-03 sudo: operador02 : 3 incorrect password attempts ; TTY=pts/1 ; PWD=/home/operador02 ; USER=root ; COMMAND=/bin/bash"
+    }
+  },
+  {
+    "id": "W-03",
+    "familia_esperada": "F1",
+    "alerta": {
+      "timestamp": "2026-10-15T03:14:22.000+0000",
+      "rule": {
+        "level": 10,
+        "description": "Kronos F1: fallos repetidos de inicio de sesión en Windows o cuenta bloqueada",
+        "id": "100103",
+        "firedtimes": 1,
+        "groups": [
+          "windows",
+          "kronos",
+          "kronos_f1"
+        ]
+      },
+      "agent": {
+        "id": "005",
+        "name": "srv-dc-01",
+        "ip": "192.0.2.5"
+      },
+      "id": "1760498062.1002",
+      "location": "EventChannel",
+      "data": {
+        "win": {
+          "system": {
+            "eventID": "4625",
+            "channel": "Security"
+          },
+          "eventdata": {
+            "targetUserName": "usuario02",
+            "ipAddress": "192.0.2.88",
+            "logonType": "3",
+            "status": "0xc000006d",
+            "subStatus": "0xc000006a",
+            "workstationName": "EXTERNO-01"
+          }
+        }
+      }
+    }
+  },
+  {
+    "id": "W-04",
+    "familia_esperada": "F2",
+    "alerta": {
+      "timestamp": "2026-10-15T03:14:22.000+0000",
+      "rule": {
+        "level": 12,
+        "description": "Kronos F2: PowerShell con comando codificado en Base64",
+        "id": "100104",
+        "firedtimes": 1,
+        "groups": [
+          "sysmon",
+          "kronos",
+          "kronos_f2"
+        ]
+      },
+      "agent": {
+        "id": "007",
+        "name": "pc-adm-07",
+        "ip": "192.0.2.31"
+      },
+      "id": "1760498062.1003",
+      "location": "EventChannel",
+      "data": {
+        "win": {
+          "system": {
+            "eventID": "1",
+            "channel": "Microsoft-Windows-Sysmon/Operational"
+          },
+          "eventdata": {
+            "image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+            "commandLine": "powershell.exe -nop -w hidden -enc SQBFAFgAIAAoAE4AZQB3AC0ATwBiAGoAZQBjAHQA",
+            "parentImage": "C:\\Program Files\\Office\\root\\Office16\\WINWORD.EXE",
+            "user": "EJEMPLO\\usuario01"
+          }
+        }
+      }
+    }
+  },
+  {
+    "id": "W-05",
+    "familia_esperada": "F2",
+    "alerta": {
+      "timestamp": "2026-10-15T03:14:22.000+0000",
+      "rule": {
+        "level": 12,
+        "description": "Kronos F2: ejecución sospechosa (Office lanza mshta, certutil decodifica o acceso a LSASS)",
+        "id": "100105",
+        "firedtimes": 1,
+        "groups": [
+          "sysmon",
+          "kronos",
+          "kronos_f2"
+        ]
+      },
+      "agent": {
+        "id": "008",
+        "name": "pc-ventas-12",
+        "ip": "192.0.2.47"
+      },
+      "id": "1760498062.1004",
+      "location": "EventChannel",
+      "data": {
+        "win": {
+          "system": {
+            "eventID": "1",
+            "channel": "Microsoft-Windows-Sysmon/Operational"
+          },
+          "eventdata": {
+            "image": "C:\\Windows\\System32\\certutil.exe",
+            "commandLine": "certutil.exe -decode C:\\Users\\Public\\f.txt C:\\Users\\Public\\f.exe",
+            "parentImage": "C:\\Windows\\System32\\cmd.exe",
+            "user": "EJEMPLO\\usuario02"
+          }
+        }
+      }
+    }
+  },
+  {
+    "id": "W-06",
+    "familia_esperada": "F2",
+    "alerta": {
+      "timestamp": "2026-10-15T03:14:22.000+0000",
+      "rule": {
+        "level": 10,
+        "description": "Kronos F2: ejecutable o script en carpeta temporal o de usuario",
+        "id": "100106",
+        "firedtimes": 1,
+        "groups": [
+          "sysmon",
+          "kronos",
+          "kronos_f2"
+        ]
+      },
+      "agent": {
+        "id": "008",
+        "name": "pc-ventas-12",
+        "ip": "192.0.2.47"
+      },
+      "id": "1760498062.1005",
+      "location": "EventChannel",
+      "data": {
+        "win": {
+          "system": {
+            "eventID": "1",
+            "channel": "Microsoft-Windows-Sysmon/Operational"
+          },
+          "eventdata": {
+            "image": "C:\\Users\\usuario02\\AppData\\Local\\Temp\\factura_0923.exe",
+            "commandLine": "\"C:\\Users\\usuario02\\AppData\\Local\\Temp\\factura_0923.exe\"",
+            "parentImage": "C:\\Windows\\explorer.exe",
+            "user": "EJEMPLO\\usuario02"
+          }
+        }
+      }
+    }
+  },
+  {
+    "id": "W-07",
+    "familia_esperada": "F3",
+    "alerta": {
+      "timestamp": "2026-10-15T03:14:22.000+0000",
+      "rule": {
+        "level": 8,
+        "description": "Kronos F3: inicio de sesión remoto (RDP o NTLM de red)",
+        "id": "100107",
+        "firedtimes": 1,
+        "groups": [
+          "windows",
+          "kronos",
+          "kronos_f3"
+        ]
+      },
+      "agent": {
+        "id": "006",
+        "name": "srv-fich-01",
+        "ip": "192.0.2.12"
+      },
+      "id": "1760498062.1006",
+      "location": "EventChannel",
+      "data": {
+        "win": {
+          "system": {
+            "eventID": "4624",
+            "channel": "Security"
+          },
+          "eventdata": {
+            "targetUserName": "admin.local",
+            "ipAddress": "192.0.2.31",
+            "logonType": "10",
+            "workstationName": "PC-ADM-07",
+            "authenticationPackageName": "Negotiate"
+          }
+        }
+      }
+    }
+  },
+  {
+    "id": "W-08",
+    "familia_esperada": "F3",
+    "alerta": {
+      "timestamp": "2026-10-15T03:14:22.000+0000",
+      "rule": {
+        "level": 12,
+        "description": "Kronos F3: ejecución remota o uso de recursos administrativos (PsExec, servicios, WinRM, Impacket)",
+        "id": "100108",
+        "firedtimes": 1,
+        "groups": [
+          "windows",
+          "kronos",
+          "kronos_f3"
+        ]
+      },
+      "agent": {
+        "id": "006",
+        "name": "srv-fich-01",
+        "ip": "192.0.2.12"
+      },
+      "id": "1760498062.1007",
+      "location": "EventChannel",
+      "data": {
+        "win": {
+          "system": {
+            "eventID": "7045",
+            "channel": "System"
+          },
+          "eventdata": {
+            "serviceName": "PSEXESVC",
+            "imagePath": "%SystemRoot%\\PSEXESVC.exe",
+            "serviceType": "user mode service",
+            "startType": "demand start",
+            "accountName": "LocalSystem"
+          }
+        }
+      }
+    }
+  },
+  {
+    "id": "W-09",
+    "familia_esperada": "F3",
+    "alerta": {
+      "timestamp": "2026-10-15T03:14:22.000+0000",
+      "rule": {
+        "level": 12,
+        "description": "Kronos F3: ejecución remota o uso de recursos administrativos (PsExec, servicios, WinRM, Impacket)",
+        "id": "100108",
+        "firedtimes": 1,
+        "groups": [
+          "sysmon",
+          "kronos",
+          "kronos_f3"
+        ]
+      },
+      "agent": {
+        "id": "009",
+        "name": "srv-bd-02",
+        "ip": "192.0.2.20"
+      },
+      "id": "1760498062.1008",
+      "location": "EventChannel",
+      "data": {
+        "win": {
+          "system": {
+            "eventID": "1",
+            "channel": "Microsoft-Windows-Sysmon/Operational"
+          },
+          "eventdata": {
+            "image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+            "commandLine": "powershell.exe -c \"Get-LocalGroupMember Administradores\"",
+            "parentImage": "C:\\Windows\\System32\\wsmprovhost.exe",
+            "user": "EJEMPLO\\admin.local"
+          }
+        }
+      }
+    }
+  },
+  {
+    "id": "W-10",
+    "familia_esperada": "F4",
+    "alerta": {
+      "timestamp": "2026-10-15T03:14:22.000+0000",
+      "rule": {
+        "level": 12,
+        "description": "Kronos F4: binario sospechoso abrió una conexión de salida",
+        "id": "100109",
+        "firedtimes": 1,
+        "groups": [
+          "sysmon",
+          "kronos",
+          "kronos_f4"
+        ]
+      },
+      "agent": {
+        "id": "007",
+        "name": "pc-adm-07",
+        "ip": "192.0.2.31"
+      },
+      "id": "1760498062.1009",
+      "location": "EventChannel",
+      "data": {
+        "win": {
+          "system": {
+            "eventID": "3",
+            "channel": "Microsoft-Windows-Sysmon/Operational"
+          },
+          "eventdata": {
+            "image": "C:\\Users\\Public\\upd.exe",
+            "destinationIp": "192.0.2.240",
+            "destinationPort": "443",
+            "destinationHostname": "sync-datos.example",
+            "protocol": "tcp",
+            "initiated": "true",
+            "user": "EJEMPLO\\usuario01"
+          }
+        }
+      }
+    }
+  },
+  {
+    "id": "W-11",
+    "familia_esperada": "F4",
+    "alerta": {
+      "timestamp": "2026-10-15T03:14:22.000+0000",
+      "rule": {
+        "level": 12,
+        "description": "Kronos F4: binario sospechoso abrió una conexión de salida",
+        "id": "100109",
+        "firedtimes": 1,
+        "groups": [
+          "sysmon",
+          "kronos",
+          "kronos_f4"
+        ]
+      },
+      "agent": {
+        "id": "008",
+        "name": "pc-ventas-12",
+        "ip": "192.0.2.47"
+      },
+      "id": "1760498062.1010",
+      "location": "EventChannel",
+      "data": {
+        "win": {
+          "system": {
+            "eventID": "3",
+            "channel": "Microsoft-Windows-Sysmon/Operational"
+          },
+          "eventdata": {
+            "image": "C:\\Windows\\System32\\rundll32.exe",
+            "destinationIp": "192.0.2.241",
+            "destinationPort": "8443",
+            "protocol": "tcp",
+            "initiated": "true",
+            "user": "EJEMPLO\\usuario02"
+          }
+        }
+      }
+    }
+  },
+  {
+    "id": "W-12",
+    "familia_esperada": "F5",
+    "alerta": {
+      "timestamp": "2026-10-15T03:14:22.000+0000",
+      "rule": {
+        "level": 7,
+        "description": "Kronos F5: archivo vigilado modificado, agregado o borrado",
+        "id": "100110",
+        "firedtimes": 1,
+        "groups": [
+          "ossec",
+          "syscheck",
+          "kronos",
+          "kronos_f5"
+        ]
+      },
+      "agent": {
+        "id": "004",
+        "name": "srv-app-03",
+        "ip": "192.0.2.22"
+      },
+      "id": "1760498062.1011",
+      "location": "syscheck",
+      "full_log": "File '/etc/sudoers' modified\nMode: whodata\nChanged attributes: size,mtime,md5,sha256",
+      "syscheck": {
+        "path": "/etc/sudoers",
+        "event": "modified",
+        "mode": "whodata",
+        "diff": "+operador02 ALL=(ALL) NOPASSWD: ALL",
+        "audit": {
+          "user": {
+            "name": "operador02"
+          },
+          "process": {
+            "name": "/usr/bin/vi"
+          }
+        }
+      }
+    }
+  },
+  {
+    "id": "W-13",
+    "familia_esperada": "F5",
+    "alerta": {
+      "timestamp": "2026-10-15T03:14:22.000+0000",
+      "rule": {
+        "level": 10,
+        "description": "Kronos F5: cuenta o grupo nuevo, o usuario agregado a sudo",
+        "id": "100111",
+        "firedtimes": 1,
+        "groups": [
+          "syslog",
+          "adduser",
+          "kronos",
+          "kronos_f5"
+        ]
+      },
+      "agent": {
+        "id": "009",
+        "name": "srv-bd-02",
+        "ip": "192.0.2.20"
+      },
+      "id": "1760498062.1012",
+      "location": "/var/log/auth.log",
+      "data": {
+        "dstuser": "soporte_tmp"
+      },
+      "full_log": "Oct 15 02:47:01 srv-bd-02 useradd[4410]: new user: name=soporte_tmp, UID=0, GID=0, home=/root, shell=/bin/bash"
+    }
+  },
+  {
+    "id": "W-14",
+    "familia_esperada": "F5",
+    "alerta": {
+      "timestamp": "2026-10-15T03:14:22.000+0000",
+      "rule": {
+        "level": 10,
+        "description": "Kronos F5: persistencia programada (tarea, cron o arranque automático)",
+        "id": "100112",
+        "firedtimes": 1,
+        "groups": [
+          "windows",
+          "kronos",
+          "kronos_f5"
+        ]
+      },
+      "agent": {
+        "id": "007",
+        "name": "pc-adm-07",
+        "ip": "192.0.2.31"
+      },
+      "id": "1760498062.1013",
+      "location": "EventChannel",
+      "data": {
+        "win": {
+          "system": {
+            "eventID": "4698",
+            "channel": "Security"
+          },
+          "eventdata": {
+            "taskName": "\\ActualizadorSistema",
+            "subjectUserName": "usuario01",
+            "taskContent": "<Exec><Command>C:\\Users\\Public\\upd.exe</Command></Exec><LogonTrigger/>"
+          }
+        }
+      }
+    }
+  },
+  {
+    "id": "W-15",
+    "familia_esperada": "F5",
+    "alerta": {
+      "timestamp": "2026-10-15T03:14:22.000+0000",
+      "rule": {
+        "level": 12,
+        "description": "Kronos F5: registro de auditoría borrado",
+        "id": "100113",
+        "firedtimes": 1,
+        "groups": [
+          "windows",
+          "kronos",
+          "kronos_f5"
+        ]
+      },
+      "agent": {
+        "id": "005",
+        "name": "srv-dc-01",
+        "ip": "192.0.2.5"
+      },
+      "id": "1760498062.1014",
+      "location": "EventChannel",
+      "data": {
+        "win": {
+          "system": {
+            "eventID": "1102",
+            "channel": "Security"
+          },
+          "eventdata": {
+            "subjectUserName": "admin.local",
+            "subjectDomainName": "EJEMPLO"
+          }
+        }
+      }
+    }
+  },
+  {
+    "id": "W-16",
+    "familia_esperada": "F6",
+    "alerta": {
+      "timestamp": "2026-10-15T03:14:22.000+0000",
+      "rule": {
+        "level": 7,
+        "description": "Kronos F6: disco lleno",
+        "id": "100114",
+        "firedtimes": 1,
+        "groups": [
+          "ossec",
+          "low_diskspace",
+          "kronos",
+          "kronos_f6"
+        ]
+      },
+      "agent": {
+        "id": "009",
+        "name": "srv-bd-02",
+        "ip": "192.0.2.20"
+      },
+      "id": "1760498062.1015",
+      "location": "df -P",
+      "full_log": "ossec: output: 'df -P': /dev/sdb1 524288000 524288000 0 100% /var/lib/postgresql"
+    }
+  },
+  {
+    "id": "W-17",
+    "familia_esperada": "F6",
+    "alerta": {
+      "timestamp": "2026-10-15T03:14:22.000+0000",
+      "rule": {
+        "level": 7,
+        "description": "Kronos F6: agente de Wazuh desconectado o detenido",
+        "id": "100115",
+        "firedtimes": 1,
+        "groups": [
+          "ossec",
+          "kronos",
+          "kronos_f6"
+        ]
+      },
+      "agent": {
+        "id": "000",
+        "name": "soar-core"
+      },
+      "id": "1760498062.1016",
+      "location": "wazuh-monitord",
+      "full_log": "ossec: Agent stopped: 'pc-ventas-12->any'."
+    }
+  },
+  {
+    "id": "W-18",
+    "familia_esperada": "F6",
+    "alerta": {
+      "timestamp": "2026-10-15T03:14:22.000+0000",
+      "rule": {
+        "level": 7,
+        "description": "Kronos F6: agente de Wazuh desconectado o detenido",
+        "id": "100115",
+        "firedtimes": 1,
+        "groups": [
+          "ossec",
+          "kronos",
+          "kronos_f6"
+        ]
+      },
+      "agent": {
+        "id": "000",
+        "name": "soar-core"
+      },
+      "id": "1760498062.1017",
+      "location": "wazuh-monitord",
+      "full_log": "ossec: Agent disconnected: 'srv-app-03-any'."
+    }
+  }
+]

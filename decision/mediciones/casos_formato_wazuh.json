@@ -1,0 +1,128 @@
+[
+  {
+    "id": "W-01",
+    "texto": "Rule: 100101 (level 10) -> 'fuerza bruta por SSH desde 192.0.2.77' | Agent: srv-web-01 (192.0.2.10) | Location: /var/log/auth.log | data.srcip: 192.0.2.77 | data.srcport: 51122 | data.dstuser: root | full_log: Oct 15 03:14:22 srv-web-01 sshd[2211]: Failed password for root from 192.0.2.77 port 51122 ssh2",
+    "familia_esperada": "F1",
+    "familia_candidata": "F1",
+    "regla": "100101"
+  },
+  {
+    "id": "W-02",
+    "texto": "Rule: 100102 (level 10) -> 'fallos repetidos de autenticación local (PAM o sudo)' | Agent: srv-app-03 (192.0.2.22) | Location: /var/log/auth.log | data.srcuser: operador02 | data.dstuser: root | data.tty: pts/1 | data.command: /bin/bash | full_log: Oct 15 03:20:10 srv-app-03 sudo: operador02 : 3 incorrect password attempts ; TTY=pts/1 ; PWD=/home/operador02 ; USER=root ; COMMAND=/bin/bash",
+    "familia_esperada": "F1",
+    "familia_candidata": "F1",
+    "regla": "100102"
+  },
+  {
+    "id": "W-03",
+    "texto": "Rule: 100103 (level 10) -> 'fallos repetidos de inicio de sesión en Windows o cuenta bloqueada' | Agent: srv-dc-01 (192.0.2.5) | Location: EventChannel | data.win.system.eventID: 4625 | data.win.system.channel: Security | data.win.eventdata.targetUserName: usuario02 | data.win.eventdata.ipAddress: 192.0.2.88 | data.win.eventdata.logonType: 3 | data.win.eventdata.status: 0xc000006d | data.win.eventdata.subStatus: 0xc000006a | data.win.eventdata.workstationName: EXTERNO-01",
+    "familia_esperada": "F1",
+    "familia_candidata": "F1",
+    "regla": "100103"
+  },
+  {
+    "id": "W-04",
+    "texto": "Rule: 100104 (level 12) -> 'PowerShell con comando codificado en Base64' | Agent: pc-adm-07 (192.0.2.31) | Location: EventChannel | data.win.system.eventID: 1 | data.win.system.channel: Microsoft-Windows-Sysmon/Operational | data.win.eventdata.image: C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe | data.win.eventdata.commandLine: powershell.exe -nop -w hidden -enc SQBFAFgAIAAoAE4AZQB3AC0ATwBiAGoAZQBjAHQA | data.win.eventdata.parentImage: C:\\Program Files\\Office\\root\\Office16\\WINWORD.EXE | data.win.eventdata.user: EJEMPLO\\usuario01",
+    "familia_esperada": "F2",
+    "familia_candidata": "F2",
+    "regla": "100104"
+  },
+  {
+    "id": "W-05",
+    "texto": "Rule: 100105 (level 12) -> 'ejecución sospechosa (Office lanza mshta, certutil decodifica o acceso a LSASS)' | Agent: pc-ventas-12 (192.0.2.47) | Location: EventChannel | data.win.system.eventID: 1 | data.win.system.channel: Microsoft-Windows-Sysmon/Operational | data.win.eventdata.image: C:\\Windows\\System32\\certutil.exe | data.win.eventdata.commandLine: certutil.exe -decode C:\\Users\\Public\\f.txt C:\\Users\\Public\\f.exe | data.win.eventdata.parentImage: C:\\Windows\\System32\\cmd.exe | data.win.eventdata.user: EJEMPLO\\usuario02",
+    "familia_esperada": "F2",
+    "familia_candidata": "F2",
+    "regla": "100105"
+  },
+  {
+    "id": "W-06",
+    "texto": "Rule: 100106 (level 10) -> 'ejecutable o script en carpeta temporal o de usuario' | Agent: pc-ventas-12 (192.0.2.47) | Location: EventChannel | data.win.system.eventID: 1 | data.win.system.channel: Microsoft-Windows-Sysmon/Operational | data.win.eventdata.image: C:\\Users\\usuario02\\AppData\\Local\\Temp\\factura_0923.exe | data.win.eventdata.commandLine: \"C:\\Users\\usuario02\\AppData\\Local\\Temp\\factura_0923.exe\" | data.win.eventdata.parentImage: C:\\Windows\\explorer.exe | data.win.eventdata.user: EJEMPLO\\usuario02",
+    "familia_esperada": "F2",
+    "familia_candidata": "F2",
+    "regla": "100106"
+  },
+  {
+    "id": "W-07",
+    "texto": "Rule: 100107 (level 8) -> 'inicio de sesión remoto (RDP o NTLM de red)' | Agent: srv-fich-01 (192.0.2.12) | Location: EventChannel | data.win.system.eventID: 4624 | data.win.system.channel: Security | data.win.eventdata.targetUserName: admin.local | data.win.eventdata.ipAddress: 192.0.2.31 | data.win.eventdata.logonType: 10 | data.win.eventdata.workstationName: PC-ADM-07 | data.win.eventdata.authenticationPackageName: Negotiate",
+    "familia_esperada": "F3",
+    "familia_candidata": "F3",
+    "regla": "100107"
+  },
+  {
+    "id": "W-08",
+    "texto": "Rule: 100108 (level 12) -> 'ejecución remota o uso de recursos administrativos (PsExec, servicios, WinRM, Impacket)' | Agent: srv-fich-01 (192.0.2.12) | Location: EventChannel | data.win.system.eventID: 7045 | data.win.system.channel: System | data.win.eventdata.serviceName: PSEXESVC | data.win.eventdata.imagePath: %SystemRoot%\\PSEXESVC.exe | data.win.eventdata.serviceType: user mode service | data.win.eventdata.startType: demand start | data.win.eventdata.accountName: LocalSystem",
+    "familia_esperada": "F3",
+    "familia_candidata": "F3",
+    "regla": "100108"
+  },
+  {
+    "id": "W-09",
+    "texto": "Rule: 100108 (level 12) -> 'ejecución remota o uso de recursos administrativos (PsExec, servicios, WinRM, Impacket)' | Agent: srv-bd-02 (192.0.2.20) | Location: EventChannel | data.win.system.eventID: 1 | data.win.system.channel: Microsoft-Windows-Sysmon/Operational | data.win.eventdata.image: C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe | data.win.eventdata.commandLine: powershell.exe -c \"Get-LocalGroupMember Administradores\" | data.win.eventdata.parentImage: C:\\Windows\\System32\\wsmprovhost.exe | data.win.eventdata.user: EJEMPLO\\admin.local",
+    "familia_esperada": "F3",
+    "familia_candidata": "F3",
+    "regla": "100108"
+  },
+  {
+    "id": "W-10",
+    "texto": "Rule: 100109 (level 12) -> 'binario sospechoso abrió una conexión de salida' | Agent: pc-adm-07 (192.0.2.31) | Location: EventChannel | data.win.system.eventID: 3 | data.win.system.channel: Microsoft-Windows-Sysmon/Operational | data.win.eventdata.image: C:\\Users\\Public\\upd.exe | data.win.eventdata.destinationIp: 192.0.2.240 | data.win.eventdata.destinationPort: 443 | data.win.eventdata.destinationHostname: sync-datos.example | data.win.eventdata.protocol: tcp | data.win.eventdata.initiated: true | data.win.eventdata.user: EJEMPLO\\usuario01",
+    "familia_esperada": "F4",
+    "familia_candidata": "F4",
+    "regla": "100109"
+  },
+  {
+    "id": "W-11",
+    "texto": "Rule: 100109 (level 12) -> 'binario sospechoso abrió una conexión de salida' | Agent: pc-ventas-12 (192.0.2.47) | Location: EventChannel | data.win.system.eventID: 3 | data.win.system.channel: Microsoft-Windows-Sysmon/Operational | data.win.eventdata.image: C:\\Windows\\System32\\rundll32.exe | data.win.eventdata.destinationIp: 192.0.2.241 | data.win.eventdata.destinationPort: 8443 | data.win.eventdata.protocol: tcp | data.win.eventdata.initiated: true | data.win.eventdata.user: EJEMPLO\\usuario02",
+    "familia_esperada": "F4",
+    "familia_candidata": "F4",
+    "regla": "100109"
+  },
+  {
+    "id": "W-12",
+    "texto": "Rule: 100110 (level 7) -> 'archivo vigilado modificado, agregado o borrado' | Agent: srv-app-03 (192.0.2.22) | Location: syscheck | syscheck.path: /etc/sudoers | syscheck.event: modified | syscheck.mode: whodata | syscheck.diff: +operador02 ALL=(ALL) NOPASSWD: ALL | syscheck.audit.user.name: operador02 | syscheck.audit.process.name: /usr/bin/vi | full_log: File '/etc/sudoers' modified Mode: whodata Changed attributes: size,mtime,md5,sha256",
+    "familia_esperada": "F5",
+    "familia_candidata": "F5",
+    "regla": "100110"
+  },
+  {
+    "id": "W-13",
+    "texto": "Rule: 100111 (level 10) -> 'cuenta o grupo nuevo, o usuario agregado a sudo' | Agent: srv-bd-02 (192.0.2.20) | Location: /var/log/auth.log | data.dstuser: soporte_tmp | full_log: Oct 15 02:47:01 srv-bd-02 useradd[4410]: new user: name=soporte_tmp, UID=0, GID=0, home=/root, shell=/bin/bash",
+    "familia_esperada": "F5",
+    "familia_candidata": "F5",
+    "regla": "100111"
+  },
+  {
+    "id": "W-14",
+    "texto": "Rule: 100112 (level 10) -> 'persistencia programada (tarea, cron o arranque automático)' | Agent: pc-adm-07 (192.0.2.31) | Location: EventChannel | data.win.system.eventID: 4698 | data.win.system.channel: Security | data.win.eventdata.taskName: \\ActualizadorSistema | data.win.eventdata.subjectUserName: usuario01 | data.win.eventdata.taskContent: <Exec><Command>C:\\Users\\Public\\upd.exe</Command></Exec><LogonTrigger/>",
+    "familia_esperada": "F5",
+    "familia_candidata": "F5",
+    "regla": "100112"
+  },
+  {
+    "id": "W-15",
+    "texto": "Rule: 100113 (level 12) -> 'registro de auditoría borrado' | Agent: srv-dc-01 (192.0.2.5) | Location: EventChannel | data.win.system.eventID: 1102 | data.win.system.channel: Security | data.win.eventdata.subjectUserName: admin.local | data.win.eventdata.subjectDomainName: EJEMPLO",
+    "familia_esperada": "F5",
+    "familia_candidata": "F5",
+    "regla": "100113"
+  },
+  {
+    "id": "W-16",
+    "texto": "Rule: 100114 (level 7) -> 'disco lleno' | Agent: srv-bd-02 (192.0.2.20) | Location: df -P | full_log: ossec: output: 'df -P': /dev/sdb1 524288000 524288000 0 100% /var/lib/postgresql",
+    "familia_esperada": "F6",
+    "familia_candidata": "F6",
+    "regla": "100114"
+  },
+  {
+    "id": "W-17",
+    "texto": "Rule: 100115 (level 7) -> 'agente de Wazuh desconectado o detenido' | Agent: soar-core () | Location: wazuh-monitord | full_log: ossec: Agent stopped: 'pc-ventas-12->any'.",
+    "familia_esperada": "F6",
+    "familia_candidata": "F6",
+    "regla": "100115"
+  },
+  {
+    "id": "W-18",
+    "texto": "Rule: 100115 (level 7) -> 'agente de Wazuh desconectado o detenido' | Agent: soar-core () | Location: wazuh-monitord | full_log: ossec: Agent disconnected: 'srv-app-03-any'.",
+    "familia_esperada": "F6",
+    "familia_candidata": "F6",
+    "regla": "100115"
+  }
+]
