@@ -74,7 +74,10 @@ def main() -> int:
             repo, cliente, chat, equipo, cliente.mi_id(), EstadoInvalido
         )
     except (KeyError, ValueError, OSError, ErrorTelegram) as exc:
-        registro.error("no arranca: %s", exc)
+        motivo = (
+            f"falta la variable {exc.args[0]}" if isinstance(exc, KeyError) else exc
+        )
+        registro.error("no arranca: %s", motivo)
         return 2
 
     registro.info(

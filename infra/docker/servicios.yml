@@ -1,0 +1,84 @@
+# SOAR-EXECUTE y SOAR-NOTIFY. Se suma al docker-compose.yml de la base:
+#
+#   docker compose -f docker-compose.yml -f servicios.yml up -d --build
+#
+# Antes: generar_secretos.sh, los secretos manuales de secrets/ y el archivo .env
+# (ver servicios/README.md).
+
+services:
+  execute:
+    build:
+      context: ../..
+      dockerfile: infra/docker/servicios/Dockerfile
+    image: kronos-servicios:local
+    pull_policy: build  # imagen local: se construye, nunca se busca en un registro
+    command: ["python", "-m", "ejecucion"]
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      KRONOS_DSN: host=db dbname=kronos user=kronos_worker
+      KRONOS_DB_CLAVE_ARCHIVO: /run/secrets/kronos_worker_password
+      KRONOS_INQUILINOS: ${KRONOS_INQUILINOS:?falta KRONOS_INQUILINOS en .env}
+      KRONOS_WAZUH_URL: ${KRONOS_WAZUH_URL:-https://wazuh.manager:55000}
+      KRONOS_WAZUH_USUARIO: ${KRONOS_WAZUH_USUARIO:-kronos-execute}
+      KRONOS_WAZUH_CLAVE_ARCHIVO: /run/secrets/wazuh_api_password
+      KRONOS_WAZUH_CA: /run/secrets/wazuh_api_ca
+      KRONOS_WAZUH_NOMBRE_SERVIDOR: ${KRONOS_WAZUH_NOMBRE_SERVIDOR:-}
+    secrets:
+      - kronos_worker_password
+      - wazuh_api_password
+      - wazuh_api_ca
+    networks:
+      - interna
+      - wazuh
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+
+  notify:
+    image: kronos-servicios:local
+    pull_policy: never  # la construye el servicio execute
+    command: ["python", "-m", "notificacion"]
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+      execute:
+        condition: service_started  # sólo para que la imagen ya esté construida
+    environment:
+      KRONOS_DSN: host=db dbname=kronos user=kronos_worker
+      KRONOS_DB_CLAVE_ARCHIVO: /run/secrets/kronos_worker_password
+      KRONOS_INQUILINOS: ${KRONOS_INQUILINOS:?falta KRONOS_INQUILINOS en .env}
+      KRONOS_TELEGRAM_TOKEN_ARCHIVO: /run/secrets/telegram_token
+      KRONOS_TELEGRAM_CHAT: ${KRONOS_TELEGRAM_CHAT:?falta KRONOS_TELEGRAM_CHAT en .env}
+      KRONOS_TELEGRAM_EQUIPO: ${KRONOS_TELEGRAM_EQUIPO:?falta KRONOS_TELEGRAM_EQUIPO en .env}
+    secrets:
+      - kronos_worker_password
+      - telegram_token
+    networks:
+      - interna
+      - salida
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+
+networks:
+  # Red del compose de Wazuh: EXECUTE llega a la API como wazuh.manager:55000, sin
+  # pasar por internet ni por NetBird.
+  wazuh:
+    external: true
+    name: ${KRONOS_WAZUH_RED:-single-node_default}
+  # Salida a internet, sólo para Telegram.
+  salida: {}
+
+secrets:
+  kronos_worker_password:
+    file: ./secrets/kronos_worker_password
+  wazuh_api_password:
+    file: ./secrets/wazuh_api_password
+  wazuh_api_ca:
+    file: ./secrets/wazuh_api_ca.pem
+  telegram_token:
+    file: ./secrets/telegram_token

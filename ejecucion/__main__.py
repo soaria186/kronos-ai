@@ -58,7 +58,10 @@ def main() -> int:
             cargar_medidas(),
         )
     except (KeyError, ValueError, OSError) as exc:
-        registro.error("no arranca: %s", exc)
+        motivo = (
+            f"falta la variable {exc.args[0]}" if isinstance(exc, KeyError) else exc
+        )
+        registro.error("no arranca: %s", motivo)
         return 2
 
     registro.info(
