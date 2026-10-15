@@ -1,0 +1,10 @@
+[Unit]
+Description=Kronos: respaldo cifrado de PostgreSQL (SOAR-AUDIT)
+After=docker.service
+Requires=docker.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/kronos-respaldo-postgres.sh
+Nice=10
+IOSchedulingClass=idle
