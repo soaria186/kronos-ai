@@ -1,5 +1,6 @@
 import json
 import os
+import sys
 import tempfile
 import unittest
 from pathlib import Path
@@ -56,6 +57,10 @@ class Lector(unittest.TestCase):
         self.assertEqual(self.ids(otro.leer()), ["4", "5"])
         otro.cerrar()
 
+    @unittest.skipIf(
+        sys.platform == "win32",
+        "Windows no deja renombrar un archivo abierto; el lector corre en Linux (contenedor)",
+    )
     def test_rotacion_sin_perder_las_ultimas_alertas(self):
         lector = LectorAlertas(self.ruta)
         self.agregar(linea(3))
@@ -68,6 +73,10 @@ class Lector(unittest.TestCase):
         self.assertEqual(self.ids(lector.leer()), ["6"])
         lector.cerrar()
 
+    @unittest.skipIf(
+        sys.platform == "win32",
+        "Windows no deja renombrar un archivo abierto; el lector corre en Linux (contenedor)",
+    )
     def test_archivo_nuevo_todavia_no_creado(self):
         lector = LectorAlertas(self.ruta)
         self.agregar(linea(3))
