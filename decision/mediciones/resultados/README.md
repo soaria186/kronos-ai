@@ -5,7 +5,7 @@ contra el Ollama de SOAR-CORE-01 (Ollama 0.40.0, sin GPU) por un túnel SSH. Los
 reloj e incluyen el túnel. `frio` = sin caché de prompt; `tibio` = prompt real, con la parte
 fija en caché. Acierto = familia del paso 1 igual a la esperada.
 
-**Prompt v1** = `decision/prompts/` de `develop` (el vigente). **Prompt v2** = reglas 4 y 6 y
+**Prompt v1** = `decision/prompts/` de `develop` (el vigente). **Prompt KRO-CAT-01** = el paso 2 con los candidatos y condiciones de uso generados desde `decision/catalogo/kro-cat-01.json` (el v1 usaba un catálogo provisional con los mismos identificadores y otro significado). **Prompt v2** = reglas 4 y 6 y
 escala de confianza reescritas en la rama `feat/e2-prompt-confianza`; no se integró (ver
 conclusiones).
 
@@ -24,6 +24,7 @@ conclusiones).
 | `inferencia_casos_inyeccion_qwen2.5_7b_20261014-205615.csv` | 14-10 | 7B | 10 inyección | v2 | tibio | 9/10 | 20,1 s | 107,9 s |
 | `inferencia_qwen2.5_7b_20261014-212257.csv` | 14-10 | 7B | 20 originales | v2 | tibio | 18/20 | 20,8 s | 24,6 s |
 | `inferencia_casos_formato_wazuh_qwen2.5_7b_20261014-215235.csv` | 14-10 | 7B | 18 en formato real | v1 | tibio | 18/18 | 15,6 s | 22,9 s |
+| `inferencia_casos_qwen2.5_7b_20261015-204009.csv` | 15-10 | 7B | 150 (`casos_150`) | KRO-CAT-01 | tibio | 150/150 | 13,6 s | 25,6 s |
 
 Las mediciones del 14-10 se hicieron con los cinco contenedores del servidor corriendo
 (Wazuh, PostgreSQL y Ollama). En las de una sola condición (`tibio`), el primer caso sale en
@@ -69,3 +70,25 @@ automatizar; las demás irían a revisión humana por `FAMILIA_NO_COINCIDE`.
    frontera y de inyección. En la familia, la regla de sobre decide y el modelo es un segundo
    voto que detecta los casos raros; su aporte principal es el paso 2, elegir el playbook
    dentro de la familia, que ninguna regla de Wazuh hace.
+
+## Paso 2 con el catálogo real, 150 casos (15-10)
+
+`casos_150/casos.json` con el prompt generado desde KRO-CAT-01 (5 candidatos en F1, F5 y F6;
+3 en F2 y F4; 4 en F3). El paso 1 no cambió. Los casos no traen `playbook_esperado`, así que
+**esta medición no dice si el paso 2 acierta**: solo qué elige, con qué confianza y cuánto
+tarda.
+
+8. **Tiempo:** mediana 13,6 s, p90 15,1 s, JSON válido 150 de 150. Más candidatos no alargaron
+   el paso 2; las alertas reales son más cortas que los casos de prueba.
+9. **Qué elige:** consulta de solo lectura (nivel 0) 57 casos; nivel 1, 71; nivel 2, 5;
+   nivel 3, 17 (todos PB-F5-03, esperan aprobación). Nunca eligió 13 de los 25 playbooks.
+10. **Confianza:** la menor de los dos pasos fue 0,8 en 82 casos, 0,7 en 59, 0,6 en uno y 0,0
+    en ocho (F5-01 uno y F5-03 siete, que el chequeo rechaza). Pasan el umbral 141 de 150; 75
+    de ellos serían medidas automáticas (nivel 1 o 2).
+11. **F3 no discrimina:** los 24 casos de F3 eligieron PB-F3-01 (bloquear una IP *externa*) con
+    confianza 0,7 exacta, el tope que fija la regla de desempate del paso 1, y 0,7 pasa el
+    umbral. 16 de ellos son la regla 100108 (ejecución remota entre equipos, tipo PsExec), que
+    por las condiciones de uso pediría bloquear un equipo interno o aislarlo. Hoy esos 24
+    casos terminarían en un bloqueo automático de IP. Las alertas no dicen si una IP es
+    externa, así que el prompt no puede distinguirlo; falta decidir si se resuelve con un
+    chequeo determinista sobre la IP o con otras condiciones de uso.
