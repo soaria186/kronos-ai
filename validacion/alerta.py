@@ -10,18 +10,29 @@ De cada alerta de alerts.json se obtiene:
   copiaría, y el chequeo de coincidencia dejaría de comparar dos opiniones
   independientes;
 - los identificadores del objetivo (equipo, IP, cuentas, programa, servicio, destino)
-  para la lista de exclusión.
+  para la lista de exclusión;
+- el detalle del evento ALERTA_RECIBIDA (detalle_alerta_recibida): la alerta COMPLETA,
+  tal como llegó, bajo la clave "alerta". SOAR-EXECUTE saca de ahí el agente
+  (agent.id) y el objetivo de la medida (IP, cuenta, servicio, PID); no hay otra copia.
 
 El texto se arma con valores recortados (LARGO_CAMPO por campo y LARGO_TEXTO en total) y
 sin saltos de línea. Los valores los controla el atacante: un campo enorme dejaba al 7B
 en más de 100 s (caso INY-10 del 14-10-2026), y un salto de línea permite simular
 secciones del prompt.
+
+Lo que se guarda no es el texto recortado del modelo sino la alerta original: EXECUTE
+necesita los valores exactos. Eso sí, antes de llegar a la bitácora (de sólo inserción:
+una fila mala no se puede borrar) se quitan los caracteres que PostgreSQL no admite en un
+jsonb, para que una alerta hostil no deje a VALIDATE sin poder registrarla; ver
+_para_guardar.
 """
 
 from __future__ import annotations
 
+import math
 import re
 from dataclasses import dataclass
+from typing import Any
 
 from validacion.contrato import FAMILIAS
 
@@ -32,6 +43,11 @@ MARCA_RECORTE = "…[recortado]"
 _ETIQUETA = re.compile(r"^kronos_f([1-6])$")
 _PREFIJO_KRONOS = re.compile(r"^\s*Kronos F[1-6]\s*:\s*", re.IGNORECASE)
 _ESPACIOS = re.compile(r"\s+")
+# jsonb no admite U+0000 ni sustitutos UTF-16 sueltos (json.loads los acepta en un
+# "\u0000" o "\ud800" escrito en la línea, y quien controla un campo puede ponerlos).
+_NO_ADMITIDO = re.compile("[\x00\ud800-\udfff]")
+SUSTITUTO = "\ufffd"
+LARGO_TITULO = 200
 
 # Campos de la alerta que identifican sobre qué se actuaría, por categoría de exclusión.
 _OBJETIVO = {
@@ -69,6 +85,7 @@ class AlertaKronos:
     id: str
     familia_candidata: str
     severidad: int
+    titulo: str
     texto: str
     objetivo: dict[str, tuple[str, ...]]
 
@@ -103,9 +120,49 @@ def preparar(alerta: dict) -> AlertaKronos | None:
         id=identificador,
         familia_candidata=familia,
         severidad=severidad,
+        titulo=_titulo(regla),
         texto=_texto_para_el_modelo(alerta),
         objetivo=_objetivo(alerta),
     )
+
+
+def detalle_alerta_recibida(alerta: dict) -> dict[str, Any]:
+    """Detalle del evento ALERTA_RECIBIDA: la alerta completa bajo la clave "alerta".
+
+    Es una copia: ni cambios posteriores a la alerta original alteran lo guardado ni al
+    revés. Lanza AlertaInvalida si trae un número no finito o un valor que no es JSON.
+    """
+    return {"alerta": _para_guardar(alerta, "alerta")}
+
+
+def _titulo(regla: dict) -> str:
+    descripcion = _PREFIJO_KRONOS.sub("", str(regla.get("description", "")))
+    return _limpio(descripcion, LARGO_TITULO) or f"Regla {regla.get('id', '?')}"
+
+
+def _texto_seguro(texto: str) -> str:
+    return _NO_ADMITIDO.sub(SUSTITUTO, texto)
+
+
+def _para_guardar(valor: Any, ruta: str) -> Any:
+    if isinstance(valor, dict):
+        copia = {}
+        for clave, v in valor.items():
+            if not isinstance(clave, str):
+                raise AlertaInvalida(f"{ruta}: clave que no es texto")
+            copia[_texto_seguro(clave)] = _para_guardar(v, f"{ruta}.{clave}")
+        if len(copia) != len(valor):
+            raise AlertaInvalida(f"{ruta}: claves que chocan al quitar caracteres")
+        return copia
+    if isinstance(valor, list):
+        return [_para_guardar(v, f"{ruta}[{i}]") for i, v in enumerate(valor)]
+    if isinstance(valor, str):
+        return _texto_seguro(valor)
+    if isinstance(valor, float) and not math.isfinite(valor):
+        raise AlertaInvalida(f"{ruta}: número no finito")
+    if valor is None or isinstance(valor, (bool, int, float)):
+        return valor
+    raise AlertaInvalida(f"{ruta}: valor que no es JSON ({type(valor).__name__})")
 
 
 def _limpio(valor: object, largo: int = LARGO_CAMPO) -> str:

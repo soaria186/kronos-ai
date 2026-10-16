@@ -195,5 +195,46 @@ class DatosDeConfiguracion(unittest.TestCase):
             )
 
 
+class ExclusionDeIp(unittest.TestCase):
+    """EXECUTE interpreta las IP con ipaddress; la exclusión debe verlas igual."""
+
+    def test_formas_equivalentes_de_la_misma_ip_ipv4(self):
+        exclusion = ListaExclusion.desde([("ip", "192.0.2.5")])
+        for forma in (
+            "192.0.2.5",
+            "::ffff:192.0.2.5",
+            "0:0:0:0:0:ffff:c000:205",
+            "::FFFF:C000:205",
+        ):
+            with self.subTest(forma):
+                self.assertEqual(
+                    exclusion.coincidencia({"ip": [forma]}), ("ip", "192.0.2.5")
+                )
+
+    def test_formas_equivalentes_de_una_ip_ipv6(self):
+        exclusion = ListaExclusion.desde([("ip", "2001:DB8::1")])
+        for forma in ("2001:db8::1", "2001:0db8:0000:0000:0000:0000:0000:0001"):
+            with self.subTest(forma):
+                self.assertIsNotNone(exclusion.coincidencia({"ip": [forma]}))
+
+    def test_la_entrada_tambien_puede_venir_en_otra_forma(self):
+        exclusion = ListaExclusion.desde([("ip", "::ffff:192.0.2.5")])
+        self.assertIsNotNone(exclusion.coincidencia({"ip": ["192.0.2.5"]}))
+
+    def test_otra_ip_no_coincide(self):
+        exclusion = ListaExclusion.desde([("ip", "192.0.2.5")])
+        self.assertIsNone(
+            exclusion.coincidencia({"ip": ["192.0.2.6", "::ffff:192.0.2.6"]})
+        )
+
+    def test_valor_que_no_es_ip_se_compara_como_texto(self):
+        exclusion = ListaExclusion.desde([("ip", "no-es-una-ip")])
+        self.assertIsNotNone(exclusion.coincidencia({"ip": ["NO-ES-UNA-IP"]}))
+
+    def test_la_normalizacion_es_solo_de_la_categoria_ip(self):
+        exclusion = ListaExclusion.desde([("equipo", "192.0.2.5")])
+        self.assertIsNone(exclusion.coincidencia({"equipo": ["::ffff:192.0.2.5"]}))
+
+
 if __name__ == "__main__":
     unittest.main()

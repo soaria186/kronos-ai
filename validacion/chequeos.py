@@ -24,6 +24,7 @@ cortacircuito también entra como datos, porque vive en SOAR-AUDIT; esta capa no
 
 from __future__ import annotations
 
+import ipaddress
 from collections.abc import Iterable, Mapping
 from dataclasses import dataclass, field
 from enum import StrEnum
@@ -77,14 +78,15 @@ class ListaExclusion:
     """Pares (categoría, valor) sobre los que Kronos nunca actúa, sea cual sea el nivel.
 
     Las categorías las define el equipo (equipo, cuenta, programa, servicio...). La
-    comparación ignora mayúsculas y espacios en los extremos.
+    comparación ignora mayúsculas y espacios en los extremos, y en la categoría "ip"
+    compara la dirección en su forma canónica.
     """
 
     entradas: frozenset[tuple[str, str]] = frozenset()
 
     @classmethod
     def desde(cls, pares: list[tuple[str, str]]) -> ListaExclusion:
-        return cls(frozenset((_normalizar(c), _normalizar(v)) for c, v in pares))
+        return cls(frozenset(_par(c, v) for c, v in pares))
 
     def coincidencia(
         self, objetivo: Mapping[str, str | Iterable[str]]
@@ -96,7 +98,7 @@ class ListaExclusion:
         """
         for categoria, valores in sorted(objetivo.items()):
             for valor in [valores] if isinstance(valores, str) else sorted(valores):
-                par = (_normalizar(categoria), _normalizar(valor))
+                par = _par(categoria, valor)
                 if par in self.entradas:
                     return par
         return None
@@ -227,3 +229,28 @@ def validar(
 
 def _normalizar(texto: str) -> str:
     return texto.strip().casefold()
+
+
+def _par(categoria: str, valor: str) -> tuple[str, str]:
+    categoria = _normalizar(categoria)
+    valor = _normalizar(valor)
+    if categoria == "ip":
+        valor = _ip_canonica(valor)
+    return categoria, valor
+
+
+def _ip_canonica(texto: str) -> str:
+    """Forma única de una IP, igual a la que usa SOAR-EXECUTE (módulo ipaddress).
+
+    EXECUTE interpreta las IP con ipaddress, que acepta varias escrituras de la misma
+    dirección (::ffff:192.0.2.5, 0:0:0:0:0:ffff:c000:205, ceros de más en IPv6). Si la
+    exclusión comparara texto, una IP excluida podría esquivarse con otra forma. Lo que
+    no es una IP válida se compara como texto.
+    """
+    try:
+        ip = ipaddress.ip_address(texto)
+    except ValueError:
+        return texto
+    if isinstance(ip, ipaddress.IPv6Address) and ip.ipv4_mapped is not None:
+        ip = ip.ipv4_mapped
+    return str(ip)
