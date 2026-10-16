@@ -76,12 +76,18 @@ class ConfiguracionPropuesta(unittest.TestCase):
             familia = playbook[3:5]
             return validar(
                 Propuesta(
-                    familia, playbook, 0.9, severidad, {"equipo": "pc-ventas-12"}
+                    familia,
+                    playbook,
+                    0.9,
+                    severidad,
+                    {"equipo": "pc-ventas-12"},
+                    ip_origen="203.0.113.9",
                 ),
                 catalogo,
                 self.conf.exclusion,
                 self.conf.mapa,
                 estado,
+                self.conf.redes_internas,
             )
 
         # Fuerza bruta (regla 100101, nivel 10): bloquear la IP (nivel 1) sí; aislar (nivel 3) no.
@@ -135,6 +141,15 @@ class ConfiguracionDefectuosa(unittest.TestCase):
             "contador repetido": lambda d: d["contadores"].append(d["contadores"][0]),
             "tope cero": lambda d: d["contadores"][0].update(tope=0),
             "tope booleano": lambda d: d["contadores"][0].update(tope=True),
+            "sin redes internas": lambda d: d.pop("redes_internas"),
+            "redes internas vacías": lambda d: d.update(redes_internas=[]),
+            "red interna mal escrita": lambda d: d.update(
+                redes_internas=["10.0.0.0/33"]
+            ),
+            "red interna con bits de host": lambda d: d.update(
+                redes_internas=["10.0.0.1/8"]
+            ),
+            "red interna que no es texto": lambda d: d.update(redes_internas=[10]),
             "sin disparo del cortacircuito": lambda d: d.pop("disparo_cortacircuito"),
         }
         for nombre, cambiar in casos.items():

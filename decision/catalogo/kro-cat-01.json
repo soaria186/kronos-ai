@@ -63,6 +63,7 @@
       "id": "PB-F1-01",
       "familia": "F1",
       "medida": "Reunir contexto de la cuenta y del origen",
+      "condicion_de_uso": "Intentos de acceso aislados o poco claros, sin señal de que alguien haya entrado: conviene reunir contexto de la cuenta y del origen antes de actuar.",
       "accion": "consulta",
       "nivel": 0,
       "arquetipos": [
@@ -84,6 +85,8 @@
       "id": "PB-F1-02",
       "familia": "F1",
       "medida": "Bloquear la IP externa que intenta entrar",
+      "condicion_de_uso": "Fuerza bruta o password spraying desde una dirección EXTERNA a la organización, sin ningún acceso correcto.",
+      "ambito_ip": "externa",
       "accion": "bloquear_ip",
       "nivel": 1,
       "arquetipos": [
@@ -103,6 +106,8 @@
       "id": "PB-F1-03",
       "familia": "F1",
       "medida": "Bloquear la IP de otro equipo de la organización que intenta entrar",
+      "condicion_de_uso": "Los intentos fallidos repetidos vienen de la dirección de OTRO equipo de la organización.",
+      "ambito_ip": "interna",
       "accion": "bloquear_ip",
       "nivel": 2,
       "arquetipos": [
@@ -122,6 +127,7 @@
       "id": "PB-F1-04",
       "familia": "F1",
       "medida": "Cerrar la sesión del usuario",
+      "condicion_de_uso": "Hubo un acceso correcto sospechoso (tras varios fallos, o desde un origen u horario anómalo) y la sesión del usuario sigue abierta.",
       "accion": "cerrar_sesion",
       "nivel": 2,
       "arquetipos": [
@@ -141,6 +147,7 @@
       "id": "PB-F1-05",
       "familia": "F1",
       "medida": "Deshabilitar la cuenta local",
+      "condicion_de_uso": "Una cuenta local se usa de forma anómala o está comprometida (acceso tras fallos, cuenta que no debía usarse) y hay que impedir nuevos inicios de sesión.",
       "accion": "deshabilitar_cuenta",
       "nivel": 2,
       "arquetipos": [
@@ -162,6 +169,7 @@
       "id": "PB-F2-01",
       "familia": "F2",
       "medida": "Reunir contexto del proceso",
+      "condicion_de_uso": "El proceso es sospechoso pero podría ser una herramienta legítima: conviene confirmar quién lo lanzó, su línea de comandos y su firma antes de actuar.",
       "accion": "consulta",
       "nivel": 0,
       "arquetipos": [
@@ -183,6 +191,7 @@
       "id": "PB-F2-02",
       "familia": "F2",
       "medida": "Poner en cuarentena el archivo del proceso",
+      "condicion_de_uso": "El archivo ejecutable es sospechoso o malicioso (ruta temporal, binario desconocido, detectado como malware) y hay que impedir que vuelva a ejecutarse.",
       "accion": "cuarentena",
       "nivel": 1,
       "arquetipos": [
@@ -205,6 +214,7 @@
       "id": "PB-F2-03",
       "familia": "F2",
       "medida": "Terminar el proceso",
+      "condicion_de_uso": "El proceso está activo y haciendo daño ahora (minero, shell lanzada por un servicio, PowerShell codificado en ejecución) y hay que detenerlo ya.",
       "accion": "terminar_proceso",
       "nivel": 2,
       "arquetipos": [
@@ -224,6 +234,8 @@
       "id": "PB-F3-01",
       "familia": "F3",
       "medida": "Bloquear la IP externa de un acceso remoto sospechoso",
+      "condicion_de_uso": "Acceso remoto sospechoso (SSH, RDP, WinRM) desde una dirección EXTERNA a la organización.",
+      "ambito_ip": "externa",
       "accion": "bloquear_ip",
       "nivel": 1,
       "arquetipos": [
@@ -243,6 +255,8 @@
       "id": "PB-F3-02",
       "familia": "F3",
       "medida": "Bloquear la IP de otro equipo que se mueve entre equipos",
+      "condicion_de_uso": "Un equipo de la organización accede a otros o ejecuta cosas en ellos a distancia (movimiento lateral) y basta con cortar la comunicación de ese origen.",
+      "ambito_ip": "interna",
       "accion": "bloquear_ip",
       "nivel": 2,
       "arquetipos": [
@@ -262,6 +276,7 @@
       "id": "PB-F3-03",
       "familia": "F3",
       "medida": "Aislar un equipo de trabajo por firewall local",
+      "condicion_de_uso": "Movimiento lateral o control remoto confirmado desde o hacia un EQUIPO DE TRABAJO (puesto de un usuario).",
       "accion": "aislar_equipo",
       "nivel": 3,
       "arquetipos": [
@@ -282,6 +297,7 @@
       "id": "PB-F3-04",
       "familia": "F3",
       "medida": "Aislar un servidor por firewall local",
+      "condicion_de_uso": "Movimiento lateral o control remoto confirmado desde o hacia un SERVIDOR.",
       "accion": "aislar_equipo",
       "nivel": 3,
       "arquetipos": [
@@ -300,6 +316,7 @@
       "id": "PB-F4-01",
       "familia": "F4",
       "medida": "Bloquear el destino externo de una salida anómala",
+      "condicion_de_uso": "Salida de datos o comunicación periódica hacia un destino externo concreto, sospechoso o desconocido, que se puede bloquear por sí solo.",
       "accion": "bloquear_destino",
       "nivel": 1,
       "arquetipos": [
@@ -322,6 +339,7 @@
       "id": "PB-F4-02",
       "familia": "F4",
       "medida": "Aislar un equipo de trabajo",
+      "condicion_de_uso": "Exfiltración o canal encubierto activo desde un EQUIPO DE TRABAJO, donde bloquear el destino no basta.",
       "accion": "aislar_equipo",
       "nivel": 3,
       "arquetipos": [
@@ -340,6 +358,7 @@
       "id": "PB-F4-03",
       "familia": "F4",
       "medida": "Aislar un servidor",
+      "condicion_de_uso": "Exfiltración o canal encubierto activo desde un SERVIDOR, donde bloquear el destino no basta.",
       "accion": "aislar_equipo",
       "nivel": 3,
       "arquetipos": [
@@ -358,6 +377,7 @@
       "id": "PB-F5-01",
       "familia": "F5",
       "medida": "Poner en cuarentena el archivo de persistencia",
+      "condicion_de_uso": "Un archivo nuevo provoca el arranque automático (clave de arranque, cron, servicio) y es el mecanismo de persistencia.",
       "accion": "cuarentena",
       "nivel": 1,
       "arquetipos": [
@@ -380,6 +400,7 @@
       "id": "PB-F5-02",
       "familia": "F5",
       "medida": "Revertir la tarea programada nueva",
+      "condicion_de_uso": "Se creó una tarea programada nueva y sospechosa.",
       "accion": "revertir_tarea",
       "nivel": 1,
       "arquetipos": [
@@ -403,6 +424,7 @@
       "id": "PB-F5-03",
       "familia": "F5",
       "medida": "Poner en cuarentena un archivo de sistema o de aplicación alterado",
+      "condicion_de_uso": "Un archivo del sistema o de una aplicación fue modificado o sustituido sin explicación.",
       "accion": "cuarentena",
       "nivel": 3,
       "arquetipos": [
@@ -424,6 +446,7 @@
       "id": "PB-F5-04",
       "familia": "F5",
       "medida": "Aislar un equipo de trabajo",
+      "condicion_de_uso": "Cifrado o borrado masivo de archivos, o registros de auditoría borrados, en un EQUIPO DE TRABAJO.",
       "accion": "aislar_equipo",
       "nivel": 3,
       "arquetipos": [
@@ -442,6 +465,7 @@
       "id": "PB-F5-05",
       "familia": "F5",
       "medida": "Aislar un servidor",
+      "condicion_de_uso": "Cifrado o borrado masivo de archivos, o registros de auditoría borrados, en un SERVIDOR.",
       "accion": "aislar_equipo",
       "nivel": 3,
       "arquetipos": [
@@ -460,6 +484,7 @@
       "id": "PB-F6-01",
       "familia": "F6",
       "medida": "Reunir contexto de carga y conexiones",
+      "condicion_de_uso": "Degradación o caída sin causa clara (disco lleno, agente que no responde, recursos agotados): conviene reunir contexto de carga y conexiones antes de actuar.",
       "accion": "consulta",
       "nivel": 0,
       "arquetipos": [
@@ -481,6 +506,7 @@
       "id": "PB-F6-02",
       "familia": "F6",
       "medida": "Bloquear la IP de origen del tráfico abusivo",
+      "condicion_de_uso": "Inundación de peticiones o tráfico abusivo desde una o pocas direcciones identificables.",
       "accion": "bloquear_ip",
       "nivel": 1,
       "arquetipos": [
@@ -500,6 +526,7 @@
       "id": "PB-F6-03",
       "familia": "F6",
       "medida": "Limitar las conexiones por origen",
+      "condicion_de_uso": "Volumen alto de conexiones desde un origen muy activo al que no conviene bloquear del todo.",
       "accion": "limitar_conexiones",
       "nivel": 1,
       "arquetipos": [
@@ -522,6 +549,7 @@
       "id": "PB-F6-04",
       "familia": "F6",
       "medida": "Detener un servicio público del servidor",
+      "condicion_de_uso": "Un servicio PÚBLICO del servidor está siendo abusado o comprometido y hay que sacarlo de línea.",
       "accion": "detener_servicio",
       "nivel": 3,
       "arquetipos": [
@@ -540,6 +568,7 @@
       "id": "PB-F6-05",
       "familia": "F6",
       "medida": "Detener un servicio de apoyo del equipo",
+      "condicion_de_uso": "Un servicio de APOYO del equipo (por ejemplo, impresión) falla o es el vector del problema.",
       "accion": "detener_servicio",
       "nivel": 3,
       "arquetipos": [

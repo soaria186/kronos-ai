@@ -64,7 +64,7 @@ RUTA_PASO2 = DIR_PROMPTS / "paso2_plantilla.txt"
 RUTA_CASOS = DIR_MEDICIONES / "casos_prueba.json"
 DIR_RESULTADOS = DIR_MEDICIONES / "resultados"
 
-SEPARADOR_CATALOGO = "=== CATALOGO PROVISIONAL ==="
+SEPARADOR_CATALOGO = "=== CATALOGO ==="
 SEPARADOR_PLANTILLA = "=== PLANTILLA ==="
 PATRON_MARCADOR = re.compile(r"\{\{(\w+)\}\}")
 PATRON_FAMILIA = re.compile(r"^\[(F[1-6])\]\s+(\S.*)$")

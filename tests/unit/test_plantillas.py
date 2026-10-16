@@ -10,12 +10,12 @@ class PlantillasReales(unittest.TestCase):
     def setUpClass(cls):
         cls.p = Plantillas.cargar()
 
-    def test_seis_familias_con_tres_candidatos(self):
+    def test_seis_familias_con_candidatos_de_su_familia(self):
         self.assertEqual(sorted(self.p.familias), ["F1", "F2", "F3", "F4", "F5", "F6"])
         for familia, datos in self.p.familias.items():
-            self.assertEqual(
-                datos.candidatos, tuple(f"PB-{familia}-0{i}" for i in (1, 2, 3))
-            )
+            self.assertGreaterEqual(len(datos.candidatos), 3)
+            for identificador in datos.candidatos:
+                self.assertTrue(identificador.startswith(f"PB-{familia}-"))
 
     def test_prompt_familia_termina_en_la_alerta(self):
         prompt = self.p.prompt_familia("ALERTA-DE-PRUEBA")
@@ -28,7 +28,7 @@ class PlantillasReales(unittest.TestCase):
         self.assertIn("F4 - Exfiltración o salida anómala", prompt)
         self.assertIn("PB-F4-02", prompt)
         self.assertNotIn("PB-F1-01", prompt)
-        self.assertNotIn("CATALOGO PROVISIONAL", prompt)
+        self.assertNotIn("=== CATALOGO ===", prompt)
         self.assertNotIn("{{", prompt)
 
     def test_marcadores_dentro_de_la_alerta_no_se_reinterpretan(self):

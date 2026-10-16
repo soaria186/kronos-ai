@@ -9,6 +9,7 @@
     {"desde": 10, "hasta": 11, "nivel_maximo": 2, "motivo": "Fuerza bruta, cuentas nuevas, persistencia: puede afectar a una persona"},
     {"desde": 12, "hasta": 15, "nivel_maximo": 3, "motivo": "PowerShell codificado, ejecución remota, borrado de auditoría: puede pedir aprobación de nivel 3"}
   ],
+  "redes_internas": ["10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16", "fc00::/7"],
   "exclusion": {
     "categorias": {
       "equipo": "Nombre del equipo, tal como lo reporta el agente",

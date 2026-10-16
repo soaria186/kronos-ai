@@ -88,6 +88,9 @@ class AlertaKronos:
     titulo: str
     texto: str
     objetivo: dict[str, tuple[str, ...]]
+    # IP sobre la que actuaría una medida de IP: la primera de srcip e ipAddress, igual
+    # que SOAR-EXECUTE (ejecucion/ordenes.py, _CAMPOS_IP).
+    ip_origen: str | None = None
 
 
 def preparar(alerta: dict) -> AlertaKronos | None:
@@ -123,6 +126,7 @@ def preparar(alerta: dict) -> AlertaKronos | None:
         titulo=_titulo(regla),
         texto=_texto_para_el_modelo(alerta),
         objetivo=_objetivo(alerta),
+        ip_origen=_ip_origen(alerta),
     )
 
 
@@ -219,6 +223,16 @@ def _valor(alerta: dict, ruta: tuple[str, ...]) -> str | None:
         actual = actual.get(clave)
     if isinstance(actual, str) and actual.strip():
         return actual.strip()
+    return None
+
+
+_CAMPOS_IP_ORIGEN = (("data", "srcip"), ("data", "win", "eventdata", "ipAddress"))
+
+
+def _ip_origen(alerta: dict) -> str | None:
+    for ruta in _CAMPOS_IP_ORIGEN:
+        if (valor := _valor(alerta, ruta)) is not None:
+            return valor
     return None
 
 

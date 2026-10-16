@@ -87,6 +87,16 @@ class Preparar(unittest.TestCase):
         self.assertIn("data.win.eventdata.serviceName: PSEXESVC", texto)
         self.assertIn("data.win.system.eventID: 7045", texto)
 
+    def test_ip_origen_es_la_que_usaria_execute(self):
+        self.assertEqual(preparar(SSH).ip_origen, SSH["data"]["srcip"])
+        self.assertEqual(preparar(WINDOWS).ip_origen, "192.0.2.31")
+        ambas = copy.deepcopy(WINDOWS)
+        ambas["data"]["srcip"] = "192.0.2.99"
+        self.assertEqual(preparar(ambas).ip_origen, "192.0.2.99")  # srcip primero
+        sin_ip = copy.deepcopy(SSH)
+        del sin_ip["data"]["srcip"]
+        self.assertIsNone(preparar(sin_ip).ip_origen)
+
     def test_alerta_de_integridad_incluye_syscheck(self):
         alerta = {
             "rule": {

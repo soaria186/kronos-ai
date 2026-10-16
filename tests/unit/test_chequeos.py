@@ -12,6 +12,7 @@ from validacion.chequeos import (
     Playbook,
     Propuesta,
     Rechazo,
+    RedesInternas,
     validar,
 )
 
@@ -234,6 +235,73 @@ class ExclusionDeIp(unittest.TestCase):
     def test_la_normalizacion_es_solo_de_la_categoria_ip(self):
         exclusion = ListaExclusion.desde([("equipo", "192.0.2.5")])
         self.assertIsNone(exclusion.coincidencia({"equipo": ["::ffff:192.0.2.5"]}))
+
+
+REDES = RedesInternas.desde(["10.0.0.0/8", "192.168.0.0/16", "fc00::/7"])
+BLOQUEO_EXTERNO = Playbook("PB-F1-02", "F1", 1, ambito_ip="externa")
+BLOQUEO_INTERNO = Playbook("PB-F1-03", "F1", 2, ambito_ip="interna")
+
+
+class AmbitoDeLaIp(unittest.TestCase):
+    def veredicto(self, playbook, ip, redes=REDES):
+        return validar(
+            propuesta(playbook_id=playbook.id, ip_origen=ip),
+            Catalogo.desde([playbook]),
+            EXCLUSION,
+            MAPA,
+            ESTADO_OK,
+            redes,
+        )
+
+    def test_es_interna(self):
+        casos = {
+            "10.1.2.3": True,
+            "192.168.1.5": True,
+            "::ffff:10.1.2.3": True,
+            "fd00::1": True,
+            "203.0.113.9": False,
+            "::ffff:203.0.113.9": False,
+            "2001:db8::1": False,
+            "no-es-ip": None,
+        }
+        for ip, esperado in casos.items():
+            with self.subTest(ip):
+                self.assertIs(REDES.es_interna(ip), esperado)
+
+    def test_bloqueo_externo_con_ip_externa_pasa(self):
+        self.assertEqual(
+            self.veredicto(BLOQUEO_EXTERNO, "203.0.113.9"), Aprobada("PB-F1-02", 1)
+        )
+
+    def test_bloqueo_externo_con_ip_interna_se_rechaza(self):
+        for ip in ("10.1.2.3", "::ffff:10.1.2.3"):
+            r = self.veredicto(BLOQUEO_EXTERNO, ip)
+            self.assertIsInstance(r, Rechazo, ip)
+            self.assertEqual(r.motivo, MotivoRechazo.PLAYBOOK_FUERA_DE_CATALOGO)
+            self.assertIn("externa", r.detalle)
+
+    def test_bloqueo_interno_con_ip_externa_se_rechaza(self):
+        r = self.veredicto(BLOQUEO_INTERNO, "203.0.113.9")
+        self.assertEqual(r.motivo, MotivoRechazo.PLAYBOOK_FUERA_DE_CATALOGO)
+        self.assertEqual(
+            self.veredicto(BLOQUEO_INTERNO, "10.1.2.3"), Aprobada("PB-F1-03", 2)
+        )
+
+    def test_sin_ip_valida_o_sin_redes_se_rechaza(self):
+        for ip, redes in ((None, REDES), ("no-es-ip", REDES), ("203.0.113.9", None)):
+            with self.subTest(ip=ip, redes=redes):
+                r = self.veredicto(BLOQUEO_EXTERNO, ip, redes)
+                self.assertEqual(r.motivo, MotivoRechazo.PLAYBOOK_FUERA_DE_CATALOGO)
+
+    def test_un_playbook_sin_ambito_no_mira_la_ip(self):
+        r = validar(
+            propuesta(ip_origen=None), CATALOGO, EXCLUSION, MAPA, ESTADO_OK, None
+        )
+        self.assertIsInstance(r, Aprobada)
+
+    def test_ambito_desconocido(self):
+        with self.assertRaises(ValueError):
+            Playbook("PB-F1-02", "F1", 1, ambito_ip="remota")
 
 
 if __name__ == "__main__":

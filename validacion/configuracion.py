@@ -16,7 +16,13 @@ import json
 from dataclasses import dataclass
 from pathlib import Path
 
-from validacion.chequeos import Contador, EstadoOperacion, ListaExclusion, MapaSeveridad
+from validacion.chequeos import (
+    Contador,
+    EstadoOperacion,
+    ListaExclusion,
+    MapaSeveridad,
+    RedesInternas,
+)
 
 RUTA_CONFIGURACION = Path(__file__).resolve().parent / "configuracion" / "validate.json"
 CODIGO = "KRO-VAL-CONF"
@@ -41,6 +47,7 @@ class Configuracion:
     version: str
     mapa: MapaSeveridad
     exclusion: ListaExclusion
+    redes_internas: RedesInternas
     contadores: tuple[DefinicionContador, ...]
     disparo_cortacircuito: DefinicionContador
 
@@ -76,6 +83,7 @@ def cargar_configuracion(ruta: Path = RUTA_CONFIGURACION) -> Configuracion:
             version=str(datos["version"]),
             mapa=_leer_mapa(datos["mapa_severidad"]),
             exclusion=_leer_exclusion(datos["exclusion"]),
+            redes_internas=_leer_redes(datos["redes_internas"]),
             contadores=_leer_contadores(datos["contadores"]),
             disparo_cortacircuito=_leer_contador(datos["disparo_cortacircuito"]),
         )
@@ -102,6 +110,20 @@ def _leer_mapa(tramos: list) -> MapaSeveridad:
             for t in tramos
         )
     )
+
+
+def _leer_redes(dato: list) -> RedesInternas:
+    if not isinstance(dato, list) or not dato:
+        raise ConfiguracionInvalida(
+            "redes_internas debe ser una lista con al menos una red"
+        )
+    if not all(isinstance(r, str) for r in dato):
+        raise ConfiguracionInvalida(
+            "cada red interna debe ser un texto, por ejemplo 10.0.0.0/8"
+        )
+    return RedesInternas.desde(
+        dato
+    )  # ValueError (red mal escrita) lo recoge cargar_configuracion
 
 
 def _leer_exclusion(dato: dict) -> ListaExclusion:

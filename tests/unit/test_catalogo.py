@@ -34,6 +34,20 @@ class CatalogoVersionado(unittest.TestCase):
         self.assertEqual(p["PB-F3-03"].nivel, 3)
         self.assertEqual(p["PB-F6-01"].nivel, 0)
 
+    def test_ambito_de_ip_de_los_bloqueos(self):
+        ambitos = {
+            p.id: p.ambito_ip for p in self.catalogo.playbooks.values() if p.ambito_ip
+        }
+        self.assertEqual(
+            ambitos,
+            {
+                "PB-F1-02": "externa",
+                "PB-F1-03": "interna",
+                "PB-F3-01": "externa",
+                "PB-F3-02": "interna",
+            },
+        )
+
     def test_la_reversion_automatica_trae_su_plazo(self):
         # Sin plazo, EXECUTE deja la medida en FAILED (PLAZO_DE_REVERSION_SIN_DEFINIR).
         con_plazo = [
@@ -93,6 +107,18 @@ class CatalogoDefectuoso(unittest.TestCase):
             ),
             "consulta con nivel 1": lambda d: self.playbook(d, "PB-F1-01").update(
                 nivel=1
+            ),
+            "ámbito de IP desconocido": lambda d: self.playbook(d, "PB-F1-02").update(
+                ambito_ip="remota"
+            ),
+            "ámbito de IP en una medida que no bloquea IP": lambda d: self.playbook(
+                d, "PB-F1-04"
+            ).update(ambito_ip="externa"),
+            "sin condición de uso": lambda d: self.playbook(d, "PB-F1-02").update(
+                condicion_de_uso=" "
+            ),
+            "sin nombre de la medida": lambda d: self.playbook(d, "PB-F1-02").update(
+                medida=""
             ),
             "sin playbooks": lambda d: d.update(playbooks=[]),
             "acción que no es texto": lambda d: self.playbook(d, "PB-F1-02").update(

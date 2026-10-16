@@ -64,7 +64,7 @@ class Clasificar(unittest.TestCase):
         self.assertEqual(esquema1["properties"]["familia"]["enum"][0], "F1")
         self.assertEqual(
             esquema2["properties"]["playbook_id"]["enum"],
-            ["PB-F1-01", "PB-F1-02", "PB-F1-03"],
+            ["PB-F1-01", "PB-F1-02", "PB-F1-03", "PB-F1-04", "PB-F1-05"],
         )
         self.assertIn("F1 - Abuso de credenciales", prompt2)
         self.assertEqual((plazo1, plazo2), (30.0, 26.0))

@@ -1,21 +1,21 @@
-"""Carga de los prompts de los pasos 1 y 2 y del catálogo provisional de playbooks.
+"""Carga de los prompts de los pasos 1 y 2 y del catálogo de playbooks.
 
 Los prompts viven en decision/prompts/. El de paso 2 trae al principio un bloque con el
-catálogo PROVISIONAL (tres playbooks por familia) del que salen {{familia}} y
-{{condiciones}}; ese bloque no se envía al modelo. En los dos prompts la parte fija va
+catálogo KRO-CAT-01 (generado con decision/catalogo/generar_prompt.py) del que salen
+{{familia}} y {{condiciones}}; ese bloque no se envía al modelo. En los dos prompts la parte fija va
 al inicio y {{alerta}} al final, para que el prefijo pueda reutilizarse en la caché.
 """
 
 from __future__ import annotations
 
 import re
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 
 from validacion.contrato import FAMILIAS
 
 DIR_PROMPTS = Path(__file__).resolve().parent / "prompts"
-SEPARADOR_CATALOGO = "=== CATALOGO PROVISIONAL ==="
+SEPARADOR_CATALOGO = "=== CATALOGO ==="
 SEPARADOR_PLANTILLA = "=== PLANTILLA ==="
 
 _MARCADOR = re.compile(r"\{\{(\w+)\}\}")
@@ -32,6 +32,8 @@ class Familia:
     nombre: str
     condiciones: str
     candidatos: tuple[str, ...]
+    # Nombre de cada candidato tal como lo ve el modelo.
+    nombres: dict[str, str] = field(default_factory=dict)
 
 
 @dataclass(frozen=True)
@@ -122,5 +124,6 @@ def _leer_catalogo(catalogo: str) -> dict[str, Familia]:
             candidatos=tuple(
                 identificador for identificador, _, _ in playbooks[familia]
             ),
+            nombres={i: n for i, n, _ in playbooks[familia]},
         )
     return familias
