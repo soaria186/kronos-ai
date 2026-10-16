@@ -88,7 +88,16 @@ Lee `alerts.json` de Wazuh, clasifica cada alerta con el modelo y registra la de
    nombre y el mismo alias, y aquí no cambia nada. Antes hay que borrar la red manual
    (`docker network disconnect kronos_inferencia ollama` y `docker network rm kronos_inferencia`),
    porque Compose no adopta una red que no creó.
-4. **Inquilino.** `KRONOS_INQUILINO` (uno solo por ahora, hasta decidir cómo se asigna cada
+4. **Permiso del secreto de la base.** `kronos_worker_password` nace `root:root` con permiso
+   600, y el contenedor (uid y gid 10001) no puede leerlo: el servicio se reinicia en bucle con
+   `Permission denied: '/run/secrets/kronos_worker_password'`. Antes de levantarlo:
+
+   ```bash
+   sudo chown root:10001 secrets/kronos_worker_password
+   sudo chmod 640 secrets/kronos_worker_password
+   ```
+
+5. **Inquilino.** `KRONOS_INQUILINO` (uno solo por ahora, hasta decidir cómo se asigna cada
    alerta). Se usa el mismo inquilino que `KRONOS_INQUILINOS` de EXECUTE.
 
 La posición de lectura queda en el volumen `validate_estado` (`/estado/posicion.json`) y
