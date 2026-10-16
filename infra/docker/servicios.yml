@@ -1,4 +1,4 @@
-# SOAR-EXECUTE, SOAR-NOTIFY y SOAR-CONSOLE. Se suma al docker-compose.yml de la base:
+# SOAR-VALIDATE, SOAR-EXECUTE, SOAR-NOTIFY y SOAR-CONSOLE. Se suma al docker-compose.yml de la base:
 #
 #   docker compose -f docker-compose.yml -f servicios.yml up -d --build
 #
@@ -6,6 +6,42 @@
 # (ver servicios/README.md).
 
 services:
+  validate:
+    build:
+      context: ../..
+      dockerfile: infra/docker/servicios/Dockerfile
+    image: kronos-servicios:local
+    pull_policy: build  # imagen local: se construye, nunca se busca en un registro
+    command: ["python", "-m", "validacion"]
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    # alerts.json es del usuario wazuh (permiso 640): el contenedor entra por su grupo.
+    group_add:
+      - "${KRONOS_GID_WAZUH:-999}"
+    environment:
+      KRONOS_DSN: host=db dbname=kronos user=kronos_worker
+      KRONOS_DB_CLAVE_ARCHIVO: /run/secrets/kronos_worker_password
+      KRONOS_INQUILINO: ${KRONOS_INQUILINO:?falta KRONOS_INQUILINO en .env}
+      KRONOS_ALERTAS: /wazuh-logs/alerts/alerts.json
+      KRONOS_POSICION_ARCHIVO: /estado/posicion.json
+      KRONOS_OLLAMA_URL: ${KRONOS_OLLAMA_URL:-http://ollama:11434}
+      KRONOS_MODELO: ${KRONOS_MODELO:-qwen2.5:7b}
+    secrets:
+      # Sólo este archivo: no se monta la carpeta de secretos.
+      - kronos_worker_password
+    volumes:
+      # Logs de Wazuh en sólo lectura (acuerdo con Nicolás, 14-10-2026).
+      - wazuh_logs:/wazuh-logs:ro
+      - validate_estado:/estado
+    networks:
+      - interna
+      - inferencia
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+
   execute:
     build:
       context: ../..
@@ -97,6 +133,11 @@ services:
     security_opt: ["no-new-privileges:true"]
 
 networks:
+  # Red interna hacia Ollama (infra/ollama/docker-compose.yml la crea con este nombre).
+  # Sin salida a internet: VALIDATE sólo habla con el modelo.
+  inferencia:
+    external: true
+    name: ${KRONOS_OLLAMA_RED:-kronos_inferencia}
   # Red del compose de Wazuh: EXECUTE llega a la API como wazuh.manager:55000, sin
   # pasar por internet ni por NetBird.
   wazuh:
@@ -106,6 +147,13 @@ networks:
   salida: {}
   # Para publicar el 443 de la consola (una red internal no admite puertos publicados).
   consola: {}
+
+volumes:
+  # Volumen de logs del compose de Wazuh (docker volume ls | grep wazuh_logs).
+  wazuh_logs:
+    external: true
+    name: ${KRONOS_WAZUH_LOGS:-single-node_wazuh_logs}
+  validate_estado:
 
 secrets:
   kronos_worker_password:

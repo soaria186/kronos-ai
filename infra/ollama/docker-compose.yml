@@ -24,11 +24,16 @@ services:
       - modelos:/root/.ollama
     networks:
       - inferencia
+      - salida
 
 volumes:
   modelos:
     name: kronos_ollama_modelos
 
 networks:
+  # Hacia SOAR-VALIDATE (alias «ollama»). Interna: VALIDATE no sale a internet por aquí.
   inferencia:
     name: kronos_inferencia
+    internal: true
+  # Sólo para que Ollama pueda bajar modelos y publicar su puerto en 127.0.0.1.
+  salida: {}
