@@ -86,6 +86,7 @@
       "familia": "F1",
       "medida": "Bloquear la IP externa que intenta entrar",
       "condicion_de_uso": "Fuerza bruta o password spraying desde una dirección EXTERNA a la organización, sin ningún acceso correcto.",
+      "ambito_ip": "externa",
       "accion": "bloquear_ip",
       "nivel": 1,
       "arquetipos": [
@@ -108,6 +109,7 @@
       "familia": "F1",
       "medida": "Bloquear la IP de otro equipo de la organización que intenta entrar",
       "condicion_de_uso": "Los intentos fallidos repetidos vienen de la dirección de OTRO equipo de la organización.",
+      "ambito_ip": "interna",
       "accion": "bloquear_ip",
       "nivel": 2,
       "arquetipos": [
@@ -235,6 +237,7 @@
       "familia": "F3",
       "medida": "Bloquear la IP externa de un acceso remoto sospechoso",
       "condicion_de_uso": "Acceso remoto sospechoso (SSH, RDP, WinRM) desde una dirección EXTERNA a la organización.",
+      "ambito_ip": "externa",
       "accion": "bloquear_ip",
       "nivel": 1,
       "arquetipos": [
@@ -257,6 +260,7 @@
       "familia": "F3",
       "medida": "Bloquear la IP de otro equipo que se mueve entre equipos",
       "condicion_de_uso": "Un equipo de la organización accede a otros o ejecuta cosas en ellos a distancia (movimiento lateral) y basta con cortar la comunicación de ese origen.",
+      "ambito_ip": "interna",
       "accion": "bloquear_ip",
       "nivel": 2,
       "arquetipos": [

@@ -217,11 +217,13 @@ class Validador:
                 severidad=alerta.severidad,
                 objetivo=alerta.objetivo,
                 familia_candidata=alerta.familia_candidata,
+                ip_origen=alerta.ip_origen,
             ),
             self._catalogo,
             self._config.exclusion,
             self._config.mapa,
             estado,
+            self._config.redes_internas,
         )
         if isinstance(veredicto, Aprobada):
             self._almacen.registrar_decision(

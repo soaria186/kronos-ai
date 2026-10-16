@@ -7,8 +7,10 @@ los mismos códigos que tickets.rechazo_motivo:
     2. confianza >= 0,70                          CONFIANZA_BAJA
        y la familia del modelo coincide con la
        de la regla de sobre de Wazuh              FAMILIA_NO_COINCIDE
-    3. el playbook existe en el catálogo cerrado
-       y pertenece a la familia clasificada       PLAYBOOK_FUERA_DE_CATALOGO
+    3. el playbook existe en el catálogo cerrado,
+       pertenece a la familia clasificada y, si
+       habla de una IP «externa» o «interna»,
+       la IP de la alerta es de ese ámbito        PLAYBOOK_FUERA_DE_CATALOGO
     4. el objetivo no está en la lista de
        exclusión                                  ACTIVO_EXCLUIDO
     5. cortacircuito cerrado                      CORTACIRCUITO_ABIERTO
@@ -35,6 +37,7 @@ UMBRAL_CONFIANZA = 0.70
 NIVELES = (0, 1, 2, 3)
 SEVERIDAD_MINIMA = 0
 SEVERIDAD_MAXIMA = 15  # niveles de regla de Wazuh
+AMBITOS_IP = ("externa", "interna")
 
 
 class MotivoRechazo(StrEnum):
@@ -56,12 +59,17 @@ class Playbook:
     # Nombre de la medida en el catálogo; sirve para comprobar que el prompt del paso 2
     # habla de las mismas medidas (validacion.ciclo.comprobar_prompt).
     medida: str = ""
+    # «externa» o «interna» si la medida sólo vale para una IP de ese ámbito (bloquear la
+    # IP externa de un ataque, o la de otro equipo de la organización); None si no aplica.
+    ambito_ip: str | None = None
 
     def __post_init__(self) -> None:
         if self.familia not in FAMILIAS:
             raise ValueError(f"{self.id}: familia desconocida {self.familia!r}")
         if self.nivel not in NIVELES:
             raise ValueError(f"{self.id}: nivel fuera de 0 a 3")
+        if self.ambito_ip not in (None, *AMBITOS_IP):
+            raise ValueError(f"{self.id}: ámbito de IP desconocido {self.ambito_ip!r}")
 
 
 @dataclass(frozen=True)
@@ -74,6 +82,31 @@ class Catalogo:
         if len(set(ids)) != len(ids):
             raise ValueError("el catálogo tiene identificadores repetidos")
         return cls({p.id: p for p in playbooks})
+
+
+@dataclass(frozen=True)
+class RedesInternas:
+    """Redes que son de la organización; cualquier otra IP es externa.
+
+    Las define cada cliente (validate.json). Una IPv4 escrita como ::ffff:a.b.c.d cuenta
+    como la IPv4, igual que en la lista de exclusión y en SOAR-EXECUTE.
+    """
+
+    redes: tuple[ipaddress.IPv4Network | ipaddress.IPv6Network, ...]
+
+    @classmethod
+    def desde(cls, textos: Iterable[str]) -> RedesInternas:
+        return cls(tuple(ipaddress.ip_network(t, strict=True) for t in textos))
+
+    def es_interna(self, texto: str) -> bool | None:
+        """True si la IP está en una red interna; None si no es una IP."""
+        try:
+            ip = ipaddress.ip_address(texto.strip())
+        except ValueError:
+            return None
+        if isinstance(ip, ipaddress.IPv6Address) and ip.ipv4_mapped is not None:
+            ip = ip.ipv4_mapped
+        return any(ip.version == red.version and ip in red for red in self.redes)
 
 
 @dataclass(frozen=True)
@@ -163,6 +196,9 @@ class Propuesta:
     # Familia que asignó la regla de sobre de Wazuh (kronos_f1 a kronos_f6). None
     # desactiva el chequeo; la lectura de alerts.json siempre la entrega.
     familia_candidata: str | None = None
+    # IP sobre la que actuaría la medida: la primera de data.srcip y
+    # data.win.eventdata.ipAddress, el mismo orden que usa SOAR-EXECUTE.
+    ip_origen: str | None = None
 
 
 @dataclass(frozen=True)
@@ -183,6 +219,7 @@ def validar(
     exclusion: ListaExclusion,
     mapa: MapaSeveridad,
     estado: EstadoOperacion,
+    redes: RedesInternas | None = None,
 ) -> Aprobada | Rechazo:
     if not propuesta.confianza >= UMBRAL_CONFIANZA:
         return Rechazo(
@@ -206,6 +243,11 @@ def validar(
             f"{propuesta.playbook_id} no está en el catálogo para {propuesta.familia}",
         )
 
+    if playbook.ambito_ip is not None:
+        incoherencia = _ambito_incoherente(playbook, propuesta.ip_origen, redes)
+        if incoherencia is not None:
+            return Rechazo(MotivoRechazo.PLAYBOOK_FUERA_DE_CATALOGO, incoherencia)
+
     excluido = exclusion.coincidencia(propuesta.objetivo)
     if excluido is not None:
         return Rechazo(MotivoRechazo.ACTIVO_EXCLUIDO, f"{excluido[0]} = {excluido[1]}")
@@ -228,6 +270,26 @@ def validar(
         )
 
     return Aprobada(playbook.id, playbook.nivel)
+
+
+def _ambito_incoherente(
+    playbook: Playbook, ip: str | None, redes: RedesInternas | None
+) -> str | None:
+    """Motivo si la IP de la alerta no es del ámbito que dice la medida; None si cuadra.
+
+    El modelo no puede saber si una IP es externa o interna: la alerta no lo dice. Sin las
+    redes internas, o sin una IP válida, no se puede comprobar y se rechaza.
+    """
+    if redes is None:
+        return f"{playbook.id}: sin las redes internas no se puede comprobar la IP"
+    interna = redes.es_interna(ip) if ip is not None else None
+    if interna is None:
+        return f"{playbook.id}: la alerta no trae una IP válida"
+    if playbook.ambito_ip == "externa" and interna:
+        return f"{playbook.id} es para una IP externa y {ip} es interna"
+    if playbook.ambito_ip == "interna" and not interna:
+        return f"{playbook.id} es para una IP interna y {ip} es externa"
+    return None
 
 
 def normalizar(texto: str) -> str:

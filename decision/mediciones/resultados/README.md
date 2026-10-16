@@ -92,3 +92,9 @@ tarda.
     casos terminarían en un bloqueo automático de IP. Las alertas no dicen si una IP es
     externa, así que el prompt no puede distinguirlo; falta decidir si se resuelve con un
     chequeo determinista sobre la IP o con otras condiciones de uso.
+
+    **Resolución:** VALIDATE comprueba el ámbito de la IP (`ambito_ip` en el catálogo y
+    `redes_internas` en `validate.json`): PB-F1-02 y PB-F3-01 exigen una IP externa; PB-F1-03 y
+    PB-F3-02, una interna. Con IP interna, F3-01 se rechaza y el caso va a revisión humana. Las
+    IP de `casos_150` son del rango de documentación 192.0.2.0/24, que cuenta como externa, así
+    que esta medición no cambia; el efecto real depende de las IP de cada cliente.

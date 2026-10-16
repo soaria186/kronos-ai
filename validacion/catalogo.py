@@ -19,7 +19,7 @@ import json
 import re
 from pathlib import Path
 
-from validacion.chequeos import NIVELES, Catalogo, Playbook
+from validacion.chequeos import AMBITOS_IP, NIVELES, Catalogo, Playbook
 
 RUTA_CATALOGO = (
     Path(__file__).resolve().parent.parent / "decision" / "catalogo" / "kro-cat-01.json"
@@ -100,4 +100,9 @@ def _leer_playbook(dato: object, acciones: dict) -> Playbook:
     medida = dato.get("medida")
     if not isinstance(medida, str) or not medida.strip():
         raise CatalogoInvalido(f"{identificador}: sin nombre de la medida")
-    return Playbook(identificador, dato["familia"], nivel, medida.strip())
+    ambito = dato.get("ambito_ip")
+    if ambito is not None and (ambito not in AMBITOS_IP or accion != "bloquear_ip"):
+        raise CatalogoInvalido(
+            f"{identificador}: ámbito de IP {ambito!r} inválido (sólo bloquear_ip)"
+        )
+    return Playbook(identificador, dato["familia"], nivel, medida.strip(), ambito)

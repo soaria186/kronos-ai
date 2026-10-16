@@ -316,6 +316,41 @@ class Ciclo(unittest.TestCase):
                 self.assertIsNotNone(d.nivel)
 
 
+class AmbitoDeLaIp(unittest.TestCase):
+    """Con el catálogo real: el modelo no sabe si una IP es externa o interna."""
+
+    def procesar(self, familia, playbook, ip):
+        alerta = alerta_ssh()
+        alerta["data"]["srcip"] = ip
+        almacen = AlmacenFalso()
+        validador_real = Validador(
+            almacen,
+            acierta(familia, playbook),
+            PLANTILLAS,
+            cargar_catalogo(),
+            CONFIG,
+            DecisionFalsa,
+        )
+        return validador_real.procesar(1, alerta), almacen
+
+    def test_bloquear_una_ip_interna_como_si_fuera_externa_se_rechaza(self):
+        resultado, almacen = self.procesar("F1", "PB-F1-02", "10.1.2.3")
+        self.assertEqual(resultado.motivo, "PLAYBOOK_FUERA_DE_CATALOGO")
+        self.assertIn("interna", almacen.decisiones[0][2].detalle)
+
+    def test_bloquear_una_ip_externa_pasa(self):
+        resultado, _ = self.procesar("F1", "PB-F1-02", "203.0.113.9")
+        self.assertEqual(resultado.destino, Destino.APROBADA)
+
+    def test_la_ip_ipv4_mapeada_se_trata_como_la_ipv4(self):
+        resultado, _ = self.procesar("F1", "PB-F1-02", "::ffff:10.1.2.3")
+        self.assertEqual(resultado.motivo, "PLAYBOOK_FUERA_DE_CATALOGO")
+
+    def test_una_consulta_no_mira_la_ip(self):
+        resultado, _ = self.procesar("F1", "PB-F1-01", "10.1.2.3")
+        self.assertEqual(resultado.destino, Destino.APROBADA)
+
+
 class PromptYCatalogo(unittest.TestCase):
     def test_el_prompt_describe_el_catalogo_real(self):
         comprobar_prompt(PLANTILLAS, cargar_catalogo())
