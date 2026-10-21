@@ -7,3 +7,7 @@
 *.yml       text eol=lf
 *.yaml      text eol=lf
 Dockerfile  text eol=lf
+
+# Scripts de Windows (Active Response): cmd.exe falla con saltos de línea LF
+*.cmd       text eol=crlf
+*.ps1       text eol=crlf
