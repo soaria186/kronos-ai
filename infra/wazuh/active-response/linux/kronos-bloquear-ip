@@ -1,0 +1,44 @@
+#!/usr/bin/python3
+"""Kronos: bloquea o desbloquea una IP con iptables. Uso por Active Response:
+extra_args = ["aplicar" | "quitar", "<ip>"]."""
+import datetime, ipaddress, json, subprocess, sys
+
+LOG = "/var/ossec/logs/active-responses.log"
+
+
+def log(msg):
+    hora = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    with open(LOG, "a") as f:
+        f.write(f"{hora} kronos-bloquear-ip: {msg}\n")
+
+
+try:
+    args = json.loads(sys.stdin.readline())["parameters"]["extra_args"]
+    op, ip = args[0], ipaddress.ip_address(args[1])
+except Exception as e:
+    log(f"entrada invalida: {e}")
+    sys.exit(1)
+
+if op not in ("aplicar", "quitar"):
+    log(f"operacion invalida: {op}")
+    sys.exit(1)
+
+propias = subprocess.run(["hostname", "-I"], capture_output=True, text=True).stdout.split()
+if ip.is_loopback or ip.is_unspecified or str(ip) in propias:
+    log(f"rechazada: {ip} es del propio equipo")
+    sys.exit(1)
+
+cmd = "iptables" if ip.version == 4 else "ip6tables"
+regla = ["INPUT", "-s", str(ip), "-m", "comment", "--comment", "kronos", "-j", "DROP"]
+existe = subprocess.run([cmd, "-C", *regla], capture_output=True).returncode == 0
+
+if op == "aplicar" and not existe:
+    r = subprocess.run([cmd, "-I", *regla], capture_output=True, text=True)
+elif op == "quitar" and existe:
+    r = subprocess.run([cmd, "-D", *regla], capture_output=True, text=True)
+else:
+    log(f"{op} {ip}: sin cambios (ya estaba)")
+    sys.exit(0)
+
+log(f"{op} {ip}: {'OK' if r.returncode == 0 else 'ERROR ' + r.stderr.strip()}")
+sys.exit(r.returncode)
