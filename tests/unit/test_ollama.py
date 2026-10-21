@@ -88,6 +88,24 @@ class ClienteOllamaPruebas(unittest.TestCase):
         with self.assertRaises(TiempoExcedido):
             self.generar("lento", plazo=0.2)
 
+    def test_precalentar_carga_el_modelo_sin_prompt_y_con_las_mismas_opciones(self):
+        self.servidor.modo = "ok"
+        self.cliente.precalentar(plazo=5.0)
+        cuerpo = self.servidor.cuerpo
+        self.assertEqual(cuerpo["model"], "modelo:prueba")
+        self.assertNotIn("prompt", cuerpo)
+        # Con otras opciones (num_ctx) Ollama volvería a cargar el modelo.
+        self.assertEqual(cuerpo["options"], {"temperature": 0, "num_ctx": 4096})
+        self.assertEqual(cuerpo["keep_alive"], -1)
+
+    def test_precalentar_traduce_los_errores(self):
+        self.servidor.modo = "error"
+        with self.assertRaises(MotorNoDisponible):
+            self.cliente.precalentar(plazo=5.0)
+        self.servidor.modo = "lento"
+        with self.assertRaises(TiempoExcedido):
+            self.cliente.precalentar(plazo=0.2)
+
     def test_error_http(self):
         with self.assertRaises(MotorNoDisponible):
             self.generar("error")

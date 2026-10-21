@@ -58,6 +58,25 @@ class Clasificar(unittest.TestCase):
         r = self.ejecutar([PASO1, PASO2])
         self.assertEqual(r, Clasificacion("F1", 0.9, "PB-F1-02", 0.7))
 
+    def test_el_ambito_de_la_ip_llega_sólo_al_paso_2(self):
+        self.modelo = ModeloFalso([PASO1, PASO2], self.reloj)
+        clasificar(
+            "alerta X",
+            self.modelo,
+            PLANTILLAS,
+            30.0,
+            self.reloj,
+            ambito_ip="interna",
+        )
+        (paso1, _, _), (paso2, _, _) = self.modelo.llamadas
+        self.assertNotIn("ORIGEN DE LA ALERTA", paso1)
+        self.assertIn("ORIGEN DE LA ALERTA", paso2)
+        self.assertIn("es INTERNA", paso2)
+
+    def test_sin_ambito_el_paso_2_no_cambia(self):
+        self.ejecutar([PASO1, PASO2])
+        self.assertNotIn("ORIGEN DE LA ALERTA", self.modelo.llamadas[1][0])
+
     def test_paso_2_recibe_los_candidatos_de_la_familia_y_el_plazo_restante(self):
         self.ejecutar([PASO1, PASO2], plazo=30.0, demora=4.0)
         (_, esquema1, plazo1), (prompt2, esquema2, plazo2) = self.modelo.llamadas

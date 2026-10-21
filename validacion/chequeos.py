@@ -108,6 +108,18 @@ class RedesInternas:
             ip = ip.ipv4_mapped
         return any(ip.version == red.version and ip in red for red in self.redes)
 
+    def ambito(self, texto: str) -> str | None:
+        """«interna» o «externa» según las redes; None si el texto no es una IP.
+
+        Es el mismo cálculo que hace el chequeo 3 (_ambito_incoherente); el ciclo se lo
+        entrega también al prompt del paso 2 para que el modelo no proponga una medida de
+        IP externa con una IP interna.
+        """
+        interna = self.es_interna(texto)
+        if interna is None:
+            return None
+        return "interna" if interna else "externa"
+
 
 @dataclass(frozen=True)
 class ListaExclusion:
@@ -303,6 +315,11 @@ def _par(categoria: str, valor: str) -> tuple[str, str]:
     if categoria == "ip":
         valor = _ip_canonica(valor)
     return categoria, valor
+
+
+def ip_canonica(texto: str) -> str:
+    """Forma única de una IP, para comparar o agrupar; lo que no es una IP, como texto."""
+    return _ip_canonica(normalizar(texto))
 
 
 def _ip_canonica(texto: str) -> str:

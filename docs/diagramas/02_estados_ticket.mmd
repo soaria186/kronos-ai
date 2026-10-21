@@ -2,11 +2,13 @@ stateDiagram-v2
     direction LR
     [*] --> PENDING: ticket creado
     PENDING --> MANUAL_TRIAGE: falla un chequeo<br/>o falla segura
-    PENDING --> EXECUTING: niveles 0 a 2<br/>o nivel 3 aprobado
-    PENDING --> REJECTED: nivel 3 rechazado (*)
-    PENDING --> MANUAL_TRIAGE: nivel 3 vencido<br/>(Propuesta D-34)
+    PENDING --> EXECUTING: niveles 0 a 2
+    PENDING --> AWAITING_APPROVAL: nivel 3 aprobado<br/>por VALIDATE (D-38)
+    AWAITING_APPROVAL --> PENDING: aprueba una persona
+    AWAITING_APPROVAL --> REJECTED: rechaza una persona<br/>con motivo
+    AWAITING_APPROVAL --> MANUAL_TRIAGE: vence el plazo<br/>(APROBACION_VENCIDA, D-34)
     EXECUTING --> SUCCESS: confirmado
-    EXECUTING --> FAILED: error
+    EXECUTING --> FAILED: error (no se reintenta)
     SUCCESS --> [*]
     FAILED --> [*]
     REJECTED --> [*]

@@ -4,12 +4,13 @@ Necesita KRONOS_DSN (kronos_worker, para preparar datos) y KRONOS_DSN_CONSOLA
 (kronos_console). Sin ellas, se omite.
 """
 
-import os
 import random
 import unittest
 
-DSN = os.environ.get("KRONOS_DSN")
-DSN_CONSOLA = os.environ.get("KRONOS_DSN_CONSOLA")
+from tests.integracion._base import dsn_de_pruebas
+
+DSN = dsn_de_pruebas()
+DSN_CONSOLA = dsn_de_pruebas("KRONOS_DSN_CONSOLA")
 
 if DSN and DSN_CONSOLA:
     import psycopg

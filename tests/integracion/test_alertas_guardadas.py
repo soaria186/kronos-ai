@@ -8,12 +8,13 @@ Para simular el paso del tiempo, las pruebas de la purga retroceden guardada_en 
 kronos_admin (la tabla no es inmutable; los servicios no pueden modificarla).
 """
 
-import os
 import random
 import unittest
 
-DSN = os.environ.get("KRONOS_DSN")
-DSN_ADMIN = os.environ.get("KRONOS_DSN_ADMIN")
+from tests.integracion._base import dsn_de_pruebas
+
+DSN = dsn_de_pruebas()
+DSN_ADMIN = dsn_de_pruebas("KRONOS_DSN_ADMIN")
 
 if DSN:
     import psycopg

@@ -1,8 +1,8 @@
 {
   "codigo": "KRO-VAL-CONF",
-  "version": "0.1",
+  "version": "0.2",
   "estado": "propuesta",
-  "nota": "Valores propuestos por Patricio el 15-10-2026 para revisión del equipo. Ninguno está decidido. Las entradas de la lista de exclusión se cargan con los datos de cada cliente.",
+  "nota": "Valores propuestos por Patricio el 15-10-2026 para revisión del equipo. Ninguno está decidido. Las entradas de la lista de exclusión se cargan con los datos de cada cliente. Versión 0.2 (20-10-2026): agrega la puerta de enlace del laboratorio a la exclusión y la ventana de agrupación de alertas.",
   "mapa_severidad": [
     {"desde": 0, "hasta": 6, "nivel_maximo": 0, "motivo": "Severidad baja: sólo reunir contexto"},
     {"desde": 7, "hasta": 9, "nivel_maximo": 1, "motivo": "Archivo vigilado modificado, disco lleno, agente caído, RDP remoto: sólo medidas reversibles"},
@@ -19,7 +19,9 @@
       "ip": "Dirección IP propia: servidores, puerta de enlace, impresoras",
       "destino": "Dominio o dirección externa permitida"
     },
-    "entradas": []
+    "entradas": [
+      {"categoria": "ip", "valor": "10.0.50.1", "comentario": "Puerta de enlace NAT del laboratorio (VirtualBox, red kronos-lab). Con redirección de puertos un ataque externo puede verse como si viniera de ella; bloquearla deja al equipo sin red (prueba del 20-10)."}
+    ]
   },
   "contadores": [
     {"nombre": "acciones_por_inquilino", "descripcion": "Acciones automáticas de un cliente en la última hora", "ventana_minutos": 60, "tope": 10},
@@ -27,6 +29,10 @@
     {"nombre": "acciones_por_playbook", "descripcion": "Ejecuciones automáticas de un mismo playbook en la última hora", "ventana_minutos": 60, "tope": 5},
     {"nombre": "acciones_nivel_2", "descripcion": "Acciones de nivel 2 de un cliente en el último día", "ventana_minutos": 1440, "tope": 5}
   ],
+  "agrupacion": {
+    "descripcion": "Alertas con la misma regla, la misma IP de origen y el mismo equipo dentro de esta ventana se resuelven con una sola decisión; las demás se anotan en la bitácora del ticket que decidió",
+    "ventana_minutos": 10
+  },
   "disparo_cortacircuito": {
     "nombre": "alertas_por_ventana",
     "descripcion": "Alertas de un cliente que llegan a VALIDATE; al alcanzar el tope se abre el cortacircuito y sólo una persona lo cierra",

@@ -4,11 +4,12 @@ Mismas condiciones que test_repositorio.py: KRONOS_DSN como kronos_worker e
 inquilinos al azar. El actuador es falso; el resto es la base real.
 """
 
-import os
 import random
 import unittest
 
-DSN = os.environ.get("KRONOS_DSN")
+from tests.integracion._base import dsn_de_pruebas
+
+DSN = dsn_de_pruebas()
 
 if DSN:
     from ejecucion.actuador import ErrorActuador

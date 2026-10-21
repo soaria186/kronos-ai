@@ -18,6 +18,23 @@ DIR_PROMPTS = Path(__file__).resolve().parent / "prompts"
 SEPARADOR_CATALOGO = "=== CATALOGO ==="
 SEPARADOR_PLANTILLA = "=== PLANTILLA ==="
 
+# Ámbito de la IP de origen, calculado por VALIDATE con las redes internas del cliente
+# (nunca sale del texto de la alerta). Se agrega al final de las condiciones del paso 2;
+# sin ámbito el prompt queda idéntico al que se midió.
+NOTA_AMBITO = {
+    "interna": (
+        "ORIGEN DE LA ALERTA (lo calculó Kronos con las redes de la organización; no "
+        "viene del texto de la alerta): la IP de origen es INTERNA, de la propia "
+        "organización. No elijas un playbook cuya condición hable de una dirección EXTERNA."
+    ),
+    "externa": (
+        "ORIGEN DE LA ALERTA (lo calculó Kronos con las redes de la organización; no "
+        "viene del texto de la alerta): la IP de origen es EXTERNA a la organización. "
+        "No elijas un playbook cuya condición hable de la dirección de OTRO equipo de la "
+        "organización."
+    ),
+}
+
 _MARCADOR = re.compile(r"\{\{(\w+)\}\}")
 _FAMILIA = re.compile(r"^\[(F[1-6])\]\s+(\S.*)$")
 _PLAYBOOK = re.compile(r"^(PB-(F[1-6])-\d{2})\s*\|\s*([^|]+?)\s*\|\s*(\S.*)$")
@@ -54,12 +71,18 @@ class Plantillas:
     def prompt_familia(self, alerta: str) -> str:
         return self.paso1.replace("{{alerta}}", alerta)
 
-    def prompt_playbook(self, familia: str, alerta: str) -> str:
+    def prompt_playbook(
+        self, familia: str, alerta: str, ambito_ip: str | None = None
+    ) -> str:
+        """Prompt del paso 2. ``ambito_ip`` es «interna», «externa» o None (se ignora)."""
         datos = self.familias[familia]
+        condiciones = datos.condiciones
+        if ambito_ip in NOTA_AMBITO:
+            condiciones = f"{condiciones}\n\n{NOTA_AMBITO[ambito_ip]}"
         # La alerta se sustituye la última para no reinterpretar marcadores dentro de ella.
         return (
             self.paso2.replace("{{familia}}", datos.nombre)
-            .replace("{{condiciones}}", datos.condiciones)
+            .replace("{{condiciones}}", condiciones)
             .replace("{{alerta}}", alerta)
         )
 

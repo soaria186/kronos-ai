@@ -91,6 +91,9 @@ class AlertaKronos:
     # IP sobre la que actuaría una medida de IP: la primera de srcip e ipAddress, igual
     # que SOAR-EXECUTE (ejecucion/ordenes.py, _CAMPOS_IP).
     ip_origen: str | None = None
+    # Id de la regla de Wazuh (rule.id): junto con la IP de origen y el equipo identifica
+    # «el mismo ataque» para agrupar alertas (validacion.ciclo).
+    regla: str | None = None
 
 
 def preparar(alerta: dict) -> AlertaKronos | None:
@@ -127,6 +130,7 @@ def preparar(alerta: dict) -> AlertaKronos | None:
         texto=_texto_para_el_modelo(alerta),
         objetivo=_objetivo(alerta),
         ip_origen=_ip_origen(alerta),
+        regla=_regla(regla),
     )
 
 
@@ -137,6 +141,34 @@ def detalle_alerta_recibida(alerta: dict) -> dict[str, Any]:
     revés. Lanza AlertaInvalida si trae un número no finito o un valor que no es JSON.
     """
     return {"alerta": _para_guardar(alerta, "alerta")}
+
+
+def detalle_alerta_agrupada(alerta_wazuh: dict, alerta: AlertaKronos) -> dict[str, Any]:
+    """Detalle del evento ALERTA_AGRUPADA: lo mínimo para encontrar la alerta en Wazuh.
+
+    No lleva la alerta completa (la decisión ya se tomó con la primera del grupo, y EXECUTE
+    sólo lee la de ALERTA_RECIBIDA). Los textos pasan por el mismo saneado que la alerta
+    completa: la IP, el equipo y la hora los controla quien envía el evento.
+    """
+    return _para_guardar(
+        {
+            "alerta_ref": alerta.id,
+            "regla": alerta.regla,
+            "severidad": alerta.severidad,
+            "ip_origen": alerta.ip_origen,
+            "equipo": _valor(alerta_wazuh, ("agent", "name")),
+            "hora_alerta": _valor(alerta_wazuh, ("timestamp",)),
+        },
+        "alerta_agrupada",
+    )
+
+
+def _regla(regla: dict) -> str | None:
+    identificador = regla.get("id")
+    if isinstance(identificador, bool) or not isinstance(identificador, (str, int)):
+        return None
+    texto = str(identificador).strip()
+    return texto or None
 
 
 def _titulo(regla: dict) -> str:

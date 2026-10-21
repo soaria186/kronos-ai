@@ -28,6 +28,7 @@ services:
       KRONOS_POSICION_ARCHIVO: /estado/posicion.json
       KRONOS_OLLAMA_URL: ${KRONOS_OLLAMA_URL:-http://ollama:11434}
       KRONOS_MODELO: ${KRONOS_MODELO:-qwen2.5:7b}
+      KRONOS_PLAZO_SEGUNDOS: ${KRONOS_PLAZO_SEGUNDOS:-120}
     secrets:
       # Sólo este archivo: no se monta la carpeta de secretos.
       - kronos_worker_password

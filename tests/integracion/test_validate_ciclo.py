@@ -18,7 +18,9 @@ import unittest
 from dataclasses import replace
 from pathlib import Path
 
-DSN = os.environ.get("KRONOS_DSN")
+from tests.integracion._base import dsn_de_pruebas
+
+DSN = dsn_de_pruebas()
 OLLAMA = os.environ.get("KRONOS_OLLAMA_URL")
 
 if DSN and OLLAMA:

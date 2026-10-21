@@ -6,11 +6,12 @@ validacion.servicio.registrar vuelve íntegra a SOAR-EXECUTE tras pasar por json
 cadena de hash, y que una alerta con caracteres que jsonb no admite igual se registra.
 """
 
-import os
 import random
 import unittest
 
-DSN = os.environ.get("KRONOS_DSN")
+from tests.integracion._base import dsn_de_pruebas
+
+DSN = dsn_de_pruebas()
 
 if DSN:
     from ejecucion.ordenes import construir

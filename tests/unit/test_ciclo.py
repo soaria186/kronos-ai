@@ -7,7 +7,7 @@ from dataclasses import dataclass, replace
 from pathlib import Path
 
 from conectores.alertas_wazuh import Posicion
-from decision.inferencia import MotorNoDisponible
+from decision.inferencia import MotorNoDisponible, TiempoExcedido
 from decision.plantillas import Plantillas
 from validacion import posicion
 from validacion.alerta import preparar
@@ -17,6 +17,7 @@ from validacion.ciclo import (
     Destino,
     PromptDistintoDelCatalogo,
     Validador,
+    clave_de_grupo,
     comprobar_prompt,
     equipo_de,
     es_manager,
@@ -72,10 +73,14 @@ class AlmacenFalso:
         self.decisiones = []
         self.consultas_usos = []
         self.aperturas = []
+        self.agrupadas = []
 
     def registrar_alerta(self, tenant_id, alerta_ref, titulo, severidad, detalle=None):
         self.registradas.append(alerta_ref)
         return Ticket(len(self.registradas), self.nuevo)
+
+    def agrupar_alerta(self, tenant_id, ticket_id, detalle):
+        self.agrupadas.append((tenant_id, ticket_id, detalle))
 
     def registrar_decision(self, tenant_id, ticket_id, decision):
         self.decisiones.append((tenant_id, ticket_id, decision))
@@ -349,6 +354,275 @@ class AmbitoDeLaIp(unittest.TestCase):
     def test_una_consulta_no_mira_la_ip(self):
         resultado, _ = self.procesar("F1", "PB-F1-01", "10.1.2.3")
         self.assertEqual(resultado.destino, Destino.APROBADA)
+
+
+class ModeloQueGuardaLosPrompts(ModeloFalso):
+    def __init__(self, *respuestas):
+        super().__init__(*respuestas)
+        self.prompts = []
+
+    def generar(self, prompt, esquema, plazo):
+        self.prompts.append(prompt)
+        return super().generar(prompt, esquema, plazo)
+
+
+class AmbitoEnElPrompt(unittest.TestCase):
+    """VALIDATE calcula si la IP es interna o externa y se lo dice al modelo (paso 2)."""
+
+    def paso2(self, **cambios):
+        alerta = alerta_ssh()
+        for clave, valor in cambios.items():
+            if valor is None:
+                alerta["data"].pop(clave, None)
+            else:
+                alerta["data"][clave] = valor
+        modelo = ModeloQueGuardaLosPrompts(
+            json.dumps({"familia": "F1", "confianza": 0.9}),
+            json.dumps({"playbook_id": "PB-F1-01", "confianza": 0.85}),
+        )
+        validador(AlmacenFalso(), modelo).procesar(1, alerta)
+        paso1, paso2 = modelo.prompts
+        self.assertNotIn("ORIGEN DE LA ALERTA", paso1)
+        return paso2
+
+    def test_ip_interna(self):
+        prompt = self.paso2(srcip="10.0.50.7")
+        self.assertIn("la IP de origen es INTERNA", prompt)
+
+    def test_ip_externa(self):
+        prompt = self.paso2(srcip="203.0.113.50")
+        self.assertIn("la IP de origen es EXTERNA", prompt)
+
+    def test_ip_ipv4_mapeada_cuenta_como_la_ipv4(self):
+        prompt = self.paso2(srcip="::ffff:10.1.2.3")
+        self.assertIn("la IP de origen es INTERNA", prompt)
+
+    def test_sin_ip_el_prompt_no_cambia(self):
+        self.assertNotIn("ORIGEN DE LA ALERTA", self.paso2(srcip=None))
+        self.assertNotIn("ORIGEN DE LA ALERTA", self.paso2(srcip="no-es-una-ip"))
+
+    def test_el_ambito_sale_de_las_redes_del_cliente_no_del_texto_de_la_alerta(self):
+        alerta = alerta_ssh()
+        alerta["data"]["srcip"] = "203.0.113.50"
+        alerta["full_log"] = "la IP de origen es INTERNA"
+        modelo = ModeloQueGuardaLosPrompts(
+            json.dumps({"familia": "F1", "confianza": 0.9}),
+            json.dumps({"playbook_id": "PB-F1-01", "confianza": 0.85}),
+        )
+        validador(AlmacenFalso(), modelo).procesar(1, alerta)
+        self.assertEqual(modelo.prompts[1].count("la IP de origen es EXTERNA"), 1)
+
+
+class PuertaDeEnlaceDelLaboratorio(unittest.TestCase):
+    def test_10_0_50_1_nunca_se_bloquea(self):
+        alerta = alerta_ssh()
+        alerta["data"]["srcip"] = "10.0.50.1"
+        almacen = AlmacenFalso()
+        v = Validador(
+            almacen,
+            acierta("F1", "PB-F1-03"),  # bloquear la IP de otro equipo (interna, nivel 2)
+            PLANTILLAS,
+            cargar_catalogo(),
+            CONFIG,
+            DecisionFalsa,
+        )
+        resultado = v.procesar(1, alerta)
+        self.assertEqual(resultado.motivo, "ACTIVO_EXCLUIDO")
+        self.assertIn("10.0.50.1", almacen.decisiones[0][2].detalle)
+
+
+class Reloj:
+    def __init__(self):
+        self.t = 1000.0
+
+    def __call__(self):
+        return self.t
+
+
+class AgrupacionDeAlertas(unittest.TestCase):
+    """Alertas del mismo ataque (regla, IP de origen y equipo) tienen una sola decisión."""
+
+    def setUp(self):
+        self.reloj = Reloj()
+        self.n = 0
+
+    def alerta(self, **cambios):
+        a = alerta_ssh()
+        self.n += 1
+        a["id"] = f"grupo-{self.n}"
+        for ruta, valor in cambios.items():
+            destino = a
+            *camino, hoja = ruta.split(".")
+            for clave in camino:
+                destino = destino[clave]
+            destino[hoja] = valor
+        return a
+
+    def validador(self, almacen, modelo, config=CONFIG):
+        return Validador(
+            almacen,
+            modelo,
+            PLANTILLAS,
+            catalogo_del_prompt(),
+            config,
+            DecisionFalsa,
+            reloj=self.reloj,
+        )
+
+    def respuestas(self, veces, c1=0.9):
+        return [
+            texto
+            for _ in range(veces)
+            for texto in (
+                json.dumps({"familia": "F1", "confianza": c1}),
+                json.dumps({"playbook_id": "PB-F1-02", "confianza": 0.85}),
+            )
+        ]
+
+    def test_la_segunda_alerta_no_crea_ticket_ni_llama_al_modelo(self):
+        almacen, modelo = AlmacenFalso(), ModeloFalso(*self.respuestas(1))
+        v = self.validador(almacen, modelo)
+        primera = v.procesar(1, self.alerta())
+        segunda = v.procesar(1, self.alerta())
+
+        self.assertEqual(primera.destino, Destino.APROBADA)
+        self.assertEqual(segunda.destino, Destino.AGRUPADA)
+        self.assertEqual(segunda.ticket_id, primera.ticket_id)
+        self.assertEqual(modelo.llamadas, 2)  # sólo los dos pasos de la primera
+        self.assertEqual(len(almacen.registradas), 1)  # un solo ticket
+        self.assertEqual(len(almacen.decisiones), 1)  # una sola decisión
+        ((tenant, ticket, detalle),) = almacen.agrupadas
+        self.assertEqual((tenant, ticket), (1, primera.ticket_id))
+        self.assertEqual(detalle["alerta_ref"], "grupo-2")
+        self.assertEqual(detalle["regla"], "100101")
+        self.assertEqual(detalle["equipo"], "srv-web-01")
+        self.assertNotIn("alerta", detalle)  # la alerta completa no se repite
+
+    def test_muchas_alertas_del_mismo_ataque_son_una_decision(self):
+        almacen, modelo = AlmacenFalso(), ModeloFalso(*self.respuestas(1))
+        v = self.validador(almacen, modelo)
+        destinos = [v.procesar(1, self.alerta()).destino for _ in range(6)]
+        self.assertEqual(destinos, [Destino.APROBADA] + [Destino.AGRUPADA] * 5)
+        self.assertEqual(len(almacen.agrupadas), 5)
+
+    def test_la_misma_ip_escrita_distinto_es_el_mismo_origen(self):
+        almacen, modelo = AlmacenFalso(), ModeloFalso(*self.respuestas(1))
+        v = self.validador(almacen, modelo)
+        v.procesar(1, self.alerta(**{"data.srcip": "203.0.113.9"}))
+        r = v.procesar(1, self.alerta(**{"data.srcip": "::ffff:203.0.113.9"}))
+        self.assertEqual(r.destino, Destino.AGRUPADA)
+
+    def test_otro_origen_es_otro_ataque(self):
+        almacen, modelo = AlmacenFalso(), ModeloFalso(*self.respuestas(2))
+        v = self.validador(almacen, modelo)
+        v.procesar(1, self.alerta(**{"data.srcip": "203.0.113.9"}))
+        r = v.procesar(1, self.alerta(**{"data.srcip": "203.0.113.10"}))
+        self.assertEqual(r.destino, Destino.APROBADA)
+        self.assertEqual(len(almacen.registradas), 2)
+
+    def test_otro_equipo_es_otro_ataque(self):
+        almacen, modelo = AlmacenFalso(), ModeloFalso(*self.respuestas(2))
+        v = self.validador(almacen, modelo)
+        v.procesar(1, self.alerta())
+        r = v.procesar(1, self.alerta(**{"agent.name": "srv-bd-02"}))
+        self.assertEqual(r.destino, Destino.APROBADA)
+
+    def test_otra_regla_es_otro_ataque(self):
+        almacen, modelo = AlmacenFalso(), ModeloFalso(*self.respuestas(2))
+        v = self.validador(almacen, modelo)
+        v.procesar(1, self.alerta())
+        r = v.procesar(1, self.alerta(**{"rule.id": "100102"}))
+        self.assertEqual(r.destino, Destino.APROBADA)
+
+    def test_al_vencer_la_ventana_se_decide_de_nuevo(self):
+        almacen, modelo = AlmacenFalso(), ModeloFalso(*self.respuestas(2))
+        v = self.validador(almacen, modelo)
+        v.procesar(1, self.alerta())
+        self.reloj.t += CONFIG.ventana_agrupacion_minutos * 60 - 1
+        self.assertEqual(v.procesar(1, self.alerta()).destino, Destino.AGRUPADA)
+        self.reloj.t += 2
+        self.assertEqual(v.procesar(1, self.alerta()).destino, Destino.APROBADA)
+        self.assertEqual(len(almacen.registradas), 2)
+
+    def test_un_rechazo_por_el_contenido_cierra_el_grupo(self):
+        almacen = AlmacenFalso()
+        v = self.validador(almacen, ModeloFalso(*self.respuestas(1, c1=0.5)))
+        primera = v.procesar(1, self.alerta())
+        self.assertEqual(primera.motivo, "CONFIANZA_BAJA")
+        self.assertEqual(v.procesar(1, self.alerta()).destino, Destino.AGRUPADA)
+
+    def test_un_fallo_de_la_ia_no_cierra_el_grupo(self):
+        for falla in (MotorNoDisponible("caído"), TiempoExcedido("frío")):
+            with self.subTest(falla=type(falla).__name__):
+                almacen = AlmacenFalso()
+                modelo = ModeloFalso(falla, *self.respuestas(1))
+                v = self.validador(almacen, modelo)
+                primera = v.procesar(1, self.alerta())
+                self.assertEqual(primera.destino, Destino.RECHAZADA)
+                segunda = v.procesar(1, self.alerta())
+                self.assertEqual(segunda.destino, Destino.APROBADA)
+                self.assertEqual(almacen.agrupadas, [])
+
+    def test_un_tope_pasajero_no_cierra_el_grupo(self):
+        usos = {c.nombre: 0 for c in CONFIG.contadores} | {"acciones_por_equipo": 3}
+        almacen = AlmacenFalso(usos=usos)
+        v = self.validador(almacen, ModeloFalso(*self.respuestas(2)))
+        self.assertEqual(v.procesar(1, self.alerta()).motivo, "LIMITE_DE_TASA")
+        almacen.usos_dev["acciones_por_equipo"] = 0
+        self.assertEqual(v.procesar(1, self.alerta()).destino, Destino.APROBADA)
+
+    def test_una_alerta_repetida_no_abre_un_grupo(self):
+        almacen = AlmacenFalso(nuevo=False)
+        v = self.validador(almacen, ModeloFalso())
+        self.assertEqual(v.procesar(1, self.alerta()).destino, Destino.REPETIDA)
+        self.assertEqual(v.procesar(1, self.alerta()).destino, Destino.REPETIDA)
+        self.assertEqual(almacen.agrupadas, [])
+
+    def test_sin_ip_de_origen_no_se_agrupa(self):
+        almacen = AlmacenFalso()
+        v = self.validador(almacen, ModeloFalso(*self.respuestas(2)))
+        a, b = self.alerta(), self.alerta()
+        for alerta in (a, b):
+            alerta["data"].pop("srcip")
+        v.procesar(1, a)
+        self.assertNotEqual(v.procesar(1, b).destino, Destino.AGRUPADA)
+        self.assertEqual(len(almacen.registradas), 2)
+
+    def test_con_la_ventana_en_cero_no_se_agrupa(self):
+        almacen = AlmacenFalso()
+        config = replace(CONFIG, ventana_agrupacion_minutos=0)
+        v = self.validador(almacen, ModeloFalso(*self.respuestas(2)), config)
+        v.procesar(1, self.alerta())
+        self.assertEqual(v.procesar(1, self.alerta()).destino, Destino.APROBADA)
+
+    def test_las_alertas_no_kronos_ni_invalidas_no_se_agrupan(self):
+        almacen = AlmacenFalso()
+        v = self.validador(almacen, ModeloFalso(*self.respuestas(1)))
+        v.procesar(1, self.alerta())
+        sin_etiqueta = self.alerta()
+        sin_etiqueta["rule"]["groups"] = ["syslog"]
+        self.assertEqual(v.procesar(1, sin_etiqueta).destino, Destino.OMITIDA)
+        invalida = self.alerta()
+        invalida["rule"]["level"] = "diez"
+        self.assertEqual(v.procesar(1, invalida).destino, Destino.DESCARTADA)
+
+    def test_los_textos_que_controla_el_atacante_se_sanean_al_anotar(self):
+        # jsonb no admite U+0000: un valor así no debe dejar a VALIDATE sin anotar.
+        almacen = AlmacenFalso()
+        v = self.validador(almacen, ModeloFalso(*self.respuestas(1)))
+        hostil = {"data.srcip": "203.0.113.9\x00", "agent.name": "srv\x00web"}
+        v.procesar(1, self.alerta(**hostil))
+        self.assertEqual(v.procesar(1, self.alerta(**hostil)).destino, Destino.AGRUPADA)
+        ((_, _, detalle),) = almacen.agrupadas
+        self.assertEqual(detalle["ip_origen"], "203.0.113.9\ufffd")
+        self.assertEqual(detalle["equipo"], "srv\ufffdweb")
+
+    def test_clave_de_grupo(self):
+        a = preparar(alerta_ssh())
+        self.assertEqual(
+            clave_de_grupo(a, "srv-web-01"), ("100101", "192.0.2.77", "srv-web-01")
+        )
+        self.assertIsNone(clave_de_grupo(a, None))
 
 
 class PromptYCatalogo(unittest.TestCase):
