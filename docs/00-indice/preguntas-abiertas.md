@@ -12,7 +12,6 @@ Generado desde los documentos de `docs/entregables/` (versión 0.1, 14-10-2026).
 | 3 | aceptación de la propuesta D-34 y del nuevo motivo de rechazo | 02 · 3.3 Ejecución y niveles de autonomía | Equipo |
 | 4 | qué define la restricción R4 | 02 · 6. Restricciones de diseño<br>17 · 4.1 Controles de diseño | Equipo |
 | 5 | nombre de cada escenario CU-C01 a CU-C10 y CU-S01 a CU-S12 desde «Casos de uso y operaciones en los equipos de la farmacia» | 02 · 7.1 Escenarios por arquetipo de equipo | Nicolás |
-| 7 | qué ámbitos existen (por inquilino, por equipo o global) | 02 · 8.2 Estados del cortacircuito | Patricio |
 | 8 | texto de los 15 criterios de la lista de verificación SaaS y su sprint | 02 · 9.1 Criterios de aceptación del servicio<br>06 · 3. Objetivos de calidad | Equipo |
 | 9 | numeración y nombre de las etapas (D-30) | 03 · 8. Desviaciones observadas<br>04 · 2.1 Numeración de etapas<br>14 · 2. Flujo | Equipo |
 | 10 | fecha de instalación de los agentes en la farmacia | 04 · 3. Fechas clave | Equipo |
@@ -57,4 +56,4 @@ Generado desde los documentos de `docs/entregables/` (versión 0.1, 14-10-2026).
 | 53 | cómo reciben la contraseña de kronos_worker (archivo de secreto de Docker u otro) | 20 · 6. Entrega a cada componente | Rodrigo y Patricio |
 | 54 | frecuencia de rotación periódica de los secretos | 20 · 7. Rotación | Equipo |
 
-Total: 49 preguntas distintas en 69 marcas.
+Total: 48 preguntas distintas en 68 marcas.
