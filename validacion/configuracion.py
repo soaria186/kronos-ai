@@ -2,7 +2,8 @@
 
 Reúne los valores que los chequeos reciben como datos: el mapa de severidad a niveles,
 la lista de exclusión con sus seis categorías, los cuatro contadores de tasa de acciones
-y el quinto contador, el de alertas, que abre el cortacircuito. El archivo se rechaza
+el quinto contador, el de alertas, que abre el cortacircuito, y la ventana en que se
+agrupan las alertas de un mismo ataque (opcional). El archivo se rechaza
 entero si algo no cuadra: un mapa con huecos, una entrada de exclusión con una categoría
 no declarada, un contador repetido o un tope no positivo.
 
@@ -50,6 +51,9 @@ class Configuracion:
     redes_internas: RedesInternas
     contadores: tuple[DefinicionContador, ...]
     disparo_cortacircuito: DefinicionContador
+    # Ventana en que las alertas de un mismo ataque (misma regla, IP de origen y equipo) se
+    # resuelven con una sola decisión. 0 = sin agrupar.
+    ventana_agrupacion_minutos: int = 0
 
     def estado_operacion(
         self, usos: dict[str, int], cortacircuito_abierto: bool
@@ -86,6 +90,7 @@ def cargar_configuracion(ruta: Path = RUTA_CONFIGURACION) -> Configuracion:
             redes_internas=_leer_redes(datos["redes_internas"]),
             contadores=_leer_contadores(datos["contadores"]),
             disparo_cortacircuito=_leer_contador(datos["disparo_cortacircuito"]),
+            ventana_agrupacion_minutos=_leer_agrupacion(datos.get("agrupacion")),
         )
     except (KeyError, TypeError, ValueError) as exc:
         if isinstance(exc, ConfiguracionInvalida):
@@ -155,6 +160,18 @@ def _leer_contador(dato: dict) -> DefinicionContador:
     if ventana <= 0 or tope <= 0:
         raise ConfiguracionInvalida(f"{nombre}: ventana y tope deben ser positivos")
     return DefinicionContador(nombre, ventana, tope)
+
+
+def _leer_agrupacion(dato: object) -> int:
+    """Minutos de la ventana de agrupación; sin la sección, no se agrupa."""
+    if dato is None:
+        return 0
+    if not isinstance(dato, dict):
+        raise ConfiguracionInvalida("agrupacion debe ser un objeto")
+    ventana = _entero(dato["ventana_minutos"], "agrupacion.ventana_minutos")
+    if ventana <= 0:
+        raise ConfiguracionInvalida("agrupacion.ventana_minutos debe ser positivo")
+    return ventana
 
 
 def _leer_contadores(datos: list) -> tuple[DefinicionContador, ...]:

@@ -31,6 +31,28 @@ class PlantillasReales(unittest.TestCase):
         self.assertNotIn("=== CATALOGO ===", prompt)
         self.assertNotIn("{{", prompt)
 
+    def test_sin_ambito_el_prompt_es_el_de_siempre(self):
+        base = self.p.prompt_playbook("F1", "ALERTA")
+        self.assertEqual(self.p.prompt_playbook("F1", "ALERTA", None), base)
+        self.assertEqual(self.p.prompt_playbook("F1", "ALERTA", "desconocido"), base)
+        self.assertNotIn("ORIGEN DE LA ALERTA", base)
+
+    def test_el_ambito_de_la_ip_va_antes_de_la_alerta(self):
+        for ambito, dice, no_dice in (
+            ("interna", "es INTERNA", "es EXTERNA"),
+            ("externa", "es EXTERNA", "es INTERNA"),
+        ):
+            prompt = self.p.prompt_playbook("F1", "ALERTA", ambito)
+            self.assertIn("ORIGEN DE LA ALERTA", prompt)
+            self.assertIn(dice, prompt)
+            self.assertNotIn(no_dice, prompt)
+            self.assertTrue(prompt.rstrip().endswith("ALERTA"))
+            self.assertLess(
+                prompt.index("PB-F1-05"), prompt.index("ORIGEN DE LA ALERTA")
+            )
+            self.assertLess(prompt.index("ORIGEN DE LA ALERTA"), prompt.rindex("ALERTA"))
+            self.assertNotIn("{{", prompt)
+
     def test_marcadores_dentro_de_la_alerta_no_se_reinterpretan(self):
         prompt = self.p.prompt_playbook("F1", "texto {{condiciones}} {{familia}}")
         self.assertTrue(prompt.rstrip().endswith("texto {{condiciones}} {{familia}}"))

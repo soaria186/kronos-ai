@@ -22,7 +22,12 @@ from collections.abc import Mapping
 from dataclasses import dataclass
 from typing import Any, Protocol
 
-from validacion.alerta import AlertaKronos, detalle_alerta_recibida, preparar
+from validacion.alerta import (
+    AlertaKronos,
+    detalle_alerta_agrupada,
+    detalle_alerta_recibida,
+    preparar,
+)
 
 
 class TicketRegistrado(Protocol):
@@ -45,6 +50,10 @@ class RegistroDeAlertas(Protocol):
         detalle: Mapping[str, Any] | None = None,
     ) -> TicketRegistrado: ...
 
+    def agrupar_alerta(
+        self, tenant_id: int, ticket_id: int, detalle: Mapping[str, Any]
+    ) -> None: ...
+
 
 @dataclass(frozen=True)
 class AlertaRegistrada:
@@ -55,14 +64,19 @@ class AlertaRegistrada:
 
 
 def registrar(
-    repositorio: RegistroDeAlertas, tenant_id: int, alerta_wazuh: dict
+    repositorio: RegistroDeAlertas,
+    tenant_id: int,
+    alerta_wazuh: dict,
+    preparada: AlertaKronos | None = None,
 ) -> AlertaRegistrada | None:
     """Crea el ticket de la alerta y guarda la alerta completa. None si no es de Kronos.
 
     Lanza AlertaInvalida, sin tocar la base, si la alerta no trae los campos mínimos o no
     se puede guardar; quien llama la cuenta como descartada y sigue con la siguiente.
+    ``preparada`` es la misma alerta ya pasada por ``preparar`` (el ciclo la prepara antes
+    para decidir si se agrupa); sin ella, se prepara aquí.
     """
-    alerta = preparar(alerta_wazuh)
+    alerta = preparada if preparada is not None else preparar(alerta_wazuh)
     if alerta is None:
         return None
     ticket = repositorio.registrar_alerta(
@@ -73,3 +87,20 @@ def registrar(
         detalle_alerta_recibida(alerta_wazuh),
     )
     return AlertaRegistrada(ticket.ticket_id, ticket.nuevo, alerta)
+
+
+def agrupar(
+    repositorio: RegistroDeAlertas,
+    tenant_id: int,
+    ticket_id: int,
+    alerta_wazuh: dict,
+    alerta: AlertaKronos,
+) -> None:
+    """Anota en el ticket que decidió que esta alerta es del mismo ataque.
+
+    No crea un ticket nuevo: una sola decisión por ataque. Lanza AlertaInvalida, sin tocar
+    la base, si los datos no se pueden guardar.
+    """
+    repositorio.agrupar_alerta(
+        tenant_id, ticket_id, detalle_alerta_agrupada(alerta_wazuh, alerta)
+    )

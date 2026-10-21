@@ -18,7 +18,7 @@ from decision.inferencia import MotorNoDisponible, TiempoExcedido
 URL_POR_DEFECTO = "http://127.0.0.1:11435"
 OPCIONES = {"temperature": 0, "num_ctx": 4096}
 # -1 = el modelo queda cargado en memoria indefinidamente. En frío el 7B tarda unos 58 s
-# por alerta y en tibio unos 20 s (medición del 14-10); el límite es 60 s.
+# por alerta y en tibio unos 20 s (medición del 14-10); el plazo de VALIDATE es de 120 s.
 KEEP_ALIVE = -1
 
 _ABRIDOR = urllib.request.build_opener(urllib.request.ProxyHandler({}))
@@ -28,6 +28,41 @@ class ClienteOllama:
     def __init__(self, modelo: str, url: str = URL_POR_DEFECTO) -> None:
         self.modelo = modelo
         self.url = url.rstrip("/") + "/api/generate"
+
+    def precalentar(self, plazo: float = 180.0) -> None:
+        """Carga el modelo en memoria sin generar nada, para que la primera alerta no lo pague.
+
+        Sin prompt, Ollama sólo carga el modelo; con las mismas opciones (num_ctx) y
+        keep_alive = -1 que usa generar(), así no lo vuelve a cargar. Lanza las mismas
+        excepciones que generar(); quien la llama decide si un fallo es grave.
+        """
+        cuerpo = {
+            "model": self.modelo,
+            "stream": False,
+            "options": OPCIONES,
+            "keep_alive": KEEP_ALIVE,
+        }
+        peticion = urllib.request.Request(
+            self.url,
+            data=json.dumps(cuerpo).encode("utf-8"),
+            headers={"Content-Type": "application/json"},
+            method="POST",
+        )
+        try:
+            with _ABRIDOR.open(peticion, timeout=plazo) as respuesta:
+                respuesta.read()
+        except urllib.error.HTTPError as exc:
+            raise MotorNoDisponible(f"Ollama respondió {exc.code}") from exc
+        except TimeoutError as exc:
+            raise TiempoExcedido(f"sin respuesta en {plazo:.1f} s") from exc
+        except urllib.error.URLError as exc:
+            if isinstance(exc.reason, TimeoutError):
+                raise TiempoExcedido(f"sin respuesta en {plazo:.1f} s") from exc
+            raise MotorNoDisponible(
+                f"no se pudo contactar con Ollama: {exc.reason}"
+            ) from exc
+        except OSError as exc:
+            raise MotorNoDisponible(f"respuesta ilegible de Ollama: {exc}") from exc
 
     def generar(self, prompt: str, esquema: dict, plazo: float) -> str:
         cuerpo = {

@@ -12,7 +12,6 @@ Generado desde los documentos de `docs/entregables/` (versión 0.1, 14-10-2026).
 | 3 | aceptación de la propuesta D-34 y del nuevo motivo de rechazo | 02 · 3.3 Ejecución y niveles de autonomía | Equipo |
 | 4 | qué define la restricción R4 | 02 · 6. Restricciones de diseño<br>17 · 4.1 Controles de diseño | Equipo |
 | 5 | nombre de cada escenario CU-C01 a CU-C10 y CU-S01 a CU-S12 desde «Casos de uso y operaciones en los equipos de la farmacia» | 02 · 7.1 Escenarios por arquetipo de equipo | Nicolás |
-| 6 | estado del ticket mientras espera la aprobación de nivel 3, uso de REJECTED y registro de la reversión | 02 · 8.1 Estados del ticket | Rodrigo |
 | 7 | qué ámbitos existen (por inquilino, por equipo o global) | 02 · 8.2 Estados del cortacircuito | Patricio |
 | 8 | texto de los 15 criterios de la lista de verificación SaaS y su sprint | 02 · 9.1 Criterios de aceptación del servicio<br>06 · 3. Objetivos de calidad | Equipo |
 | 9 | numeración y nombre de las etapas (D-30) | 03 · 8. Desviaciones observadas<br>04 · 2.1 Numeración de etapas<br>14 · 2. Flujo | Equipo |
@@ -34,7 +33,6 @@ Generado desde los documentos de `docs/entregables/` (versión 0.1, 14-10-2026).
 | 25 | dominio propio para la consola y para los agentes | 09 · 6.1 Red y puertos | Nicolás |
 | 26 | si el 11435 corresponde a un túnel desde el PC de medición o a otra configuración | 09 · 6.1 Red y puertos | Patricio |
 | 27 | mecanismo de lectura de las alertas de Wazuh por SOAR-VALIDATE | 09 · 7. Flujo de una alerta | Nicolás y Patricio |
-| 28 | si la consola escribe a través de la API de VALIDATE o EXECUTE, o con otro rol | 09 · 11. Brechas abiertas de la arquitectura | Rodrigo |
 | 29 | mecanismo de conexión de los servicios a PostgreSQL y entrega de sus contraseñas | 09 · 11. Brechas abiertas de la arquitectura | Rodrigo y Patricio |
 | 30 | cuándo el paso 2 pasa a usar los candidatos del catálogo de trabajo 0.1 | 11 · 4.2 Reglas de elección | Patricio |
 | 31 | modelo definitivo de SOAR-CLASSIFY | 11 · 6. Parámetros de inferencia | Patricio |
@@ -44,14 +42,11 @@ Generado desde los documentos de `docs/entregables/` (versión 0.1, 14-10-2026).
 | 35 | si los PR #4 a #6 se revisaron fuera de GitHub o deben registrarse como excepción | 14 · 4.1 Excepciones a la revisión cruzada | Patricio |
 | 36 | resultado de las pruebas unitarias en el equipo de Patricio y en Linux | 15 · 6.2 Pruebas unitarias | Patricio |
 | 37 | quién da el visto bueno final a la puerta de salida | 15 · 8.1 Puerta de salida a la farmacia | Equipo |
-| 38 | método de autenticación de SOAR-CONSOLE y uso de segundo factor | 17 · 3. Modelo de amenazas | Rodrigo |
 | 39 | verificación en dos pasos en las cuentas de Telegram de los aprobadores | 17 · 3. Modelo de amenazas | Equipo |
 | 40 | estado actual del VNC de Contabo | 17 · 5. Gestión de accesos | Nicolás |
 | 41 | qué gestor de contraseñas guarda los secretos del proyecto (D-29) | 17 · 5. Gestión de accesos<br>20 · 5. Resguardo | Equipo |
 | 42 | si un incidente de la plataforma con datos de la farmacia exige avisar a algún organismo y en qué plazo | 17 · 7. Respuesta ante incidentes de la plataforma | Profesor guía |
 | 43 | si las alertas del indexer se respaldan o sólo se conservan en el servidor según la política del documento 18 | 19 · 2. Qué se respalda | Nicolás |
-| 44 | hora del respaldo diario (en UTC) y herramienta de cifrado | 19 · 3. Respaldo diario | Rodrigo |
-| 45 | si el trigger se dispara al restaurar y si basta con --disable-triggers | 19 · 4.1 El trigger de la cadena al restaurar | Rodrigo |
 | 46 | aceptación por el equipo de las condiciones de R-10 para el respaldo en el PC de Nicolás | 19 · 5.2 Condiciones | Equipo |
 | 47 | retención de las copias diarias y semanales | 19 · 6. Retención de las copias | Equipo |
 | 48 | RPO y RTO aceptados por el equipo | 19 · 8. Objetivos de recuperación | Equipo |
@@ -62,4 +57,4 @@ Generado desde los documentos de `docs/entregables/` (versión 0.1, 14-10-2026).
 | 53 | cómo reciben la contraseña de kronos_worker (archivo de secreto de Docker u otro) | 20 · 6. Entrega a cada componente | Rodrigo y Patricio |
 | 54 | frecuencia de rotación periódica de los secretos | 20 · 7. Rotación | Equipo |
 
-Total: 54 preguntas distintas en 74 marcas.
+Total: 49 preguntas distintas en 69 marcas.

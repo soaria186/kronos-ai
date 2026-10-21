@@ -7,16 +7,18 @@ Cada ejecución usa inquilinos al azar: auditoria es de sólo inserción y las f
 de pruebas anteriores no se pueden borrar.
 """
 
-import os
 import random
 import unittest
 
-DSN = os.environ.get("KRONOS_DSN")
+from tests.integracion._base import dsn_de_pruebas
+
+DSN = dsn_de_pruebas()
 
 if DSN:
     from persistencia.repositorio import (
         Decision,
         DefinicionUso,
+        EstadoInvalido,
         Repositorio,
         TicketYaDecidido,
     )
@@ -167,6 +169,32 @@ class TestRepositorio(unittest.TestCase):
         for i in range(3):
             self.repo.registrar_alerta(self.t, f"v-{i}", "Disco lleno", 7)
         self.assertEqual(self.repo.alertas_en_ventana(self.t, 10), 3)
+
+    def test_alerta_agrupada_es_un_evento_del_ticket_y_no_un_ticket(self) -> None:
+        ticket = self.repo.registrar_alerta(self.t, "g-0", "Fuerza bruta SSH", 10).ticket_id
+        self.repo.agrupar_alerta(self.t, ticket, {"alerta_ref": "g-1", "regla": "100101"})
+        self.repo.agrupar_alerta(self.t, ticket, {"alerta_ref": "g-2", "regla": "100101"})
+        tickets = self._consulta("SELECT count(*) FROM tickets")[0][0]
+        eventos = self._consulta(
+            "SELECT ticket_id, detalle->>'alerta_ref' FROM auditoria "
+            "WHERE evento = 'ALERTA_AGRUPADA' ORDER BY seq"
+        )
+        self.assertEqual(tickets, 1)
+        self.assertEqual(eventos, [(ticket, "g-1"), (ticket, "g-2")])
+        self.assertTrue(self._cadena_integra())
+
+    def test_las_alertas_agrupadas_cuentan_para_el_cortacircuito(self) -> None:
+        ticket = self.repo.registrar_alerta(self.t, "w-0", "Fuerza bruta SSH", 10).ticket_id
+        for i in range(4):
+            self.repo.agrupar_alerta(self.t, ticket, {"alerta_ref": f"w-{i + 1}"})
+        self.assertEqual(self.repo.alertas_en_ventana(self.t, 10), 5)
+
+    def test_agrupar_en_un_ticket_de_otro_inquilino_falla(self) -> None:
+        ticket = self.repo.registrar_alerta(self.t, "x-0", "Fuerza bruta SSH", 10).ticket_id
+        with self.assertRaises(EstadoInvalido):
+            self.repo.agrupar_alerta(_inquilino(), ticket, {"alerta_ref": "x-1"})
+        with self.assertRaises(EstadoInvalido):
+            self.repo.agrupar_alerta(self.t, ticket + 10_000_000, {"alerta_ref": "x-2"})
 
     def test_inquilino_invalido(self) -> None:
         for malo in (0, -1, True, "1"):

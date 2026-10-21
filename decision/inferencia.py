@@ -82,7 +82,9 @@ def clasificar(
     plantillas: Plantillas,
     plazo: float,
     reloj: Callable[[], float] = time.monotonic,
+    ambito_ip: str | None = None,
 ) -> Clasificacion | FallaSegura:
+    """``ambito_ip`` («interna», «externa» o None) sólo llega al prompt del paso 2."""
     if plazo <= 0:
         raise ValueError("el plazo debe ser positivo")
     limite = reloj() + plazo
@@ -104,7 +106,7 @@ def clasificar(
     resultado = _paso(
         2,
         modelo,
-        plantillas.prompt_playbook(familia.familia, alerta),
+        plantillas.prompt_playbook(familia.familia, alerta, ambito_ip),
         esquema_playbook(candidatos),
         lambda texto: leer_playbook(texto, candidatos),
         limite,

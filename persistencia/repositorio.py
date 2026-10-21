@@ -58,6 +58,7 @@ ACTOR_EXECUTE = "soar-execute"
 ACTOR_NOTIFY = "soar-notify"
 
 EVENTO_ALERTA = "ALERTA_RECIBIDA"
+EVENTO_ALERTA_AGRUPADA = "ALERTA_AGRUPADA"
 EVENTO_DECISION = "DECISION"
 EVENTO_CORTACIRCUITO = "CORTACIRCUITO_ABIERTO"
 EVENTO_EJECUCION_INICIADA = "EJECUCION_INICIADA"
@@ -93,7 +94,7 @@ TEMPORIZADOR_REVISION = "REVISION"  # nivel 2: plazo de revisión y recordatorio
 PLAZO_APROBACION_MINUTOS = 2 * 24 * 60  # D-32
 PLAZO_REVISION_MINUTOS = 2 * 24 * 60  # D-33
 INTERVALO_RECORDATORIO_MINUTOS = 24 * 60  # D-33: recordatorio diario al vencer
-# Sin decisión tras este plazo, el ticket es huérfano. El modelo tiene como máximo 60 s
+# Sin decisión tras este plazo, el ticket es huérfano. El modelo tiene como máximo 120 s
 # (KRONOS_PLAZO_SEGUNDOS de VALIDATE), así que 10 minutos no dan falsas alarmas.
 PLAZO_HUERFANO_MINUTOS = 10
 
@@ -243,6 +244,26 @@ class Repositorio:
                 raise ValueError("detalle['alerta'] debe ser un objeto JSON")
             self._evento(cur, tenant_id, ticket_id, EVENTO_ALERTA, evento)
             return TicketRegistrado(ticket_id, nuevo=True)
+
+    def agrupar_alerta(
+        self, tenant_id: int, ticket_id: int, detalle: Mapping[str, Any]
+    ) -> None:
+        """Anota en un ticket que otra alerta del mismo ataque llegó y no creó ticket.
+
+        Es un evento más de la bitácora de ese ticket (ALERTA_AGRUPADA): la decisión que
+        ya se tomó cubre a esta alerta. Cuenta para el disparo del cortacircuito, igual
+        que si hubiera creado un ticket (ver alertas_en_ventana).
+        """
+        with self._transaccion(tenant_id) as cur:
+            cur.execute(
+                "SELECT 1 FROM tickets WHERE tenant_id = %s AND id = %s",
+                (tenant_id, ticket_id),
+            )
+            if cur.fetchone() is None:
+                raise EstadoInvalido(
+                    f"ticket {ticket_id}: no existe para el inquilino {tenant_id}"
+                )
+            self._evento(cur, tenant_id, ticket_id, EVENTO_ALERTA_AGRUPADA, dict(detalle))
 
     # ---------------------------------------------------------------- decisiones
 
@@ -637,16 +658,25 @@ class Repositorio:
         return resultado
 
     def alertas_en_ventana(self, tenant_id: int, ventana_minutos: int) -> int:
-        """Tickets creados en la ventana: es lo que mide el disparo del cortacircuito."""
+        """Alertas que llegaron en la ventana: lo que mide el disparo del cortacircuito.
+
+        Son los tickets creados más las alertas agrupadas en un ticket ajeno: agrupar no
+        debe esconderle al cortacircuito una inundación desde un solo origen.
+        """
         with self._transaccion(tenant_id) as cur:
             cur.execute(
                 """
-                SELECT count(*)
-                  FROM tickets
-                 WHERE tenant_id = %s
-                   AND creado_en >= now() - make_interval(mins => %s)
+                SELECT (SELECT count(*)
+                          FROM tickets
+                         WHERE tenant_id = %(t)s
+                           AND creado_en >= now() - make_interval(mins => %(m)s))
+                     + (SELECT count(*)
+                          FROM auditoria
+                         WHERE tenant_id = %(t)s
+                           AND evento = %(e)s
+                           AND creado_en >= now() - make_interval(mins => %(m)s))
                 """,
-                (tenant_id, ventana_minutos),
+                {"t": tenant_id, "m": ventana_minutos, "e": EVENTO_ALERTA_AGRUPADA},
             )
             return cur.fetchone()[0]
 

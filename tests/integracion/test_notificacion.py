@@ -1,10 +1,11 @@
 """Pruebas de integración de los avisos de SOAR-NOTIFY contra la bitácora real."""
 
-import os
 import random
 import unittest
 
-DSN = os.environ.get("KRONOS_DSN")
+from tests.integracion._base import dsn_de_pruebas
+
+DSN = dsn_de_pruebas()
 
 if DSN:
     from persistencia.repositorio import Decision, EstadoInvalido, Repositorio

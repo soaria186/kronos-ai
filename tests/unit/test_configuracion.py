@@ -119,8 +119,27 @@ class ConfiguracionDefectuosa(unittest.TestCase):
         )
         self.assertIsNotNone(conf.exclusion.coincidencia({"equipo": "SRV-BD-02"}))
 
+    def test_la_ventana_de_agrupacion_se_lee(self):
+        self.assertEqual(self.cargar_con(lambda d: None).ventana_agrupacion_minutos, 10)
+        conf = self.cargar_con(lambda d: d["agrupacion"].update(ventana_minutos=3))
+        self.assertEqual(conf.ventana_agrupacion_minutos, 3)
+
+    def test_sin_la_seccion_de_agrupacion_no_se_agrupa(self):
+        conf = self.cargar_con(lambda d: d.pop("agrupacion"))
+        self.assertEqual(conf.ventana_agrupacion_minutos, 0)
+
+    def test_la_puerta_de_enlace_del_laboratorio_esta_excluida(self):
+        conf = self.cargar_con(lambda d: None)
+        self.assertEqual(conf.exclusion.coincidencia({"ip": "10.0.50.1"}), ("ip", "10.0.50.1"))
+        self.assertIsNone(conf.exclusion.coincidencia({"ip": "10.0.50.2"}))
+
     def test_rechazos(self):
         casos = {
+            "agrupación sin ventana": lambda d: d["agrupacion"].pop("ventana_minutos"),
+            "agrupación con ventana cero": lambda d: d["agrupacion"].update(
+                ventana_minutos=0
+            ),
+            "agrupación como texto": lambda d: d.update(agrupacion="10"),
             "otro código": lambda d: d.update(codigo="X"),
             "mapa con hueco": lambda d: d["mapa_severidad"].pop(1),
             "nivel decreciente": lambda d: d["mapa_severidad"][3].update(
