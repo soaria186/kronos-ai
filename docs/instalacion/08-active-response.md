@@ -5,7 +5,7 @@
 | Parte de la guía | 08 de 15 (borrador) |
 | Versión de Wazuh | 4.14.8 |
 | Responsable | Nicolás Zamora (revisa: Rodrigo Riveros) |
-| Estado | Borrador para revisión. Probado en el laboratorio (EP-SRV-01) el 20 y 21-10-2026 |
+| Estado | Borrador para revisión. Script probado en el laboratorio (EP-SRV-01) el 20-10-2026; sección 3 reconstruida desde el historial, sin repetir; reversión automática pendiente de confirmar |
 
 > Esta guía no contiene contraseñas, tokens, llaves ni direcciones IP reales. La IP `203.0.113.50` pertenece al rango reservado para documentación y se usa sólo como ejemplo.
 
@@ -87,7 +87,7 @@ Debe quedar sin regla (`codigo: 1`) y una línea `quitar 203.0.113.50: OK`.
 | Reinicio del agente o del equipo | **Las reglas se pierden**: `iptables` guarda las reglas en memoria y este script no las hace persistentes |
 | Agente apagado cuando vence la reversión | SOAR-EXECUTE registra `REVERSION_FALLIDA` («agent is not active») y **no reintenta** |
 
-> Las dos últimas filas se observaron en el laboratorio el 20-10-2026 (ticket #20) y quedan como pendientes de diseño: reintento de la reversión y persistencia o reaplicación de las reglas tras un reinicio.
+> Las dos últimas filas se observaron en el laboratorio el 20-10-2026 (ticket n.º 20) y quedan como pendientes de diseño: reintento de la reversión y persistencia o reaplicación de las reglas tras un reinicio.
 
 ### 2.5 Lo que el script no decide
 
@@ -198,7 +198,7 @@ El rol debe tener únicamente la política `agents_commands_agents`. La prueba d
 - [ ] Rol `kronos-execute` unido a la política `agents_commands_agents`.
 - [ ] Usuario `kronos-execute` creado, unido al rol y autenticando.
 - [ ] Contraseña en el gestor de contraseñas; ninguna en el chat, el historial ni el repositorio.
-- [ ] Prueba de reversión automática a los 60 minutos, con el agente encendido: **pendiente** (la del ticket #20 falló porque el agente estaba apagado).
+- [ ] Prueba de reversión automática a los 60 minutos, con el agente encendido: **pendiente** (la del ticket n.º 20 falló porque el agente estaba apagado).
 
 ## Referencias
 
