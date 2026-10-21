@@ -88,9 +88,9 @@ class TestValidateAlerta(unittest.TestCase):
         alerta["data"]["dstuser"] = "a\x00b"
         registrada = registrar(self.validate, self.t, alerta)
         guardado = self.sql(
-            "SELECT detalle FROM auditoria WHERE ticket_id = %s AND evento = 'ALERTA_RECIBIDA'",
+            "SELECT alerta FROM alertas_guardadas WHERE ticket_id = %s",
             registrada.ticket_id,
-        )[0][0]["alerta"]
+        )[0][0]
         self.assertEqual(guardado["full_log"], "usuario�root � ñandú 🙂")
         self.assertEqual(guardado["data"]["dstuser"], "a�b")
         self.assertTrue(self.cadena_integra())

@@ -1,0 +1,13 @@
+[Unit]
+Description=Kronos: retención de las alertas guardadas (SOAR-AUDIT)
+After=docker.service
+Requires=docker.service
+
+[Service]
+Type=oneshot
+# Plazo en días (propuesta: 90). Para cambiarlo sin editar este archivo:
+#   sudo systemctl edit kronos-retencion-alertas.service
+Environment=KRONOS_RETENCION_DIAS=90
+ExecStart=/usr/local/sbin/kronos-retencion-alertas.sh
+Nice=10
+IOSchedulingClass=idle
