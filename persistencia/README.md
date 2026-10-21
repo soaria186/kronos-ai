@@ -10,7 +10,7 @@ Capa que usan SOAR-VALIDATE, SOAR-EXECUTE y SOAR-NOTIFY, conectada como `kronos_
 
 | Método | Qué hace |
 | :--- | :--- |
-| `registrar_alerta` | Crea el ticket de una alerta y el evento `ALERTA_RECIBIDA`. Si la alerta ya se había leído, devuelve el ticket existente (`UNIQUE (tenant_id, alerta_ref)`) |
+| `registrar_alerta` | Crea el ticket de una alerta y el evento `ALERTA_RECIBIDA`. Si la alerta ya se había leído, devuelve el ticket existente (`UNIQUE (tenant_id, alerta_ref)`). La alerta completa va a `alertas_guardadas` (ver abajo) y el evento guarda sólo su huella |
 | `registrar_decision` | Escribe el evento `DECISION` y actualiza el ticket en la misma transacción (R3). Aprobada de nivel 0 a 2: `PENDING` con playbook y nivel. Aprobada de nivel 3: `AWAITING_APPROVAL` con un temporizador de 2 días (D-32). Rechazada: `MANUAL_TRIAGE` con su motivo. Un ticket se decide una sola vez |
 | `usos` | Uso de los contadores de tasa de `validate.json`, contando decisiones aprobadas de nivel 1 y 2 en su ventana |
 | `alertas_en_ventana` | Tickets creados en la ventana: lo que mide el disparo del cortacircuito |
@@ -57,6 +57,33 @@ Reglas:
 - No importa `validacion` ni `decision`: recibe y entrega tipos simples.
 - Un contador que no se puede calcular (desconocido, o sin equipo o playbook) no aparece en el resultado; `validacion.configuracion` lo trata como si estuviera en su tope.
 
+## Alertas guardadas: tope y retención (R-09)
+
+La alerta completa de Wazuh trae datos personales (cuentas, IP, nombres de equipo, líneas
+de registro). La bitácora no se puede borrar nunca, así que la alerta **no** va ahí:
+
+| Dónde | Qué queda | ¿Se borra? |
+| :--- | :--- | :--- |
+| `alertas_guardadas` | La alerta completa, con tope de 64 KiB | Sí: la purga diaria, a los 90 días (propuesta) |
+| `auditoria`, evento `ALERTA_RECIBIDA` | `alerta_guardada`: SHA-256 de lo guardado, tamaños, si se recortó, `agent.id` y `rule.id` | No (inmutable) |
+
+- **Tope** (`alertas.py`). Si la alerta pasa de 60 000 bytes, se recortan sus textos a
+  4096 caracteres; si aún no cabe, se guardan sólo los campos esenciales (los que usan
+  EXECUTE y la lista de exclusión). La fila queda con `recortada = true` y
+  `bytes_original`. La tabla, además, rechaza más de 64 KiB (CHECK).
+- **Retención** (`fn_purgar_alertas(dias)`, sólo `kronos_admin`). Borra las alertas más
+  antiguas que el plazo, **salvo** las de tickets en curso, con un temporizador pendiente
+  (reversión del nivel 1, revisión del nivel 2, aprobación del nivel 3) o cuya última
+  reversión falló. Cada purga deja `ALERTAS_PURGADAS` en la bitácora del inquilino. Se
+  ejecuta a diario: `infra/docker/retencion/`.
+- **Verificación**: `SELECT * FROM fn_verificar_alertas(<inquilino>)` lista las alertas
+  cuyo SHA-256 no coincide con su `ALERTA_RECIBIDA` (vacía si todo calza).
+- `kronos_worker` sólo inserta y lee: no puede modificar ni borrar alertas guardadas.
+- Los tickets anteriores a esta tabla tienen la alerta dentro del evento y ahí se quedan;
+  EXECUTE los sigue leyendo. Una alerta purgada devuelve `{}` y EXECUTE falla seguro
+  (`ORDEN_INVALIDA`).
+- Los respaldos diarios (14 copias) conservan lo purgado hasta 14 días más.
+
 ## Pruebas
 
-`tests/integracion/test_repositorio.py`, `test_ejecucion.py` y `test_notificacion.py`, contra la base de `infra/docker` (ver el Dockerfile de esa carpeta). Sin la variable `KRONOS_DSN`, se omiten.
+`tests/integracion/test_repositorio.py`, `test_ejecucion.py`, `test_notificacion.py` y `test_alertas_guardadas.py`, contra la base de `infra/docker` (ver el Dockerfile de esa carpeta). Sin la variable `KRONOS_DSN`, se omiten. Las pruebas de la purga necesitan además `KRONOS_DSN_ADMIN` (conexión como `kronos_admin`). El tope tiene pruebas unitarias en `tests/unit/test_tope_alertas.py`.

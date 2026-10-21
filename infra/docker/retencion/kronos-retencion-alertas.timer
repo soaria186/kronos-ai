@@ -1,0 +1,12 @@
+[Unit]
+Description=Kronos: retención diaria de las alertas guardadas a las 04:45 UTC
+
+[Timer]
+# Después del respaldo de PostgreSQL (04:15 UTC): lo purgado queda en los respaldos
+# de los 14 días siguientes.
+OnCalendar=*-*-* 04:45:00 UTC
+Persistent=true
+RandomizedDelaySec=120
+
+[Install]
+WantedBy=timers.target

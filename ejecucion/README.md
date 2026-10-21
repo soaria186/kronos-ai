@@ -26,9 +26,11 @@ El ticket queda en `FAILED`, con el motivo en la bitácora, y nada se reintenta 
 
 ## Contrato con VALIDATE
 
-EXECUTE lee la alerta del evento `ALERTA_RECIBIDA` del ticket: VALIDATE debe guardar la
-alerta de Wazuh en `detalle["alerta"]` (al menos `agent.id`, `agent.ip` y los campos de
-`data` que usa `ordenes.py`).
+VALIDATE entrega la alerta de Wazuh en `detalle["alerta"]` de `registrar_alerta` (al menos
+`agent.id`, `agent.ip` y los campos de `data` que usa `ordenes.py`). La persistencia la guarda
+en `alertas_guardadas` y EXECUTE la recibe como `{"alerta": {...}}` (en tickets antiguos, desde
+el evento `ALERTA_RECIBIDA`). Si la alerta ya fue purgada por retención, llega `{}` y el ticket
+queda en `FAILED` con `ORDEN_INVALIDA`: ver `persistencia/README.md`.
 
 ## Comandos de Active Response
 

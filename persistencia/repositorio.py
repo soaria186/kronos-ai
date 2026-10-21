@@ -13,6 +13,10 @@ Reglas de esta capa:
   simples, para que la persistencia no dependa de la lógica que la usa.
 - Se conecta como ``kronos_worker``, que puede insertar en ``auditoria`` y
   ``cortacircuito`` pero nunca modificarlas.
+- La alerta completa de Wazuh no va a la bitácora: va a ``alertas_guardadas``, con tope
+  de tamaño (``persistencia.alertas``) y purga por retención. ``ALERTA_RECIBIDA`` guarda
+  sólo su SHA-256, tamaño, agente y regla (``alerta_guardada``), porque la bitácora no
+  se puede borrar y la alerta trae datos personales (R-09).
 
 Estados del ticket (``tickets.execution_status``):
 
@@ -40,6 +44,8 @@ from typing import Any
 
 import psycopg
 from psycopg.types.json import Jsonb
+
+from persistencia import alertas as tope_alertas
 
 ACTOR_VALIDATE = "soar-validate"
 ACTOR_EXECUTE = "soar-execute"
@@ -188,6 +194,11 @@ class Repositorio:
 
         La restricción UNIQUE (tenant_id, alerta_ref) hace que leer dos veces la
         misma alerta no cree dos tickets ni dos eventos.
+
+        Si ``detalle`` trae la alerta completa (clave ``"alerta"``), se guarda en
+        ``alertas_guardadas`` (recortada si supera el tope) y en el evento queda sólo
+        ``alerta_guardada``: SHA-256 de lo guardado, tamaños, si se recortó, agente y
+        regla. Todo en la misma transacción que el ticket.
         """
         if not alerta_ref:
             raise ValueError("alerta_ref vacío")
@@ -213,7 +224,13 @@ class Repositorio:
                 return TicketRegistrado(cur.fetchone()[0], nuevo=False)
 
             ticket_id = fila[0]
-            self._evento(cur, tenant_id, ticket_id, EVENTO_ALERTA, dict(detalle or {}))
+            evento = dict(detalle or {})
+            alerta = evento.pop("alerta", None)
+            if isinstance(alerta, dict):
+                evento["alerta_guardada"] = _guardar_alerta(cur, tenant_id, ticket_id, alerta)
+            elif alerta is not None:
+                raise ValueError("detalle['alerta'] debe ser un objeto JSON")
+            self._evento(cur, tenant_id, ticket_id, EVENTO_ALERTA, evento)
             return TicketRegistrado(ticket_id, nuevo=True)
 
     # ---------------------------------------------------------------- decisiones
@@ -766,7 +783,52 @@ def _disparar(cur: psycopg.Cursor, temporizador_id: int) -> None:
     )
 
 
+def _guardar_alerta(
+    cur: psycopg.Cursor, tenant_id: int, ticket_id: int, alerta: dict[str, Any]
+) -> dict[str, Any]:
+    preparada = tope_alertas.preparar(alerta)
+    cur.execute(
+        """
+        INSERT INTO alertas_guardadas (tenant_id, ticket_id, alerta, bytes_original, recortada)
+        VALUES (%s, %s, %s, %s, %s)
+        RETURNING encode(digest(alerta::text, 'sha256'), 'hex'), octet_length(alerta::text)
+        """,
+        (tenant_id, ticket_id, Jsonb(preparada.alerta), preparada.bytes_original,
+         preparada.recortada),
+    )
+    sha256, guardados = cur.fetchone()
+    regla = alerta.get("rule") if isinstance(alerta.get("rule"), dict) else {}
+    agente = alerta.get("agent") if isinstance(alerta.get("agent"), dict) else {}
+    return {
+        "sha256": sha256,
+        "bytes": guardados,
+        "bytes_original": preparada.bytes_original,
+        "recortada": preparada.recortada,
+        "agente": _corto(agente.get("id")),
+        "regla": _corto(regla.get("id")),
+    }
+
+
+def _corto(valor: Any) -> str | None:
+    if isinstance(valor, bool) or not isinstance(valor, (str, int)):
+        return None
+    return str(valor)[:32]
+
+
 def _alerta(cur: psycopg.Cursor, tenant_id: int, ticket_id: int) -> dict[str, Any]:
+    """La alerta completa del ticket, como ``{"alerta": {...}}`` (contrato de EXECUTE).
+
+    Primero en ``alertas_guardadas``. Los tickets de antes de esa tabla la tienen dentro
+    del evento ALERTA_RECIBIDA. Si fue purgada por retención, devuelve ``{}`` y EXECUTE
+    falla seguro (ORDEN_INVALIDA: la alerta no trae agent.id).
+    """
+    cur.execute(
+        "SELECT alerta FROM alertas_guardadas WHERE tenant_id = %s AND ticket_id = %s",
+        (tenant_id, ticket_id),
+    )
+    fila = cur.fetchone()
+    if fila is not None:
+        return {"alerta": fila[0]}
     cur.execute(
         """
         SELECT detalle FROM auditoria
@@ -776,7 +838,9 @@ def _alerta(cur: psycopg.Cursor, tenant_id: int, ticket_id: int) -> dict[str, An
         (tenant_id, ticket_id, EVENTO_ALERTA),
     )
     fila = cur.fetchone()
-    return fila[0] if fila else {}
+    if fila is None or "alerta" not in fila[0]:
+        return {}
+    return {"alerta": fila[0]["alerta"]}
 
 
 def _mensaje_db(exc: psycopg.Error) -> str:
