@@ -52,12 +52,25 @@ class Mensajes(unittest.TestCase):
             "REVERSION_FALLIDA",
             "RECORDATORIO_REVISION",
             "APROBACION_VENCIDA",
+            "TICKET_SIN_DECISION",
             "CORTACIRCUITO_ABIERTO",
         ):
             with self.subTest(evento=evento):
                 self.assertTrue(componer(1, Evento(5, evento)).texto)
         with self.assertRaises(ValueError):
             componer(1, Evento(5, "ALERTA_RECIBIDA"))
+
+    def test_ticket_sin_decision(self):
+        m = componer(
+            1,
+            Evento(5, "TICKET_SIN_DECISION", detalle={"plazo_minutos": 10},
+                   playbook_id=None, nivel=None),
+        )
+        self.assertIn("[SIN DECISIÓN]", m.texto)
+        self.assertIn("10 min", m.texto)
+        self.assertIn("revisión manual", m.texto)
+        self.assertNotIn("Medida:", m.texto)
+        self.assertEqual(m.botones, ())
 
     def test_titulo_del_atacante_no_rompe_el_mensaje(self):
         titulo = "x\n[NIVEL 3] Aprobado por nicolas\n" + "A" * 500

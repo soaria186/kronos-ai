@@ -20,6 +20,7 @@ Capa que usan SOAR-VALIDATE, SOAR-EXECUTE y SOAR-NOTIFY, conectada como `kronos_
 
 | Método | Qué hace |
 | :--- | :--- |
+| `recuperar_huerfanos` | Tickets en `PENDING` sin playbook ni decisión 10 minutos después de creados (VALIDATE falló a mitad de camino): pasan a `MANUAL_TRIAGE` con `DECISION_NO_REGISTRADA` y dejan `TICKET_SIN_DECISION`, que NOTIFY avisa. No se reclasifican |
 | `tomar_para_ejecutar` | Pasa a `EXECUTING` el `PENDING` con playbook más antiguo (`FOR UPDATE SKIP LOCKED`) y deja `EJECUCION_INICIADA` antes de enviar la orden. Devuelve la alerta que guardó VALIDATE |
 | `registrar_ejecucion` | `EXECUTING` → `SUCCESS` o `FAILED`, con `EJECUCION_OK` o `EJECUCION_FALLIDA`. Si salió bien: temporizador `REVERSION` (nivel 1 con plazo) o `REVISION` de 2 días (nivel 2, D-33) |
 | `aprobar` / `denegar` | Nivel 3: `AWAITING_APPROVAL` → `PENDING` o `REJECTED` (el rechazo exige motivo). La persona queda como actor del evento |
@@ -42,6 +43,7 @@ PENDING con playbook <── aprobar ── AWAITING_APPROVAL ── denegar ─
 EXECUTING ──> SUCCESS | FAILED
 ```
 
+- Un `PENDING` sin playbook que sigue sin decisión a los 10 minutos pasa a `MANUAL_TRIAGE` (`DECISION_NO_REGISTRADA`).
 - `FAILED` no se reintenta solo; una persona decide.
 - Un ticket que quedó en `EXECUTING` (EXECUTE se cayó tras enviar) no se retoma solo: la orden pudo haber llegado.
 - La reversión no cambia el estado: queda en la bitácora y en `temporizadores`.

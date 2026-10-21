@@ -109,6 +109,17 @@ def componer(tenant_id: int, ev: Any) -> Mensaje:
                 "No se ejecutó; quedó en revisión manual (D-34).",
             )
         )
+    if ev.evento == "TICKET_SIN_DECISION":
+        return Mensaje(
+            _lineas(
+                "[SIN DECISIÓN] La alerta quedó sin clasificar",
+                cabecera,
+                titulo,
+                f"VALIDATE no registró la decisión en {limpio(str(d.get('plazo_minutos', '')), 6)} min.",
+                "No se ejecutó nada; quedó en revisión manual.",
+                "Revisar la alerta en la consola y el registro de soar-validate.",
+            )
+        )
     if ev.evento == "CORTACIRCUITO_ABIERTO":
         return Mensaje(
             _lineas(

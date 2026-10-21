@@ -20,6 +20,7 @@ afectada es por correo y manual (D-35), así que NOTIFY no envía correos.
 | `EJECUCION_OK` de nivel 2 | Medida aplicada; recordar el correo a la persona afectada |
 | `RECORDATORIO_REVISION` | Nivel 2 sin revisar tras 2 días; uno por día (D-33) |
 | `APROBACION_VENCIDA` | Nivel 3 sin respuesta: quedó en revisión manual (D-34) |
+| `TICKET_SIN_DECISION` | VALIDATE no registró la decisión en 10 minutos: el ticket quedó en revisión manual sin ejecutarse |
 | `EJECUCION_FALLIDA` / `REVERSION_FALLIDA` | Falló una medida o su reversión |
 | `CORTACIRCUITO_ABIERTO` | Ejecución automática detenida |
 

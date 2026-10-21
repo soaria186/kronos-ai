@@ -28,6 +28,11 @@ Estados del ticket (``tickets.execution_status``):
          v                                                     (APROBACION_VENCIDA)
     EXECUTING ──> SUCCESS | FAILED
 
+- Un PENDING sin playbook que sigue sin decisión 10 minutos después de creado es un
+  ticket huérfano (VALIDATE falló entre crearlo y decidir): ``recuperar_huerfanos`` lo
+  pasa a MANUAL_TRIAGE con DECISION_NO_REGISTRADA y deja TICKET_SIN_DECISION, que
+  SOAR-NOTIFY avisa. Nunca se reclasifica: se actuaría tarde sobre una alerta vieja.
+
 - FAILED no se reintenta solo: una persona decide (falla segura).
 - Un ticket que queda en EXECUTING (EXECUTE se cayó tras enviar la orden) tampoco se
   retoma solo, porque la orden pudo haber llegado al equipo.
@@ -40,6 +45,7 @@ from __future__ import annotations
 from collections.abc import Iterator, Mapping, Sequence
 from contextlib import contextmanager
 from dataclasses import dataclass
+from datetime import timezone
 from typing import Any
 
 import psycopg
@@ -60,6 +66,7 @@ EVENTO_EJECUCION_FALLIDA = "EJECUCION_FALLIDA"
 EVENTO_APROBACION_CONCEDIDA = "APROBACION_CONCEDIDA"
 EVENTO_APROBACION_DENEGADA = "APROBACION_DENEGADA"
 EVENTO_APROBACION_VENCIDA = "APROBACION_VENCIDA"
+EVENTO_SIN_DECISION = "TICKET_SIN_DECISION"
 EVENTO_REVERSION_SOLICITADA = "REVERSION_SOLICITADA"
 EVENTO_REVERSION_INICIADA = "REVERSION_INICIADA"
 EVENTO_REVERSION_OK = "REVERSION_OK"
@@ -74,6 +81,7 @@ EVENTOS_AVISABLES = (
     EVENTO_REVERSION_FALLIDA,
     EVENTO_RECORDATORIO,
     EVENTO_APROBACION_VENCIDA,
+    EVENTO_SIN_DECISION,
     EVENTO_CORTACIRCUITO,
 )
 
@@ -85,6 +93,9 @@ TEMPORIZADOR_REVISION = "REVISION"  # nivel 2: plazo de revisión y recordatorio
 PLAZO_APROBACION_MINUTOS = 2 * 24 * 60  # D-32
 PLAZO_REVISION_MINUTOS = 2 * 24 * 60  # D-33
 INTERVALO_RECORDATORIO_MINUTOS = 24 * 60  # D-33: recordatorio diario al vencer
+# Sin decisión tras este plazo, el ticket es huérfano. El modelo tiene como máximo 60 s
+# (KRONOS_PLAZO_SEGUNDOS de VALIDATE), así que 10 minutos no dan falsas alarmas.
+PLAZO_HUERFANO_MINUTOS = 10
 
 # Ámbito del cortacircuito que detiene toda acción automática de un inquilino.
 AMBITO_INQUILINO = "inquilino"
@@ -425,6 +436,61 @@ class Repositorio:
                     )
                     vencidos.append(ticket_id)
         return vencidos
+
+    def recuperar_huerfanos(
+        self, tenant_id: int, minutos: int = PLAZO_HUERFANO_MINUTOS, limite: int = 50
+    ) -> list[int]:
+        """Tickets sin decisión tras ``minutos``: MANUAL_TRIAGE con DECISION_NO_REGISTRADA.
+
+        Un ticket huérfano quedó en PENDING sin playbook porque VALIDATE falló después de
+        crearlo (error de la base, del modelo o del servicio). Al releer la alerta sale
+        como repetida y nadie lo vuelve a mirar. Pasa a revisión humana con un aviso;
+        no se reclasifica.
+
+        La condición del UPDATE es la misma que usa ``registrar_decision``: si VALIDATE
+        decide justo a la vez, sólo uno de los dos cambia el ticket.
+        """
+        if minutos < 1:
+            raise ValueError("el plazo de un ticket huérfano debe ser de al menos 1 minuto")
+        with self._transaccion(tenant_id) as cur:
+            cur.execute(
+                """
+                UPDATE tickets
+                   SET execution_status = 'MANUAL_TRIAGE',
+                       rechazo_motivo = 'DECISION_NO_REGISTRADA',
+                       actualizado_en = now()
+                 WHERE id IN (
+                        SELECT id FROM tickets
+                         WHERE tenant_id = %s
+                           AND execution_status = 'PENDING'
+                           AND playbook IS NULL
+                           AND rechazo_motivo IS NULL
+                           AND creado_en < now() - make_interval(mins => %s)
+                         ORDER BY creado_en, id
+                         LIMIT %s
+                           FOR UPDATE SKIP LOCKED)
+                   AND execution_status = 'PENDING'
+                   AND playbook IS NULL
+                   AND rechazo_motivo IS NULL
+                RETURNING id, creado_en
+                """,
+                (tenant_id, minutos, limite),
+            )
+            huerfanos = sorted(cur.fetchall())
+            for ticket_id, creado_en in huerfanos:
+                self._evento(
+                    cur,
+                    tenant_id,
+                    ticket_id,
+                    EVENTO_SIN_DECISION,
+                    {
+                        "plazo_minutos": minutos,
+                        "creado_en": creado_en.astimezone(timezone.utc).strftime(
+                            "%Y-%m-%dT%H:%M:%SZ"
+                        ),
+                    },
+                )
+        return [ticket_id for ticket_id, _ in huerfanos]
 
     # ------------------------------------------------------------- reversión
 
