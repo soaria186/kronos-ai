@@ -143,7 +143,7 @@ SOAR-CLASSIFY corre con los pesos congelados: sin entrenamiento, sin ajuste fino
 
 | Componente | Qué es | Software | Puerto | Dónde | Estado |
 | :--- | :--- | :--- | :--- | :--- | :---: |
-| SOAR-COLLECT | Agente en el equipo del cliente | Wazuh Agent 4.14.8, más Sysmon (Windows) o auditd (Linux) | 1514 saliente | Cliente | ⏳ laboratorio en preparación |
+| SOAR-COLLECT | Agente en el equipo del cliente | Wazuh Agent 4.14.8, más Sysmon (Windows) o auditd (Linux) | 1514 saliente | Cliente | ⏳ laboratorio: agentes 001 (Linux) y 002 (Windows) activos al 21-10 |
 | SOAR-DETECT | Motor de correlación; 15 «reglas de sobre» propias que etiquetan la familia candidata | Wazuh Manager 4.14.8 | 1514, 1515, 55000 | Nube | ✅ instalado |
 | Wazuh Indexer y Dashboard | Herramientas internas del equipo; no son multiinquilino y no se muestran al cliente | Wazuh 4.14.8 | 9200, 5601 | Nube | ✅ instalado |
 | SOAR-CLASSIFY | Modelo local, dos pasos de prompt, devuelve JSON | Ollama (modelos qwen2.5 3B y 7B medidos; definitivo pendiente) | 11434 interno | Nube | ✅ instalado |
@@ -411,13 +411,17 @@ Evidencia: `docs/evidencia/esquema-audit-pruebas-2026-10-08.txt` y `docs/evidenc
 - **Pendiente (Patricio):** reglas de desempate sin ajustarlas sobre los 20 casos ya medidos; modelo definitivo; KRO-CAT-01; SOAR-VALIDATE (seis chequeos, contrato JSON, falla segura); lista de exclusión, contadores, cortacircuito y mapa de severidad; pruebas ESC-04 (inyección) y ESC-05 (motor caído); 150 casos etiquetados y línea base sin IA.
 
 ### 6.4 Laboratorio ⏳ (F2)
-En el notebook de Nicolás, con Hyper-V (Windows Pro) o VirtualBox 7 (Windows Home), red NAT compartida:
+Con VirtualBox 7, en dos equipos de Nicolás: EP-SRV-01 en su notebook y EP-WKS-01 en su PC de escritorio (en el notebook iba demasiado lenta). Cada máquina usa NAT de VirtualBox y sale por internet al 1514, como lo hará un cliente. El acceso por SSH es con reenvío de puertos hacia `127.0.0.1`: el 2222 hacia EP-SRV-01 (en el notebook) y el 2223 hacia EP-WKS-01 (en el escritorio).
 | Equipo | Sistema | Telemetría |
 | :--- | :--- | :--- |
-| EP-WKS-01 | Windows 11 Enterprise de evaluación, 2 núcleos, 4 GB, 64 GB, TPM | Sysmon, auditoría de Windows y registro de PowerShell |
+| EP-WKS-01 | Windows 11 (ISO build 26300), 4 núcleos, 8 GB, 80 GB, TPM 2.0 y EFI | Sysmon, auditoría de Windows y registro de PowerShell |
 | EP-SRV-01 | Ubuntu Server 24.04 con un servicio web y una base de datos | auditd y registros del servicio web y de la base |
 
-El agente se instala sólo dentro de las máquinas virtuales, nunca en el Windows del notebook. Grupo propio en Wazuh con su configuración versionada. **Hito de la etapa 1:** F1 y F2 disparan alertas desde el laboratorio.
+El agente se instala sólo dentro de las máquinas virtuales, nunca en el Windows del equipo anfitrión. Grupo propio en Wazuh con su configuración versionada. **Hito de la etapa 1:** F1 y F2 disparan alertas desde el laboratorio.
+
+**Estado al 21-10:** los agentes 001 (EP-SRV-01) y 002 (EP-WKS-01) figuran activos en el manager; en Linux quedaron confirmados de punta a punta el bloqueo de una IP y su reversión automática a los 60 minutos. Falta probar los scripts de Windows de Active Response en EP-WKS-01.
+
+**Nota (21-10):** para que VirtualBox corriera la máquina de Windows, en el PC de escritorio hubo que apagar la integridad de memoria (HVCI) y el hipervisor de Windows. Se revierte al terminar las pruebas con Windows.
 
 ### 6.5 Prueba completa en el laboratorio (puerta para la farmacia, F2)
 1. Un caso de punta a punta: fuerza bruta, bloqueo de la IP y reversión automática.
@@ -528,7 +532,7 @@ Fecha de instalación en la farmacia; contingencia al 7 de noviembre; si los pla
 | D-13 | SOAR-CORE-01 en UTC | Equipo | ✅ |
 | D-14 | 2FA en las cuentas de Contabo descartado por el momento | Nicolás | ✅ (riesgo aceptado) |
 | D-15 | Todo se instala primero en la nube y el laboratorio; el agente de la farmacia es lo último | Equipo | ✅ |
-| D-16 | Los 2 equipos de laboratorio van en máquinas virtuales del notebook de Nicolás, sin NetBird | Equipo, F2 | ✅ |
+| D-16 | Los 2 equipos de laboratorio van en máquinas virtuales de Nicolás, sin NetBird: EP-SRV-01 en su notebook y EP-WKS-01 en su PC de escritorio (cambio del 21-10, porque en el notebook iba muy lenta) | Equipo, F2 | ✅ |
 | D-17 | Agentes registrados desde el servidor; 1515 no se publica; 1514 público; 55000, 9200 y 5601 sólo por NetBird | F2 | ✅ (por implementar) |
 | D-18 | La guía de instalación va en `docs/instalacion/`, en 15 partes, y cada parte se escribe al instalar su componente y la revisa otro integrante | F2 | ✅ |
 | D-19 | Omitir la prueba de regresión «e» del hash | Rodrigo, F3 | ✅ |
