@@ -94,7 +94,7 @@ TEMPORIZADOR_REVISION = "REVISION"  # nivel 2: plazo de revisión y recordatorio
 PLAZO_APROBACION_MINUTOS = 2 * 24 * 60  # D-32
 PLAZO_REVISION_MINUTOS = 2 * 24 * 60  # D-33
 INTERVALO_RECORDATORIO_MINUTOS = 24 * 60  # D-33: recordatorio diario al vencer
-# Sin decisión tras este plazo, el ticket es huérfano. El modelo tiene como máximo 60 s
+# Sin decisión tras este plazo, el ticket es huérfano. El modelo tiene como máximo 120 s
 # (KRONOS_PLAZO_SEGUNDOS de VALIDATE), así que 10 minutos no dan falsas alarmas.
 PLAZO_HUERFANO_MINUTOS = 10
 

@@ -57,9 +57,15 @@ docker build -q -t "$IMAGEN" -f "$RAIZ/tests/integracion/Dockerfile" "$RAIZ" >/d
 KRONOS_DSN="host=db dbname=$PRUEBAS user=kronos_worker password=$(cat "$SECRETOS/kronos_worker_password")"
 KRONOS_DSN_CONSOLA="host=db dbname=$PRUEBAS user=kronos_console password=$(cat "$SECRETOS/kronos_console_password")"
 export KRONOS_DSN KRONOS_DSN_CONSOLA
+# Algunas pruebas simulan el paso del tiempo como administrador (retroceden fechas); también
+# apuntan a la base de pruebas. Sin el secreto, esas pruebas se omiten.
+if [ -r "$SECRETOS/postgres_password" ] && [ -s "$SECRETOS/postgres_password" ]; then
+	KRONOS_DSN_ADMIN="host=db dbname=$PRUEBAS user=kronos_admin password=$(cat "$SECRETOS/postgres_password")"
+	export KRONOS_DSN_ADMIN
+fi
 
 echo "== Corriendo las pruebas de integración en $PRUEBAS"
 docker run --rm --network "$RED" -v "$RAIZ:/app" \
-	-e KRONOS_DSN -e KRONOS_DSN_CONSOLA -e KRONOS_OLLAMA_URL -e KRONOS_MODELO \
+	-e KRONOS_DSN -e KRONOS_DSN_CONSOLA -e KRONOS_DSN_ADMIN -e KRONOS_OLLAMA_URL -e KRONOS_MODELO \
 	"$IMAGEN"
 echo "== Listo: $PRUEBAS se borra al salir; $REAL no se tocó"
