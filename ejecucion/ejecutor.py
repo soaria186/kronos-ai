@@ -2,6 +2,8 @@
 
 Un ciclo, por inquilino:
 
+0. Pasa a revisión manual los tickets huérfanos: sin decisión de VALIDATE 10 minutos
+   después de creados (DECISION_NO_REGISTRADA, con aviso).
 1. Vence las aprobaciones de nivel 3 sin respuesta (D-34).
 2. Toma los tickets PENDING con playbook, uno a la vez, y para cada uno:
    arma la orden, la envía y registra el resultado. La decisión ya está en la
@@ -44,6 +46,7 @@ MOTIVO_ACTUADOR = "ACTUADOR_FALLO"
 
 @dataclass
 class Resumen:
+    huerfanos: list[int] = field(default_factory=list)
     vencidas: list[int] = field(default_factory=list)
     exitosas: list[int] = field(default_factory=list)
     fallidas: list[int] = field(default_factory=list)
@@ -64,6 +67,7 @@ class Ejecutor:
 
     def ciclo(self, tenant_id: int) -> Resumen:
         resumen = Resumen()
+        resumen.huerfanos = self._repo.recuperar_huerfanos(tenant_id)
         resumen.vencidas = self._repo.vencer_aprobaciones(tenant_id)
         for _ in range(MAX_POR_CICLO):
             ticket = self._repo.tomar_para_ejecutar(tenant_id)

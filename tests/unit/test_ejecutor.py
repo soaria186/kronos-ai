@@ -8,11 +8,16 @@ from ejecucion.medidas import Medida, cargar_medidas
 class RepoFalso:
     """Imita las operaciones de persistencia.repositorio que usa el ejecutor."""
 
-    def __init__(self, tickets=(), reversiones=()):
+    def __init__(self, tickets=(), reversiones=(), huerfanos=()):
+        self.huerfanos = list(huerfanos)
         self.tickets = list(tickets)
         self.reversiones = list(reversiones)
         self.ejecuciones = []
         self.revertidas = []
+
+    def recuperar_huerfanos(self, tenant_id):
+        huerfanos, self.huerfanos = self.huerfanos, []
+        return huerfanos
 
     def vencer_aprobaciones(self, tenant_id):
         return []
@@ -122,6 +127,16 @@ class CicloReversion(unittest.TestCase):
         resumen = Ejecutor(repo, ActuadorFalso(falla=True), MEDIDAS).ciclo(1)
         self.assertEqual(resumen.reversiones_fallidas, [21])
         self.assertEqual(repo.revertidas[0][2]["motivo"], "ErrorActuador")
+
+
+class CicloHuerfanos(unittest.TestCase):
+    def test_los_huerfanos_se_informan_y_no_se_ejecutan(self):
+        repo = RepoFalso(huerfanos=[7, 9])
+        actuador = ActuadorFalso()
+        resumen = Ejecutor(repo, actuador, MEDIDAS).ciclo(1)
+        self.assertEqual(resumen.huerfanos, [7, 9])
+        self.assertEqual(repo.ejecuciones, [])
+        self.assertEqual(actuador.ordenes, [])
 
 
 class CatalogoReal(unittest.TestCase):

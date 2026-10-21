@@ -9,7 +9,7 @@ programa sus reversiones. Es el único actuador de Kronos.
 | `ordenes.py` | Traduce una acción a una orden cerrada: comando de una tabla fija, argumentos tomados de campos fijos de la alerta y validados (IP con `ipaddress`, cuentas y servicios con lista blanca de caracteres). Nunca el agente 000, nunca la IP del propio equipo, nunca cuentas como `root` o `Administrator` |
 | `actuador.py` | Interfaz del actuador |
 | `actuador_wazuh.py` | Actuador real: `PUT /active-response` por la API de Wazuh. HTTPS con verificación obligatoria, token renovado, un solo envío por orden |
-| `ejecutor.py` | Un ciclo por inquilino: vence aprobaciones de nivel 3, ejecuta los tickets `PENDING` y las reversiones vencidas |
+| `ejecutor.py` | Un ciclo por inquilino: pasa a revisión manual los tickets huérfanos (sin decisión de VALIDATE a los 10 minutos), vence aprobaciones de nivel 3, ejecuta los tickets `PENDING` y las reversiones vencidas |
 | `__main__.py` | Servicio: `python -m ejecucion`, un ciclo por inquilino cada N segundos |
 
 ## Falla segura
