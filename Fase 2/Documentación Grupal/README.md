@@ -9,5 +9,3 @@ Los documentos del equipo en la Fase 2:
 | Guía de desarrollo del proyecto | [`2.4_APT122_GuiaDesarrolloProyecto_Fase2.docx`](2.4_APT122_GuiaDesarrolloProyecto_Fase2.docx) |
 | Guía del informe final | [`2.6_APT122_GuiaInformeFinal_Fase2.docx`](2.6_APT122_GuiaInformeFinal_Fase2.docx) |
 
-Los originales están en el Drive del equipo. Los 31 documentos del proyecto, el informe final y el manual del
-encargado de TI se suben en PDF el 30-10.
