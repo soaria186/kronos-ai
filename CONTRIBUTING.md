@@ -7,16 +7,18 @@ Scrum Master (D-56). Cualquier cambio a este archivo pasa por un PR como cualqui
 
 | Rol | Quién |
 | :--- | :--- |
-| Product Owner | Nicolás Zamora: contacto con la farmacia y el servidor, alcance y prioridades |
+| Product Owner | Nicolás Zamora: visión del producto, alcance y prioridades; el servidor y el laboratorio |
 | Scrum Master | Rodrigo Riveros: proceso, registros, revisión cruzada y despliegue |
 | Equipo de desarrollo | Los tres. Patricio González, a cargo de la calidad de la decisión (IA y mediciones) |
 
 ## Flujo de una tarea
 
-1. Rama desde `develop`, con nombre `tipo/etapa-tema` (por ejemplo `feat/e3-tickets-huerfanos`).
+1. Rama desde `develop`, con nombre `tipo/etapa-tema` (por ejemplo `feat/e3-tickets-huerfanos`). Si la tarea
+   está en el [milestone](https://github.com/soarai2026/kronos-ai/milestones), el PR la nombra («Parte de #NN»).
 2. Push diario a la rama, aunque el trabajo esté a medias.
 3. Commits en español: `tipo(ámbito): descripción` (`feat`, `fix`, `docs`, `test`, `ci`, `refactor`).
-4. Al terminar, PR hacia `develop` con: qué cambia, por qué, cómo se probó y qué falta para desplegar.
+4. Al terminar, PR hacia `develop` con la plantilla (`.github/pull_request_template.md`): qué cambia, por qué,
+   cómo se probó, qué falta para desplegar y quién aprueba.
 5. Los cuatro checks del CI en verde: gitleaks, ruff, R1 y pruebas unitarias.
 6. Revisión cruzada y mezcla según la regla de abajo.
 
@@ -27,6 +29,8 @@ Scrum Master (D-56). Cualquier cambio a este archivo pasa por un PR como cualqui
 2. **Nunca mezcla el autor** del PR.
 3. **Nadie mezcla desde la cuenta compartida `soarai2026`.**
 4. Se mezcla sólo con los checks del CI en verde y sin cambios pedidos pendientes.
+5. **Siempre con commit de merge** («Create a merge commit»): sin aplastar ni rebasar, para que el historial
+   muestre cada tarea y quién la hizo.
 
 Quién revisa a quién:
 
@@ -51,8 +55,12 @@ excepción y no se repiten:
 | #25 a #30 | Mezclados sin aprobación registrada. Revisión de Rodrigo después del hecho (`KRO-REV-RR-2026-10-21`) |
 | #31 a #34 | Mezclados el 21-10 desde `soarai2026` sin aprobación. #31 y #33, con revisión de Rodrigo después del hecho |
 
+| #36 | Mezclado el 21-10 por su propio autor, ya vigente la regla. Tenía la aprobación de Nicolás |
+
 El acta del punto de encuentro 1 fija la excepción para los PR #7 al #34. Los #1 al #6 ya
-estaban anotados como excepción en el contexto maestro.
+estaban anotados como excepción en el contexto maestro. **Desde el #39 no hay excepciones:** cada
+PR tiene la aprobación de un integrante distinto del autor y lo mezcla alguien que no es el autor,
+desde su cuenta personal.
 
 ## Despliegue en SOAR-CORE-01 (D-55)
 
@@ -61,8 +69,12 @@ estaban anotados como excepción en el contexto maestro.
 - Sólo se despliega lo que está mezclado en `develop`.
 - Antes de tocar la base: respaldo (`sudo systemctl start kronos-respaldo-postgres.service`).
 - Al terminar: registro de qué se desplegó y a qué hora (UTC), en el `KRO-LOG` del día.
-- `/opt/kronos/audit` pasará a ser un `git clone` con etiquetas de versión (D-55, a cargo del
-  Scrum Master). Hasta entonces se actualiza copiando `develop` y comparando antes con `diff`.
+- La carpeta de despliegue es un clon de git que corre una etiqueta de versión (D-55, a cargo del
+  Scrum Master): desplegar es `git fetch --tags`, `git checkout <etiqueta>` y recrear los servicios que
+  cambiaron. `git describe --tags` dice qué versión corre.
+- No se copian archivos desde Windows: el 21-10 eso rompió los permisos de una carpeta dentro de la
+  imagen. `.env`, `secrets/`, `initdb/03_roles.sql` e `initdb/05_clave_consola.sql` viven sólo en el
+  servidor, fuera de git.
 
 ## Seguridad
 
@@ -77,4 +89,13 @@ estaban anotados como excepción en el contexto maestro.
 
 Cada jornada relevante deja un `KRO-LOG-<iniciales>-<AAAA-MM-DD>_<tema>.md` con las tareas
 hechas y pendientes, los PR y revisiones, los despliegues (con hora UTC), los hallazgos y lo que
-se necesita de los demás.
+se necesita de los demás. Los registros, actas, revisiones y planes van a `docs/registro/`, sin
+secretos, identificadores de Telegram, IP reales ni usuarios del servidor.
+
+## Ramas y versiones
+
+- `develop` integra las tareas; cada una llega por PR desde su rama.
+- `main` recibe sólo versiones publicadas, por un PR desde `develop` mezclado con commit de merge y
+  con su etiqueta (`v1.0.0`). Lo prepara el Scrum Master y lo aprueban los otros dos integrantes.
+- Una rama se borra al mezclar su PR. Un experimento que no se integra queda como etiqueta
+  `archivo/<rama>`, con una línea en el registro de mediciones que dice qué se probó.
