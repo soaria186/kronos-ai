@@ -158,7 +158,7 @@ python -m unittest discover -s tests/unit
 | Tipo | Cantidad | Cómo se corren |
 | :--- | :--- | :--- |
 | Unitarias | 308 | `python -m unittest discover -s tests/unit`. Las 13 de la consola necesitan sus dependencias (arriba) |
-| Integración | 63 | `bash tests/integracion/ejecutar.sh`: crea una base aparte (`kronos_pruebas`), corre las pruebas y la borra. Nunca escriben en la base real |
+| Integración | 63, de las que 5 usan el modelo | `bash tests/integracion/ejecutar.sh`: crea una base aparte (`kronos_pruebas`), corre las pruebas y la borra. Nunca escriben en la base real |
 | SQL de SOAR-AUDIT | 4 | `bash tests/sql/ejecutar.sh`: dos inquilinos en paralelo, concurrencia, inmutabilidad y manipulación detectada |
 | Mediciones de la IA | 20 originales, 24 de frontera, 10 de inyección, 18 en formato real y 150 etiquetados | [`decision/mediciones/`](decision/mediciones/) |
 | Escenarios de demostración | E1 a E7 | [`docs/evidencia/`](docs/evidencia/) |
