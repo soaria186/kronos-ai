@@ -1,7 +1,6 @@
 # Fase 2: documentación individual
 
-Los documentos individuales de la Fase 2 que pida Duoc, como la autoevaluación y el diario de reflexión. Va una
-carpeta por persona:
+Cada carpeta se encuentra con el nombre principal, dentro de esta los documentos correspondientes a la entrega.
 
 | Carpeta | Integrante |
 | :--- | :--- |
@@ -9,5 +8,4 @@ carpeta por persona:
 | `Patricio González/` | Patricio González |
 | `Rodrigo Riveros/` | Rodrigo Riveros |
 
-Los documentos se suben en PDF, con el nombre del documento y la fecha, por ejemplo
-`autoevaluacion-fase-2_2026-10-30.pdf`. Sin datos personales que no pida la evaluación.
+
