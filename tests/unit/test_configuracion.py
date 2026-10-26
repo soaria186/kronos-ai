@@ -23,13 +23,13 @@ REGLAS_SOBRE = (
 )
 
 
-class ConfiguracionPropuesta(unittest.TestCase):
+class ConfiguracionAprobada(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.conf = cargar_configuracion()
 
-    def test_es_una_propuesta(self):
-        self.assertEqual(ORIGINAL["estado"], "propuesta")
+    def test_version_1_0_aprobada(self):
+        self.assertEqual((ORIGINAL["version"], ORIGINAL["estado"]), ("1.0", "aprobado"))
 
     def test_mapa_de_severidad(self):
         mapa = self.conf.mapa
