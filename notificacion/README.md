@@ -35,8 +35,7 @@ pero no se pierde. Un solo proceso de NOTIFY a la vez.
   de otra cuenta se rechaza y queda en el registro del servicio.
 - Quien aprueba o rechaza queda como actor del evento (`telegram:<nombre>`).
 - Un ticket que ya no espera aprobación (otro integrante respondió o venció) no cambia.
-- Pendiente del equipo: verificación en dos pasos en las cuentas de Telegram (pregunta
-  abierta #39).
+- Las cuentas de Telegram del grupo tienen la verificación en dos pasos activada (21-10-2026).
 
 ## Servicio
 

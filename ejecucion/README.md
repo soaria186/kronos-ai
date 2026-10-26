@@ -19,7 +19,7 @@ El ticket queda en `FAILED`, con el motivo en la bitácora, y nada se reintenta 
 | Motivo | Cuándo |
 | :--- | :--- |
 | `PLAYBOOK_SIN_MEDIDA` | El playbook no está en el catálogo cargado |
-| `PLAZO_DE_REVERSION_SIN_DEFINIR` | Reversión automática sin `plazo_minutos` en el catálogo (hoy, todos los de nivel 1) |
+| `PLAZO_DE_REVERSION_SIN_DEFINIR` | Reversión automática sin `plazo_minutos` en el catálogo. Desde KRO-CAT-01 0.2, las cinco medidas de nivel 1 con reversión automática tienen 60 minutos (D-45) |
 | `ACCION_NO_IMPLEMENTADA` | Acción sin comando todavía: `consulta`, `cuarentena`, `bloquear_destino`, `limitar_conexiones`, `revertir_tarea` |
 | `ORDEN_INVALIDA` | La alerta no trae un objetivo válido o el valor no pasa la validación |
 | `ACTUADOR_FALLO` | La orden no se pudo entregar |
@@ -34,16 +34,23 @@ queda en `FAILED` con `ORDEN_INVALIDA`: ver `persistencia/README.md`.
 
 ## Comandos de Active Response
 
-Cada agente necesita un script por comando, que recibe la operación y el objetivo:
+Cada agente necesita un script por comando, que recibe la operación y el objetivo
+(`infra/wazuh/active-response/`):
 
-| Comando | Aplicar | Revertir |
-| :--- | :--- | :--- |
-| `kronos-bloquear-ip` | `aplicar <ip>` | `quitar <ip>` |
-| `kronos-aislar-equipo` | `aplicar` | `quitar` |
-| `kronos-deshabilitar-cuenta` | `aplicar <cuenta>` | `habilitar <cuenta>` |
-| `kronos-detener-servicio` | `aplicar <servicio>` | `iniciar <servicio>` |
-| `kronos-cerrar-sesion` | `aplicar <cuenta>` | — (la persona vuelve a entrar) |
-| `kronos-terminar-proceso` | `aplicar <pid>` | — |
+| Comando | Aplicar | Revertir | Script |
+| :--- | :--- | :--- | :--- |
+| `kronos-bloquear-ip` | `aplicar <ip>` | `quitar <ip>` | Linux y Windows |
+| `kronos-aislar-equipo` | `aplicar` | `quitar` | Windows, en la v1.0 (#57) |
+| `kronos-deshabilitar-cuenta` | `aplicar <cuenta>` | `habilitar <cuenta>` | Windows, en la v1.0 (#55) |
+| `kronos-detener-servicio` | `aplicar <servicio>` | `iniciar <servicio>` | Fuera de la v1.0 |
+| `kronos-cerrar-sesion` | `aplicar <cuenta>` | — (la persona vuelve a entrar) | Fuera de la v1.0 |
+| `kronos-terminar-proceso` | `aplicar <pid>` | — | Fuera de la v1.0 |
+
+**Ojo:** la API de Wazuh confirma que la orden llegó al agente, no que el script exista ni
+que haya funcionado. Si el comando no tiene script en ese agente, el agente registra
+`Could not launch command`, no pasa nada en el equipo y el ticket igual queda en `SUCCESS`.
+Para que las medidas fuera del alcance de la v1.0 (D-60) terminen en falla segura con aviso,
+EXECUTE tiene que saber qué comandos tiene cada sistema operativo (#56).
 
 ## Servicio
 
@@ -59,18 +66,21 @@ Cada agente necesita un script por comando, que recibe la operación y el objeti
 | `KRONOS_WAZUH_CA` | Certificado (o CA) de la API de Wazuh |
 | `KRONOS_WAZUH_NOMBRE_SERVIDOR` | Nombre del certificado, si no es el host de la URL |
 
-## Lo que falta en Wazuh (a cargo de Nicolás)
+## Lo que necesita Wazuh
 
-1. **Usuario de API de permisos mínimos.** Usuario `kronos-execute` con un rol cuya única
-   política sea `{"actions": ["active-response:command"], "resources": ["agent:id:*"],
-   "effect": "allow"}`. Contraseña al gestor y al archivo de secreto, nunca al repositorio.
-2. **Comandos en el manager.** Un `<command>` por cada comando de la tabla anterior, **sin**
-   bloques `<active-response>`: el Active Response automático debe seguir apagado (Kronos
-   es el único actuador).
-3. **Scripts en los agentes.** Uno por comando en `active-response/bin`, que reciba
-   `aplicar`/`quitar` y el objetivo.
-4. **Certificado de la API.** Copiar el certificado que presenta el 55000 para
-   `KRONOS_WAZUH_CA` y anotar su nombre (CN o SAN).
+Paso a paso en la parte 08 de la guía de instalación (`docs/instalacion/`).
 
-**Por verificar en el laboratorio (Wazuh 4.14.8):** que la API acepte el comando con el
-prefijo `!` y entregue `arguments` al script tal como los envía `actuador_wazuh.py`.
+1. **Usuario de API de permisos mínimos.** `kronos-execute`, con un rol propio unido a la
+   política de fábrica `agents_commands_agents` (sólo `active-response:command` sobre
+   `agent:id:*`). Creado el 20-10-2026. Su contraseña va al gestor del equipo y al archivo de
+   secreto, nunca al repositorio.
+2. **Sin cambios en el manager.** Wazuh 4.14.8 acepta el comando con el prefijo `!` sin
+   declarar un `<command>` en su configuración, y entrega `arguments` al script en
+   `parameters.extra_args` (verificado el 20-10-2026). No hay bloques `<active-response>`: el
+   Active Response automático sigue apagado y Kronos es el único actuador.
+3. **Scripts en los agentes**, uno por comando, en `active-response/bin` (tabla de arriba).
+   En Windows el agente sólo encuentra el script si el comando lleva la extensión:
+   `!kronos-bloquear-ip.cmd` (prueba del 21-10-2026 en EP-WKS-01, #43; el cambio en EXECUTE
+   está en #56).
+4. **Certificado de la API.** El que presenta el 55000, como `KRONOS_WAZUH_CA`. El de fábrica
+   dice CN `wazuh.com` y SAN `localhost`, por eso `KRONOS_WAZUH_NOMBRE_SERVIDOR=localhost`.

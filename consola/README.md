@@ -30,7 +30,8 @@ sin JavaScript, la política de contenido prohíbe todo script.
   lo mismo que una contraseña equivocada.
 - CSP sin scripts, `X-Frame-Options: DENY`, `no-store`, HSTS y sin cabecera `server`.
 - Plantillas con escape automático: el título de una alerta no puede inyectar HTML.
-- Pendiente: la vista del encargado del cliente (sólo lectura de su inquilino).
+- Trabajo futuro: cuentas por PyME que vean sólo su inquilino. En la v1.0 cada cuenta ve los
+  inquilinos de `KRONOS_INQUILINOS`.
 
 ## Pruebas
 

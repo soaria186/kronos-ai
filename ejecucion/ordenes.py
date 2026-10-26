@@ -34,9 +34,9 @@ COMANDOS: dict[str, tuple[str, str | None]] = {
     "cerrar_sesion": ("kronos-cerrar-sesion", None),
     "terminar_proceso": ("kronos-terminar-proceso", None),
 }
-# Pendientes en el catálogo 0.1: consulta (cómo se ejecutan las de sólo lectura),
-# cuarentena (carpeta y conservación), bloquear_destino, limitar_conexiones y
-# revertir_tarea (implementar o reemplazar). Hasta entonces, EXECUTE las rechaza.
+# Sin comando en la v1.0: consulta (sólo lectura, nivel 0), cuarentena, bloquear_destino,
+# limitar_conexiones y revertir_tarea. EXECUTE las rechaza con ACCION_NO_IMPLEMENTADA
+# (falla segura, con aviso).
 
 _CAMPOS_IP = (("data", "srcip"), ("data", "win", "eventdata", "ipAddress"))
 _CAMPOS_CUENTA = (
