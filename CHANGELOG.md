@@ -10,9 +10,21 @@ Milestone [«v1.0: cierre»](https://github.com/soarai2026/kronos-ai/milestone/1
 
 - Kronos se presenta como solución para **PyMEs sin especialista en ciberseguridad**, con el encargado de TI como usuario principal. Se valida en una PyME simulada, por retroalimentación del profesor guía (decisiones D-57 a D-65 del arranque del 26-10).
 
+### Agregado
+
+- Avisos de Telegram en lenguaje claro: la PyME, el equipo, qué pasó y qué hacer, sin códigos internos. Una medida de nivel 0 sin comando ya no avisa (D-50) (#78).
+- CI: pruebas de la consola, pruebas de integración con PostgreSQL 17.11 y verificación de la entrega en los PR hacia `main` (#77).
+
+### Corregido
+
+- Coherencia entre el código, la configuración y la documentación: `.env.example` con todas las variables, la imagen de servicios se construye una sola vez y los textos que seguían «pendientes» de cosas ya resueltas (#76).
+
 ### Documentación
 
-- README completo con resumen en inglés, registro de cambios, política de seguridad y plantilla de pull request.
+- README completo con resumen en inglés, registro de cambios, política de seguridad y plantilla de pull request (#75).
+- Diagramas al día con el estado real y la numeración de los 31 documentos (#79).
+- Guía de instalación completa, en 15 partes (#80).
+- Estructura de `docs/`: índice de los 31 documentos, registro de trabajo del 15 al 26-10, registro de decisiones y archivo de los documentos v0.1 (#81).
 
 ## Sprint 3: respuesta y niveles (20-10 al 02-11-2026)
 
@@ -54,7 +66,7 @@ Milestone [«v1.0: cierre»](https://github.com/soarai2026/kronos-ai/milestone/1
 ### Documentación y evidencia
 
 - Pruebas del esquema de SOAR-AUDIT en el servidor (#3).
-- Documentos de la entrega del 16-10 (#9).
+- 17 documentos v0.1 preparados para la entrega del 16-10 (#9). El 15-10 los reemplazó la lista de 31 documentos, que se entregó el 16-10 y los usó como fuente.
 
 ### Hitos verificados
 
