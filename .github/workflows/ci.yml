@@ -137,8 +137,16 @@ jobs:
           cat conexiones.env >> "$GITHUB_ENV"
           rm conexiones.env
 
-      - name: unittest (tests/integracion; las 5 que usan el modelo se omiten)
-        run: python -m unittest discover -s tests/integracion -v
+      - name: unittest (tests/integracion; sólo se omiten las 5 que usan el modelo)
+        run: |
+          set -o pipefail
+          : "${KRONOS_DSN:?falta KRONOS_DSN}" "${KRONOS_DSN_CONSOLA:?falta}" "${KRONOS_DSN_ADMIN:?falta}"
+          python -m unittest discover -s tests/integracion -v 2>&1 | tee integracion.log
+          omitidas=$(grep -o "skipped=[0-9]*" integracion.log | cut -d= -f2)
+          if [ "${omitidas:-0}" -gt 5 ]; then
+            echo "::error::Se omitieron $omitidas pruebas de integración; sólo deberían omitirse las 5 del modelo."
+            exit 1
+          fi
 
   entrega:
     name: verificación de la entrega (PR hacia main)
