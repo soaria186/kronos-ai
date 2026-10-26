@@ -10,7 +10,7 @@
 #   KRONOS_PG_CONTENEDOR     kronos-db-1
 #   KRONOS_PG_BASE           kronos
 #   KRONOS_PG_USUARIO        kronos_admin
-#   KRONOS_RETENCION_DIAS    90   (propuesta; mínimo 7, lo exige la función)
+#   KRONOS_RETENCION_DIAS    90   (D-46; mínimo 7, lo exige la función)
 set -euo pipefail
 
 CONTENEDOR="${KRONOS_PG_CONTENEDOR:-kronos-db-1}"

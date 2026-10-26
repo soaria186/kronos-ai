@@ -14,8 +14,10 @@
   pudo haber llegado al equipo, y por eso el ticket queda en FAILED para que una
   persona lo revise, sin reintento.
 
-[POR VERIFICAR en el laboratorio con Wazuh 4.14.8: que el prefijo «!» y el campo
-«arguments» se entreguen así al script del agente.]
+Verificado con Wazuh 4.14.8 el 20-10-2026: la API acepta el prefijo «!» sin declarar un
+<command> en el manager, y el script del agente recibe «arguments» en
+parameters.extra_args. En Windows el agente sólo encuentra el script con su extensión
+(«!kronos-bloquear-ip.cmd»; prueba del 21-10-2026 en EP-WKS-01).
 """
 
 from __future__ import annotations

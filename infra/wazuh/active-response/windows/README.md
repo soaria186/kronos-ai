@@ -61,9 +61,18 @@ netsh advfirewall firewall show rule name=Kronos-bloqueo-203.0.113.50   # «No h
 Casos que deben salir con 1 sin crear reglas: `127.0.0.1`, la IP propia, la puerta de
 enlace, `1`, `203.0.113.50 & calc`, tres argumentos, operación `borrar`, entrada vacía.
 
-## Pendiente de verificar en EP-WKS-01
+## Prueba en EP-WKS-01 (21-10-2026)
 
-Con el agente de Windows hay que confirmar **cómo encuentra el archivo** cuando la API
-manda `"command": "!kronos-bloquear-ip"` sin extensión. Si en el `ossec.log` del agente
-aparece que no encuentra el ejecutable, EXECUTE debe enviar `!kronos-bloquear-ip.cmd` a
-los agentes Windows (cambio chico en `ejecucion/ordenes.py`).
+Agente 002, Wazuh 4.14.8, por la API con el usuario `kronos-execute` (#43):
+
+| Prueba | Resultado |
+| :--- | :--- |
+| `"command": "!kronos-bloquear-ip"`, sin extensión | El agente no encuentra el script: `ERROR: (1317): Could not launch command` en su `ossec.log`, y no se crea la regla |
+| `"command": "!kronos-bloquear-ip.cmd"` | Aplicar y quitar funcionan |
+| A mano: aplicar, aplicar de nuevo, quitar y quitar de nuevo | Salida 0; la regla `Kronos-bloqueo-<ip>` queda de entrada, bloquear y en los tres perfiles |
+| A mano: casos de rechazo de la sección anterior | Salida 1, sin crear reglas |
+| Registro en `active-responses.log` | **No escribe.** `Add-Content` falla porque `wazuh-agent` tiene el archivo abierto, y el `catch` vacío esconde el error. Funciona si se abre en modo compartido: `[System.IO.File]::Open($LOG, 'Append', 'Write', 'ReadWrite, Delete')` con un `StreamWriter` UTF-8 sin BOM |
+
+Por eso EXECUTE debe enviar el nombre con `.cmd` a los agentes Windows, y el registro del
+`.ps1` se abre en modo compartido. Los dos cambios están en #56. Los scripts nuevos
+(`kronos-deshabilitar-cuenta` y `kronos-aislar-equipo`) siguen el mismo patrón.

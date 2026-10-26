@@ -4,19 +4,23 @@
 #
 # Antes: generar_secretos.sh, los secretos manuales de secrets/ y el archivo .env
 # (ver servicios/README.md).
+#
+# Los cuatro servicios usan una sola imagen, kronos-servicios:local, y sólo execute la
+# construye. Para reconstruirla sin levantar todo:
+#
+#   docker compose -f docker-compose.yml -f servicios.yml build execute
 
 services:
   validate:
-    build:
-      context: ../..
-      dockerfile: infra/docker/servicios/Dockerfile
     image: kronos-servicios:local
-    pull_policy: build  # imagen local: se construye, nunca se busca en un registro
+    pull_policy: never  # la construye el servicio execute
     command: ["python", "-m", "validacion"]
     restart: unless-stopped
     depends_on:
       db:
         condition: service_healthy
+      execute:
+        condition: service_started  # sólo para que la imagen ya esté construida
     # alerts.json es del usuario wazuh (permiso 640): el contenedor entra por su grupo.
     group_add:
       - "${KRONOS_GID_WAZUH:-999}"

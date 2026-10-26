@@ -1,7 +1,7 @@
 # Retención de las alertas guardadas (R-09)
 
 Purga diaria de `alertas_guardadas`: la alerta completa de Wazuh se conserva **90 días**
-(propuesta, por confirmar en el punto de encuentro 1) y después se borra. La bitácora no
+(decisión D-46 del punto de encuentro 1, 21-10-2026) y después se borra. La bitácora no
 se toca: conserva la huella (SHA-256) de cada alerta y un evento `ALERTAS_PURGADAS` por
 cada purga. Detalle del diseño: `persistencia/README.md`.
 

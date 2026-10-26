@@ -66,7 +66,7 @@ de registro). La bitácora no se puede borrar nunca, así que la alerta **no** v
 
 | Dónde | Qué queda | ¿Se borra? |
 | :--- | :--- | :--- |
-| `alertas_guardadas` | La alerta completa, con tope de 64 KiB | Sí: la purga diaria, a los 90 días (propuesta) |
+| `alertas_guardadas` | La alerta completa, con tope de 64 KiB | Sí: la purga diaria, a los 90 días (D-46) |
 | `auditoria`, evento `ALERTA_RECIBIDA` | `alerta_guardada`: SHA-256 de lo guardado, tamaños, si se recortó, `agent.id` y `rule.id` | No (inmutable) |
 
 - **Tope** (`alertas.py`). Si la alerta pasa de 60 000 bytes, se recortan sus textos a
