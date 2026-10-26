@@ -1,13 +1,9 @@
 # Kronos AI
 
-**El analista de ciberseguridad que una PyME no puede contratar.**
-
 Kronos AI es una plataforma **SOAR** (orquestación, automatización y respuesta de seguridad) para pequeñas y
 medianas empresas que no tienen un especialista en ciberseguridad. Vigila los equipos de la empresa con Wazuh,
 clasifica cada alerta con un modelo de lenguaje que corre en el propio servidor y responde con medidas
-reversibles: bloquear una IP, deshabilitar una cuenta o aislar un equipo. **La medida no la ejecuta la IA:** la
-decide y la aplica un código determinista, con un catálogo cerrado de 25 medidas y seis chequeos. Todo queda en
-una bitácora que no se puede alterar.
+reversibles: bloquear una IP, deshabilitar una cuenta o aislar un equipo. 
 
 El encargado de TI de la PyME recibe avisos en lenguaje claro por Telegram y sólo interviene cuando hace falta
 criterio humano: aprobar una medida de alto impacto o revertir una que ya se aplicó. Kronos corre en un servidor
