@@ -6,8 +6,8 @@ reloj e incluyen el túnel. `frio` = sin caché de prompt; `tibio` = prompt real
 fija en caché. Acierto = familia del paso 1 igual a la esperada.
 
 **Prompt v1** = `decision/prompts/` de `develop` (el vigente). **Prompt KRO-CAT-01** = el paso 2 con los candidatos y condiciones de uso generados desde `decision/catalogo/kro-cat-01.json` (el v1 usaba un catálogo provisional con los mismos identificadores y otro significado). **Prompt v2** = reglas 4 y 6 y
-escala de confianza reescritas en la rama `feat/e2-prompt-confianza`; no se integró (ver
-conclusiones).
+escala de confianza reescritas en la rama `feat/e2-prompt-confianza`, hoy la etiqueta
+`archivo/feat/e2-prompt-confianza`; no se integró (ver conclusiones).
 
 | Archivo | Fecha | Modelo | Casos | Prompt | Condición | Acierto | Mediana t_total | Máximo |
 |---|---|---|---|---|---|---|---|---|
@@ -98,3 +98,17 @@ tarda.
     PB-F3-02, una interna. Con IP interna, F3-01 se rechaza y el caso va a revisión humana. Las
     IP de `casos_150` son del rango de documentación 192.0.2.0/24, que cuenta como externa, así
     que esta medición no cambia; el efecto real depende de las IP de cada cliente.
+
+## Ramas de experimentos archivadas
+
+Las cuatro ramas de las mediciones del 14-10 quedan como etiquetas `archivo/<rama>` (#74). Sus datos
+(casos y CSV) ya están en `develop` desde el #12; lo único que no se integró es el prompt v2.
+
+| Etiqueta | Qué se probó | Por qué no se integró |
+| :--- | :--- | :--- |
+| `archivo/feat/e1-mediciones-servidor` | Casos de frontera y de inyección en el servidor, con todos los servicios corriendo | Sus datos entraron con el #12 |
+| `archivo/feat/e2-mediciones-prompt-v1` | Prompt v1 con el segundo conjunto de frontera | Sus datos entraron con el #12 |
+| `archivo/feat/e2-mediciones-prompt-v2` | Prompt v2 con el 7B: 20 casos originales, frontera 2 e inyección | Resultado negativo (conclusión 4) |
+| `archivo/feat/e2-prompt-confianza` | Prompt v2: reglas 4 y 6 y escala de confianza reescritas | Resultado negativo (conclusión 4) |
+
+Para ver una: `git fetch --tags` y `git log archivo/feat/e2-prompt-confianza`.
