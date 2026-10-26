@@ -1,18 +1,26 @@
 flowchart TB
-    AG["Agentes del laboratorio (EP-WKS-01 y EP-SRV-01, VM en red NAT)<br/>y de clientes: 1514/TCP público, sin NetBird"]
+    AG["Equipos de la PyME simulada<br/>EP-WKS-01 (Windows 11) y EP-SRV-01 (Ubuntu)<br/>agente de Wazuh: 1514/TCP público, sin NetBird"]
     EQ["Equipo Kronos: SSH 22 sólo con llave;<br/>por NetBird: 55000, 9200 y 5601"]
-    US["Usuarios de la consola:<br/>443/TCP (pendiente)"]
+    US["Encargado de TI y equipo Kronos:<br/>consola 443/TCP por NetBird"]
+    TG["Telegram: avisos<br/>(sólo salida HTTPS)"]
     subgraph CORE["SOAR-CORE-01"]
         FW["Contabo Cloud VDS XL, Francia, UTC<br/>16 vCPU, 64 GB RAM, 480 GB NVMe, sin GPU<br/>Firewall: deniega por defecto"]
         subgraph DOCKER["Docker"]
-            WZ["wazuh.manager: 1514 público, 55000 NetBird<br/>wazuh.indexer: 9200 NetBird<br/>wazuh.dashboard: 5601 NetBird<br/>Ollama: 11434 interno"]
-            PG[("PostgreSQL 17.11<br/>red interna<br/>sin puertos")]
+            WZ["wazuh.manager: 1514 público, 55000 NetBird<br/>wazuh.indexer: 9200 NetBird<br/>wazuh.dashboard: 5601 NetBird"]
+            SV["SOAR-VALIDATE, SOAR-EXECUTE,<br/>SOAR-NOTIFY y SOAR-CONSOLE<br/>una imagen, usuario sin privilegios"]
+            OL["Ollama 0.40.0 con qwen2.5:7b<br/>127.0.0.1:11434 y red interna"]
+            PG[("PostgreSQL 17.11<br/>red interna, sin puertos")]
         end
-        FUT["Pendientes: SOAR-VALIDATE, SOAR-EXECUTE,<br/>SOAR-NOTIFY y SOAR-CONSOLE (443 con TLS)"]
+        TM["Temporizadores de systemd:<br/>respaldo 04:15 y purga 04:45 UTC"]
     end
     AG --> FW
     EQ --> FW
     US --> FW
     FW --> WZ
-    WZ ~~~ FUT
-    PG ~~~ FUT
+    FW -- "443 sólo en la IP de NetBird" --> SV
+    WZ -- "alerts.json, sólo lectura" --> SV
+    SV -- "API 55000" --> WZ
+    SV <--> OL
+    SV <--> PG
+    SV --> TG
+    TM -. "respaldo y purga" .-> PG

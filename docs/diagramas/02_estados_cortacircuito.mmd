@@ -3,7 +3,7 @@ stateDiagram-v2
     Cerrado: Cerrado (operación automática permitida)
     Abierto: Abierto (sin acciones automáticas, todo va a MANUAL_TRIAGE)
     Cerrado --> Abierto: se abre solo al llegar 30 alertas en 10 min (incluidas las agrupadas)
-    Abierto --> Cerrado: sólo un integrante del equipo lo cierra, con motivo
+    Abierto --> Cerrado: sólo una persona lo cierra, en la consola y con motivo
     note right of Abierto
         Cada transición es una fila nueva en la tabla cortacircuito
         (sólo inserción). El estado vigente de un ámbito es su fila más reciente.

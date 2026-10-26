@@ -1,14 +1,14 @@
 flowchart LR
     N{"Nivel fijo<br/>del playbook"}
-    N -- "0" --> N0["Ejecuta una<br/>consulta sin<br/>impacto"]
-    N -- "1" --> N1["Ejecuta y<br/>programa la<br/>reversión"] --> R1["Se revierte<br/>sola al vencer"]
-    N -- "2" --> N2["Ejecuta y avisa<br/>al equipo por<br/>Telegram"]
+    N -- "0" --> N0["Consulta sin impacto<br/>(en la v1.0 sin comando:<br/>queda en la consola, D-50)"]
+    N -- "1" --> N1["Ejecuta y<br/>programa la<br/>reversión"] --> R1["Se revierte<br/>sola a los<br/>60 minutos"]
+    N -- "2" --> N2["Ejecuta y avisa<br/>al encargado de TI<br/>por Telegram"]
     N2 --> M2["Correo manual<br/>a la persona<br/>afectada (D-35)"]
     N2 --> P2{"¿Revisada<br/>en 2 días?"}
-    P2 -- "sí" --> F2["Un integrante<br/>la revierte"]
+    P2 -- "sí" --> F2["Se mantiene o<br/>se revierte desde<br/>la consola"]
     P2 -- "no" --> D2["Recordatorio<br/>diario; sigue<br/>vigente (D-33)"] --> F2
     N -- "3" --> N3["Pide aprobación<br/>por Telegram y<br/>en la consola"]
     N3 --> P3{"¿Respuesta<br/>en 2 días?<br/>(D-32)"}
     P3 -- "aprueba" --> E3["Ejecuta y registra<br/>quién aprobó"]
     P3 -- "rechaza" --> X3["No ejecuta;<br/>justificación<br/>obligatoria"]
-    P3 -- "sin respuesta" --> V3["Propuesta D-34:<br/>expira, MANUAL_TRIAGE<br/>y último aviso"]
+    P3 -- "sin respuesta" --> V3["Expira (D-34):<br/>MANUAL_TRIAGE<br/>y aviso"]

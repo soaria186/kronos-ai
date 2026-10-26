@@ -1,14 +1,17 @@
 flowchart TB
     subgraph CORE["SOAR-CORE-01"]
-        T["Temporizador de systemd<br/>diario (pendiente)"] --> D["pg_dump de SOAR-AUDIT<br/>+ configuración de Wazuh,<br/>certificados y client.keys"]
-        D --> C["Propuesta: cifrar en el servidor<br/>(llave fuera del PC destino)"]
-        C --> L["Copia local en el servidor"]
+        TW["Temporizador diario 04:00 UTC"] --> W["Configuración de Wazuh,<br/>certificados y client.keys"]
+        TP["Temporizador diario 04:15 UTC"] --> D["pg_dump de SOAR-AUDIT<br/>y roles (pg_dumpall --globals-only)"]
+        W --> C["Cifrado con age en el servidor<br/>sólo con la llave pública"]
+        D --> C
+        C --> L["Copias locales cifradas<br/>(SOAR-AUDIT: /var/backups/kronos, 14 copias)"]
+        TR["Temporizador diario 04:45 UTC"] --> R["Purga de alertas guardadas<br/>de más de 90 días (D-46)"]
     end
     subgraph NB["NetBird"]
-        X["Propuesta: transferencia<br/>sólo por NetBird"]
+        X["Transferencia por la red privada"]
     end
-    subgraph PCN["PC de Nicolás"]
-        DC["PC de escritorio (D-26)<br/>Propuesta: disco cifrado<br/>y acceso sólo de Nicolás"]
+    subgraph PCN["PC de escritorio de Nicolás (D-26)"]
+        DC["Copia fuera del servidor,<br/>todavía cifrada"]
     end
-    L --> X --> DC
-    DC -. "restauración probada<br/>restaurar_prueba.sh (pendiente)" .-> V["Base de prueba:<br/>fn_verificar_cadena = NULL"]
+    L -. "copia fuera del servidor (D-26)" .-> X --> DC
+    L -. "probar_restauracion.sh<br/>(probado el 15-10)" .-> V["Base de prueba:<br/>2822 de 2822 eventos, 12 inquilinos,<br/>fn_verificar_cadena = NULL"]

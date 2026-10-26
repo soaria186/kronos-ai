@@ -1,8 +1,8 @@
 flowchart TB
-    U["Unitarias<br/>tests/unit, 72 pruebas"] --> I["Integración<br/>tests/sql a–d y medición"]
-    I --> S["Sistema<br/>flujo completo (pendiente)"]
-    S --> A["Aceptación<br/>puerta para la farmacia (pendiente)"]
-    U -.- PC1["PC con Docker Desktop"]
-    I -.- CORE1["PC y SOAR-CORE-01"]
-    S -.- LAB1["Laboratorio<br/>EP-WKS-01 y EP-SRV-01"]
+    U["Unitarias<br/>tests/unit, en cada PR"] --> I["Integración<br/>tests/integracion contra PostgreSQL,<br/>tests/sql a–d y mediciones de la IA"]
+    I --> S["Sistema<br/>escenarios E1 a E7 de punta a punta<br/>(prueba integral del 29-10)"]
+    S --> A["Aceptación<br/>la PyME simulada, con el encargado de TI<br/>atendiendo avisos y consola"]
+    U -.- CI["GitHub Actions<br/>y PC de cada integrante"]
+    I -.- CORE1["GitHub Actions, PC<br/>y SOAR-CORE-01"]
+    S -.- LAB1["PyME simulada<br/>EP-WKS-01 y EP-SRV-01"]
     A -.- LAB1
