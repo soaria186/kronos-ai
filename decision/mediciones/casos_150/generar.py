@@ -2,7 +2,7 @@
 
 Cada alerta de alertas.json pasa por validacion.alerta.preparar() (la misma función que
 usa SOAR-VALIDATE), así que el texto de cada caso es el que vería el modelo en producción.
-El playbook esperado se deja vacío hasta que se cierre el catálogo KRO-CAT-01.
+El playbook esperado se deja vacío hasta etiquetarlo con KRO-CAT-01 1.0 (#68).
 
 Uso, desde la raíz del repositorio:
     python -m decision.mediciones.casos_150.generar

@@ -1,5 +1,5 @@
 === CATALOGO ===
-Candidatos tomados de KRO-CAT-01 versión 0.2; generado por decision/catalogo/generar_prompt.py, no se edita a mano.
+Candidatos tomados de KRO-CAT-01 versión 1.0; generado por decision/catalogo/generar_prompt.py, no se edita a mano.
 Este bloque no se envía al modelo tal cual: de él se obtienen el nombre de la familia
 y los playbooks candidatos con sus condiciones de uso, que rellenan la plantilla.
 Formato: "[Fx] nombre de la familia" y debajo "PB-Fx-0y | nombre | condición de uso".

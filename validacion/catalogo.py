@@ -9,8 +9,9 @@ las reglas que el propio catálogo declara:
 - nivel 0 = consulta de sólo lectura, sin reversión;
 - sólo el nivel 1 puede revertirse solo al vencer un plazo; los niveles 2 y 3 nunca.
 
-La versión 0.1 es de trabajo: sale del borrador de 25 medidas y conserva sus puntos
-abiertos en el campo "pendiente" de cada playbook.
+Desde la versión 1.0 (D-60), "actuadores_v1" dice qué acciones tienen script de Active
+Response en cada sistema operativo; "puntos_abiertos" y el campo "pendiente" de cada
+playbook guardan lo que queda como trabajo futuro.
 """
 
 from __future__ import annotations

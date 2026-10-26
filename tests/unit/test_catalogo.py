@@ -66,8 +66,17 @@ class CatalogoVersionado(unittest.TestCase):
                 self.assertIs(type(plazo), int)
                 self.assertGreater(plazo, 0)
 
-    def test_es_version_de_trabajo(self):
-        self.assertEqual(ORIGINAL["estado"], "version_de_trabajo")
+    def test_version_1_0_aprobada(self):
+        self.assertEqual((ORIGINAL["version"], ORIGINAL["estado"]), ("1.0", "aprobado"))
+
+    def test_actuadores_v1_tienen_comando_en_execute(self):
+        from ejecucion.ordenes import COMANDOS
+
+        for sistema in ("linux", "windows"):
+            for accion in ORIGINAL["actuadores_v1"][sistema]:
+                with self.subTest(sistema=sistema, accion=accion):
+                    self.assertIn(accion, ORIGINAL["acciones"])
+                    self.assertIn(accion, COMANDOS)
 
 
 class CatalogoDefectuoso(unittest.TestCase):

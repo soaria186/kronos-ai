@@ -31,9 +31,8 @@ se ajustaron después de ver los resultados.
 
 ## Qué falta
 
-- **El playbook esperado** de cada caso, cuando el equipo cierre el catálogo definitivo
-  (hoy sólo existe la versión de trabajo 0.1). Recién entonces se mide el paso 2 y la
-  precisión de punta a punta.
+- **El playbook esperado** de cada caso. Con el catálogo cerrado (KRO-CAT-01 1.0) ya se
+  puede etiquetar (#68); recién entonces se mide el paso 2 y la precisión de punta a punta.
 - **Límite declarado:** en esta versión `familia_esperada` coincide con la familia de la
   regla de sobre en los 150 casos, así que la línea base sin IA acierta la familia por
   construcción. Es coherente con lo medido el 14-10: en la familia la regla ya acierta, y el

@@ -1,9 +1,9 @@
 {
   "codigo": "KRO-CAT-01",
-  "version": "0.2",
-  "estado": "version_de_trabajo",
+  "version": "1.0",
+  "estado": "aprobado",
   "fuente": "Anexo — Catálogo de medidas de Kronos AI, borrador 0.1 (08-10-2026)",
-  "nota": "Versión de trabajo: el catálogo definitivo se cierra en la etapa 3. Los identificadores coinciden con los del catálogo provisional de decision/prompts/paso2_plantilla.txt pero significan otras medidas; ese catálogo provisional sólo sirve para medir la inferencia.",
+  "nota": "Versión 1.0 para la entrega (D-60). Las 25 medidas siguen en el catálogo y el modelo puede elegir cualquiera, pero en la v1.0 sólo tres acciones tienen script de Active Response (actuadores_v1). Si el modelo elige otra, Kronos no toca el equipo: el ticket termina en FAILED con ACCION_NO_IMPLEMENTADA y se avisa por Telegram, salvo en el nivel 0, que no avisa (D-50). Los 60 minutos del nivel 1 (D-45) y los playbooks de un solo paso (D-44) ya están decididos.",
   "acciones": {
     "consulta": {
       "descripcion": "Consulta de sólo lectura",
@@ -50,13 +50,23 @@
       "origen": "adicional"
     }
   },
+  "actuadores_v1": {
+    "nota": "Acciones con script de Active Response en la versión 1.0, según el sistema operativo del agente (D-60). Las demás acciones, o éstas en otro sistema operativo, no se aplican",
+    "linux": [
+      "bloquear_ip"
+    ],
+    "windows": [
+      "bloquear_ip",
+      "deshabilitar_cuenta",
+      "aislar_equipo"
+    ]
+  },
   "puntos_abiertos": [
-    "Plazos de las medidas de nivel 1: la versión 0.2 propone 60 minutos para las cinco con reversión automática; falta que el equipo los confirme y que cada una certifique que su reversión es segura antes de habilitarse",
-    "Si la cuarentena y la reversión de tareas se restauran solas al vencer un plazo o sólo a mano",
-    "Implementar las tres acciones adicionales o reemplazarlas por una de las siete básicas",
-    "Cómo se ejecutan las consultas de sólo lectura del nivel 0",
-    "Carpeta de cuarentena y plazo de conservación de lo que se guarda en ella",
-    "Si los playbooks serán de varios pasos (decisión pendiente del equipo)"
+    "Comandos que faltan: consultas de sólo lectura (nivel 0), cuarentena, cerrar sesión, terminar proceso y detener servicio, y las tres acciones adicionales (bloquear destino, limitar conexiones y revertir tarea) o su reemplazo por una de las siete básicas",
+    "deshabilitar_cuenta y aislar_equipo en Linux",
+    "Carpeta de cuarentena y plazo de conservación de lo que se guarda en ella; si la cuarentena y la reversión de tareas se restauran solas al vencer un plazo o sólo a mano",
+    "PB-F6-04 y PB-F6-05 (nivel 3) no se pueden aprobar: las reglas de sobre de F6 tienen severidad 7, y validate.json permite como máximo el nivel 1 con esa severidad",
+    "Volver a aplicar las medidas vigentes cuando un equipo se reinicia o se reconecta (D-52; limitación documentada de la v1.0)"
   ],
   "playbooks": [
     {
@@ -162,7 +172,7 @@
         "como": "Botón en la consola, a cargo de una persona autorizada; no se revierte sola"
       },
       "pendiente": [
-        "Confirmar que no se borra ni se cambia la contraseña"
+        "Confirmar en EP-WKS-01 que no se borra ni se cambia la contraseña (#48)"
       ]
     },
     {
@@ -290,7 +300,7 @@
         "como": "Se quitan las reglas desde la consola, por una persona autorizada"
       },
       "pendiente": [
-        "Confirmar que el aislamiento deja abierto el canal con Kronos"
+        "Confirmar en EP-WKS-01 que el aislamiento deja abierto el canal con Kronos (#48)"
       ]
     },
     {
@@ -562,7 +572,9 @@
         "plazo_minutos": null,
         "como": "Se reinicia desde la consola, por una persona autorizada"
       },
-      "pendiente": []
+      "pendiente": [
+        "Fuera de alcance con las reglas actuales: la severidad 7 de F6 permite como máximo el nivel 1"
+      ]
     },
     {
       "id": "PB-F6-05",
@@ -581,7 +593,9 @@
         "plazo_minutos": null,
         "como": "Se reinicia desde la consola, por una persona autorizada"
       },
-      "pendiente": []
+      "pendiente": [
+        "Fuera de alcance con las reglas actuales: la severidad 7 de F6 permite como máximo el nivel 1"
+      ]
     }
   ]
 }
