@@ -1,20 +1,13 @@
 # Fase 2: desarrollo de Kronos en la nube
 
-Desde el 25-09-2026, cuando el proyecto se replanteó como servicio en la nube, hasta la versión 1.0. Se trabajó
-en sprints de dos semanas, con Scrum, pull requests y revisión cruzada:
-
-| Sprint | Fechas | Objetivo |
-| :--- | :--- | :--- |
-| 1 | 25-09 al 05-10 | Servidor en la nube: Contabo, NetBird, Docker y Wazuh |
-| 2 | 06 al 19-10 | Núcleo de decisión: base de datos, IA, validación, ejecución, avisos y consola |
-| 3 | 20-10 al 02-11 | Respuesta y niveles; replanteamiento para PyMEs y cierre de la versión 1.0 |
+Desde el 25-09-2026, cuando el proyecto se replanteó como servicio en la nube, hasta la versión 1.0 (02-11).
+En esta fase se desarrolló Kronos en un servidor en la nube, en sprints de dos semanas con Scrum, pull
+requests y revisión cruzada.
 
 | Carpeta | Contenido |
 | :--- | :--- |
 | [`Avances`](Avances/) | El proyecto completo: código, infraestructura, pruebas, guía de instalación, diagramas, evidencias y registro de trabajo |
-| [`Documentación Individual`](Documentaci%C3%B3n%20Individual/) | Autoevaluación de avance de la Fase 2 de cada integrante |
-| [`Documentación Grupal`](Documentaci%C3%B3n%20Grupal/) | Diario de reflexión, Formativa de avance y guías de Duoc de la Fase 2; desde el 30-10, también los 31 documentos del proyecto, el informe final y el manual del encargado de TI |
-
-El detalle de cada cambio, con su pull request, está en [`Avances/CHANGELOG.md`](Avances/CHANGELOG.md).
+| [`Documentación Individual`](Documentaci%C3%B3n%20Individual/) | Autoevaluación de avance de cada integrante |
+| [`Documentación Grupal`](Documentaci%C3%B3n%20Grupal/) | Diario de reflexión, Formativa de avance y guías de la Fase 2 |
 
 La Fase 1, con la definición del proyecto, está en [`../Fase 1`](../Fase%201/).
