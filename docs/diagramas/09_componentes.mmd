@@ -1,22 +1,22 @@
 flowchart TB
-    COL["SOAR-COLLECT<br/>agente en el equipo del cliente<br/>Wazuh Agent 4.14.8 + Sysmon o auditd"]
+    COL["SOAR-COLLECT<br/>agente en cada equipo de la PyME<br/>Wazuh Agent 4.14.8 + scripts kronos-*"]
     subgraph NUBE["SOAR-CORE-01"]
-        DET["SOAR-DETECT<br/>Wazuh Manager 4.14.8"]
+        DET["SOAR-DETECT<br/>Wazuh Manager 4.14.8<br/>15 reglas de sobre"]
         IDX["Indexer y Dashboard<br/>(sólo uso interno)"]
         VAL["SOAR-VALIDATE<br/>seis chequeos<br/>falla segura"]
         CLA["SOAR-CLASSIFY<br/>Ollama, dos pasos"]
         EXE["SOAR-EXECUTE<br/>API de Wazuh"]
         AUD[("SOAR-AUDIT<br/>PostgreSQL 17.11")]
         NOT["SOAR-NOTIFY<br/>Telegram"]
-        CON["SOAR-CONSOLE<br/>FastAPI + HTMX"]
+        CON["SOAR-CONSOLE<br/>FastAPI, HTML sin JavaScript"]
     end
     COL -- "1514" --> DET
     DET --> IDX
     DET -- "alerta" --> VAL
     VAL <-- "prompt / JSON" --> CLA
     VAL -- "registro previo (R3)" --> AUD
-    VAL -- "decisión" --> EXE
-    VAL --> NOT
+    AUD -- "decisión" --> EXE
+    AUD -- "eventos" --> NOT
     EXE -- "API 55000" --> DET
     DET -. "Active Response" .-> COL
     EXE --> AUD

@@ -1,4 +1,5 @@
 flowchart LR
-    F["feat/eN-tema<br/>una rama por tarea<br/>(push diario)"] -- "PR con 3 checks<br/>y revisión cruzada" --> DEV["develop<br/>integración"]
-    D["docs/tema<br/>documentación<br/>y evidencia"] -- "PR revisado" --> DEV
-    DEV -- "etapa cerrada con su hito<br/>merge --no-ff + etiqueta" --> MAIN["main<br/>estado estable<br/>(línea base)"]
+    F["feat/eN-tema, fix/…, ci/…<br/>una rama por tarea<br/>(push diario)"] -- "PR con los checks<br/>y revisión cruzada (D-54)" --> DEV["develop<br/>integración del sprint"]
+    D["docs/eN-tema<br/>documentación<br/>y evidencia"] -- "PR revisado" --> DEV
+    DEV -- "versión lista: PR,<br/>commit de merge y etiqueta" --> MAIN["main<br/>versiones publicadas<br/>(v1.0.0)"]
+    X["Experimento que no<br/>se integra"] -. "etiqueta archivo/rama" .-> ARC["Archivo"]

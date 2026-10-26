@@ -2,7 +2,7 @@ flowchart TB
     subgraph Z0["Zona no confiable"]
         ATK["Atacante<br/>controla el texto de la alerta"]
     end
-    subgraph Z1["Zona del cliente"]
+    subgraph Z1["Zona de la PyME"]
         AGT["SOAR-COLLECT<br/>(el atacante puede apagarlo)"]
     end
     subgraph Z2["Zona de decisión"]
@@ -14,11 +14,11 @@ flowchart TB
         EXE2["SOAR-EXECUTE<br/>usuario de API de permisos mínimos"]
         AUD2[("SOAR-AUDIT<br/>sólo inserción + cadena")]
     end
-    subgraph Z4["Aprobaciones (D-31)"]
+    subgraph Z4["Aprobaciones (D-59)"]
         NOT2["SOAR-NOTIFY<br/>Telegram"]
-        CON2["SOAR-CONSOLE<br/>443 con TLS"]
+        CON2["SOAR-CONSOLE<br/>443 con TLS y TOTP, por NetBird"]
     end
-    ADM["Equipo Kronos"]
+    ADM["Encargado de TI<br/>y equipo Kronos"]
     ATK -. "texto malicioso" .-> AGT
     AGT -- "1514" --> DET2
     DET2 --> VAL2
