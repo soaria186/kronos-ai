@@ -14,4 +14,5 @@ python tools/verificar_entrega.py --pruebas
 ```
 
 `verificar_entrega.py` termina con código 1 si falla alguna comprobación obligatoria y lista cuál y por qué.
-Las marcadas «aviso» (licencia, una sola construcción de la imagen, IP de NetBird) no detienen la entrega.
+Las marcadas «aviso» (licencia, una sola construcción de la imagen, IP de NetBird, y IP reales o posibles
+identificadores de Telegram en `docs/registro/` y `docs/evidencia/`) no detienen la entrega, pero se revisan a mano.

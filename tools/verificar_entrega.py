@@ -16,6 +16,7 @@ comprobación obligatoria falla.
 from __future__ import annotations
 
 import argparse
+import ipaddress
 import json
 import re
 import subprocess
@@ -26,6 +27,8 @@ from pathlib import Path
 RAIZ = Path(__file__).resolve().parent.parent
 # Históricos: pueden mencionar la farmacia.
 EXCLUIDAS = ("docs/archivo/", "docs/registro/")
+# Nombran la farmacia para buscarla.
+PROPIOS = ("tools/verificar_entrega.py", "tools/README.md")
 TEXTO = (
     ".md", ".mmd", ".py", ".sh", ".yml", ".yaml", ".json", ".sql", ".example", ".txt",
 )
@@ -33,6 +36,11 @@ MARCAS_DESACTUALIZADAS = re.compile(
     r"\(pendiente\)|pendiente de verificar|por verificar|\[POR CONFIRMAR|\[PENDIENTE",
     re.IGNORECASE,
 )
+# Una IP de NetBird (100.64.0.0/10) escrita como dirección, no como rango.
+IP_NETBIRD = re.compile(r"\b100\.(6[4-9]|[7-9]\d|1[01]\d|12[0-7])\.\d+\.\d+\b(?!/)")
+IPV4 = re.compile(r"(?<![\d.])(?:\d{1,3}\.){3}\d{1,3}(?![\d.]|/\d)")
+# 9 dígitos o más, sueltos: el formato de los identificadores de Telegram.
+NUMERO_LARGO = re.compile(r"(?<![\w.-])-?\d{9,}(?![\w.])")
 
 resultados: list[tuple[bool, bool, str, str]] = []  # (ok, obligatoria, nombre, detalle)
 
@@ -97,6 +105,8 @@ def comprobar_documentacion(lista: list[str]) -> None:
            f"partes: {', '.join(partes)}")
     farmacia = []
     for a in lista:
+        if a in PROPIOS:
+            continue
         if a.endswith(".docx"):
             txt = texto_docx(a)
         else:
@@ -139,10 +149,36 @@ def comprobar_coherencia() -> None:
     anotar(servicios.count("build:") <= 1,
            "la imagen de servicios se construye una vez",
            f"{servicios.count('build:')} bloques build", obligatoria=False)
-    netbird = re.compile(r"\b100\.(6[4-9]|[7-9]\d|1[01]\d|12[0-7])\.\d+\.\d+\b")
-    ip_netbird = [a for a in archivos() if netbird.search(leer(a))]
+    ip_netbird = [a for a in archivos() if IP_NETBIRD.search(leer(a))]
     anotar(not ip_netbird, "sin IP de NetBird reales (antes de hacerlo público)",
            ", ".join(ip_netbird), obligatoria=False)
+
+
+def publicable(texto: str) -> bool:
+    try:
+        ip = ipaddress.ip_address(texto)
+    except ValueError:
+        return True
+    return not (ip.is_global or ip in ipaddress.ip_network("100.64.0.0/10"))
+
+
+def comprobar_registro_y_evidencia() -> None:
+    """Registro y evidencia: copias de trabajo que pueden arrastrar datos del servidor.
+
+    Es un aviso: los números largos pueden ser otra cosa, así que se revisa a mano.
+    """
+    hallazgos = []
+    for a in git("ls-files", "docs/registro", "docs/evidencia").splitlines():
+        if not a.endswith(TEXTO):
+            continue
+        texto = leer(a)
+        ips = {m for m in IPV4.findall(texto) if not publicable(m)}
+        largos = set(NUMERO_LARGO.findall(texto))
+        if ips or largos:
+            hallazgos.append(f"{a} ({len(ips)} IP, {len(largos)} números largos)")
+    anotar(not hallazgos,
+           "registro y evidencia sin IP reales ni posibles identificadores de Telegram",
+           "; ".join(hallazgos[:6]), obligatoria=False)
 
 
 def comprobar_ramas() -> None:
@@ -178,6 +214,7 @@ def main() -> int:
     comprobar_portada(publicada=not args.antes_de_publicar)
     comprobar_documentacion(lista)
     comprobar_coherencia()
+    comprobar_registro_y_evidencia()
     comprobar_ramas()
     if args.pruebas:
         comprobar_pruebas()
