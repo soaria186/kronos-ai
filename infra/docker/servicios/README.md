@@ -8,6 +8,9 @@ cd infra/docker
 docker compose -f docker-compose.yml -f servicios.yml up -d --build
 ```
 
+La imagen la construye sólo el servicio `execute`; `validate`, `notify` y `consola` la usan.
+Para reconstruirla sin levantar todo: `docker compose -f docker-compose.yml -f servicios.yml build execute`.
+
 | Servicio | Redes | Sale a |
 | :--- | :--- | :--- |
 | `validate` | `interna` (base) y `inferencia` (Ollama) | Sólo a Ollama (`ollama:11434`), sin internet. Lee `alerts.json` en sólo lectura |
@@ -129,7 +132,9 @@ es el nombre de la red del compose de Wazuh (`docker network ls`).
 3. Identificadores: escribir algo en el grupo y abrir
    `https://api.telegram.org/bot<token>/getUpdates` en el navegador. `chat.id` (negativo)
    va a `KRONOS_TELEGRAM_CHAT`; el `from.id` de cada integrante, a `KRONOS_TELEGRAM_EQUIPO`.
-4. Activar la verificación en dos pasos en las tres cuentas (pregunta abierta #39).
+   **Sólo antes de levantar NOTIFY:** con el servicio en marcha, abrir `getUpdates` le quita
+   las respuestas a los botones. Tampoco convertir el grupo en supergrupo: cambia su id.
+4. Activar la verificación en dos pasos en todas las cuentas del grupo.
 
 ## Comprobación
 
