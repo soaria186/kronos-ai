@@ -119,7 +119,7 @@ Verificado en el servidor y en la PyME simulada:
 | Clasificación: qwen2.5:7b con 19 de 20 casos originales y 18 de 18 alertas en formato real coinciden con su regla; 0 de 10 inyecciones logran su objetivo | [`decision/mediciones/resultados/`](decision/mediciones/resultados/) |
 | Base multiinquilino con cadena de hash; respaldo diario cifrado con age y restauración probada | 2822 de 2822 eventos, 12 inquilinos y 0 cadenas rotas (15-10) |
 | Avisos y aprobación por Telegram; consola con contraseña y TOTP | Grupo con los tres integrantes y verificación en dos pasos (21-10) |
-| Calidad del código | 308 pruebas unitarias, 63 de integración y 4 pruebas SQL; ruff y regla R1 en el CI |
+| Calidad del código | 318 pruebas unitarias, 65 de integración y 4 pruebas SQL; el CI corre las unitarias, las de integración, ruff y la regla R1 |
 
 Medidas con actuador real en la v1.0. Las demás medidas del catálogo siguen ahí: si la IA elige una, el ticket termina en falla segura con aviso.
 
@@ -157,13 +157,13 @@ python -m unittest discover -s tests/unit
 
 | Tipo | Cantidad | Cómo se corren |
 | :--- | :--- | :--- |
-| Unitarias | 308 | `python -m unittest discover -s tests/unit`. Las 13 de la consola necesitan sus dependencias (arriba) |
-| Integración | 63, de las que 5 usan el modelo | `bash tests/integracion/ejecutar.sh`: crea una base aparte (`kronos_pruebas`), corre las pruebas y la borra. Nunca escriben en la base real |
+| Unitarias | 318 | `python -m unittest discover -s tests/unit`. Las 13 de la consola necesitan sus dependencias (arriba) |
+| Integración | 65, de las que 5 usan el modelo | `bash tests/integracion/ejecutar.sh`: crea una base aparte (`kronos_pruebas`), corre las pruebas y la borra. Nunca escriben en la base real. Sin Docker, `tests/integracion/preparar_base.sh` prepara la base en un PostgreSQL local, como en el CI |
 | SQL de SOAR-AUDIT | 4 | `bash tests/sql/ejecutar.sh`: dos inquilinos en paralelo, concurrencia, inmutabilidad y manipulación detectada |
 | Mediciones de la IA | 20 originales, 24 de frontera, 10 de inyección, 18 en formato real y 150 etiquetados | [`decision/mediciones/`](decision/mediciones/) |
 | Escenarios de demostración | E1 a E7 | [`docs/evidencia/`](docs/evidencia/) |
 
-En cada pull request, GitHub Actions corre gitleaks 8.30.1 sobre todo el historial, ruff 0.16.10, la regla R1 (`decision/` no importa la capa de efectos) y las pruebas unitarias. `python tools/verificar_entrega.py --pruebas` revisa que el repositorio esté listo para una entrega.
+En cada pull request, GitHub Actions corre gitleaks 8.30.1 sobre todo el historial, ruff 0.16.10, la regla R1 (`decision/` no importa la capa de efectos), las pruebas unitarias (con las de la consola) y las de integración, contra un PostgreSQL 17.11 de servicio. En los PR hacia `main` corre además `tools/verificar_entrega.py --antes-de-publicar`, que revisa que el repositorio esté listo para una entrega.
 
 ## Estructura del repositorio
 
