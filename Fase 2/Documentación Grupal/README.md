@@ -1,10 +1,27 @@
 # Fase 2: documentación grupal
 
-Los documentos del equipo en la Fase 2, en PDF: los **31 documentos del proyecto**, el **informe final** y el
-**manual del encargado de TI**. El original en Word de cada uno queda en el Drive del equipo.
+Los documentos del equipo en la Fase 2. Hay dos grupos:
 
-> **Se suben el viernes 30-10.** Hasta entonces los enlaces de las tablas no abren. Los 17 documentos v0.1 del
-> 14-10, que se usaron como fuente, están en [`Avances/docs/archivo/`](../Avances/docs/archivo/).
+- **Documentos de Duoc de la fase**, en Word: el diario de reflexión, la formativa de avance y las guías del
+  proyecto y del informe final. Ya están subidos.
+- **Documentos del proyecto**, en PDF: los **31 documentos**, el **informe final** y el **manual del encargado
+  de TI**. Se suben el viernes 30-10. El original en Word de cada uno queda en el Drive del equipo.
+
+## Documentos de Duoc
+
+| N.° | Documento | Archivo |
+| :---: | :--- | :--- |
+| 2.1 | Diario de reflexión, Fase 2 | [`2.1_APT122_DiarioReflexionFase2.docx`](2.1_APT122_DiarioReflexionFase2.docx) |
+| 2.3 | Formativa de avance, Fase 2 | [`2.3_APT122_FormativaAvance_Fase2.docx`](2.3_APT122_FormativaAvance_Fase2.docx) |
+| 2.4 | Guía de desarrollo del proyecto, Fase 2 | [`2.4_APT122_GuiaDesarrolloProyecto_Fase2.docx`](2.4_APT122_GuiaDesarrolloProyecto_Fase2.docx) |
+| 2.6 | Guía del informe final, Fase 2 | [`2.6_APT122_GuiaInformeFinal_Fase2.docx`](2.6_APT122_GuiaInformeFinal_Fase2.docx) |
+
+La autoevaluación de avance (2.2) es individual y está en
+[`../Documentación Individual`](../Documentaci%C3%B3n%20Individual/), en la carpeta de cada integrante.
+
+> **Los documentos del proyecto se suben el viernes 30-10.** Hasta entonces los enlaces de las tablas que siguen
+> no abren. Los 17 documentos v0.1 del 14-10, que se usaron como fuente, están en
+> [`Avances/docs/archivo/`](../Avances/docs/archivo/).
 
 ## Informe final y manual
 

@@ -12,7 +12,9 @@ en sprints de dos semanas, con Scrum, pull requests y revisión cruzada:
 | Carpeta | Contenido |
 | :--- | :--- |
 | [`Avances`](Avances/) | El proyecto completo: código, infraestructura, pruebas, guía de instalación, diagramas, evidencias y registro de trabajo |
-| [`Documentación Individual`](Documentaci%C3%B3n%20Individual/) | Documentos de cada integrante |
-| [`Documentación Grupal`](Documentaci%C3%B3n%20Grupal/) | Los 31 documentos del proyecto, el informe final y el manual del encargado de TI |
+| [`Documentación Individual`](Documentaci%C3%B3n%20Individual/) | Autoevaluación de avance de la Fase 2 de cada integrante |
+| [`Documentación Grupal`](Documentaci%C3%B3n%20Grupal/) | Diario de reflexión, Formativa de avance y guías de Duoc de la Fase 2; desde el 30-10, también los 31 documentos del proyecto, el informe final y el manual del encargado de TI |
 
 El detalle de cada cambio, con su pull request, está en [`Avances/CHANGELOG.md`](Avances/CHANGELOG.md).
+
+La Fase 1, con la definición del proyecto, está en [`../Fase 1`](../Fase%201/).
