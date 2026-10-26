@@ -8,7 +8,8 @@
 
 ## Cómo se probó
 
-<!-- Comandos y resultados: pruebas unitarias, de integración (sólo en kronos_pruebas), laboratorio o servidor. -->
+<!-- Comandos y resultados: pruebas unitarias, de integración (sólo en kronos_pruebas), laboratorio o servidor.
+     Los comandos se corren desde la carpeta del proyecto: cd "Fase 2/Avances". -->
 
 - [ ] `python -m unittest discover -s tests/unit`
 - [ ] `python -m ruff check .` y `python tools/check_r1.py`

@@ -3,18 +3,29 @@ name: CI
 on:
   pull_request:
     branches: [develop, main]
+  push:
+    branches: [develop, main]
 
 permissions:
   contents: read
 
 concurrency:
-  group: ci-${{ github.event.pull_request.number }}
+  group: ci-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
+
+# El proyecto (código, pruebas y herramientas) está en «Fase 2/Avances»: todos los
+# comandos corren ahí, salvo gitleaks, que revisa el repositorio completo.
+defaults:
+  run:
+    working-directory: "Fase 2/Avances"
 
 jobs:
   gitleaks:
     name: gitleaks (historial completo)
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: .
     env:
       GITLEAKS_VERSION: "8.30.1"
     steps:

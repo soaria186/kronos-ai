@@ -1,0 +1,23 @@
+# Rutas del proyecto, relativas a esta carpeta (Fase 2/Avances). Las reglas generales están en el
+# .gitignore de la raíz; aquí se repiten las de secretos por si la carpeta se copia sola.
+
+# Secretos y credenciales
+.env
+*.pem
+*.key
+id_ed25519*
+
+# Credenciales generadas de infraestructura
+infra/docker/initdb/03_roles.sql
+infra/docker/initdb/05_clave_consola.sql
+infra/wazuh/config/wazuh_indexer_ssl_certs/
+infra/wazuh/config/wazuh_indexer/internal_users.yml
+infra/wazuh/config/wazuh_dashboard/wazuh.yml
+
+# Bases de datos locales
+*.db
+
+# Python
+.venv/
+__pycache__/
+infra/docker/secrets/
