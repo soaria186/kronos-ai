@@ -2,10 +2,10 @@
 
 | Campo | Valor |
 | :--- | :--- |
-| Parte de la guía | 08 de 15 (borrador) |
+| Parte | 08 de 15 |
 | Versión de Wazuh | 4.14.8 |
 | Responsable | Nicolás Zamora (revisa: Rodrigo Riveros) |
-| Estado | Borrador para revisión. Script probado en el laboratorio (EP-SRV-01) el 20-10-2026; sección 3 reconstruida desde el historial, sin repetir; reversión automática pendiente de confirmar |
+| Estado | Vigente. Script probado en EP-SRV-01 el 20-10-2026 y reversión automática confirmada el 21-10-2026 (a los 60 minutos y 3 segundos). La sección 3 se reconstruyó desde el historial: en una instalación nueva, seguirla paso a paso y corregirla si algo cambia |
 
 > Esta guía no contiene contraseñas, tokens, llaves ni direcciones IP reales. La IP `203.0.113.50` pertenece al rango reservado para documentación y se usa sólo como ejemplo.
 
@@ -87,7 +87,7 @@ Debe quedar sin regla (`codigo: 1`) y una línea `quitar 203.0.113.50: OK`.
 | Reinicio del agente o del equipo | **Las reglas se pierden**: `iptables` guarda las reglas en memoria y este script no las hace persistentes |
 | Agente apagado cuando vence la reversión | SOAR-EXECUTE registra `REVERSION_FALLIDA` («agent is not active») y **no reintenta** |
 
-> Las dos últimas filas se observaron en el laboratorio el 20-10-2026 (ticket n.º 20) y quedan como pendientes de diseño: reintento de la reversión y persistencia o reaplicación de las reglas tras un reinicio.
+> Las dos últimas filas se observaron en el laboratorio el 20-10-2026 (ticket n.º 20). En la v1.0 quedan como limitaciones documentadas: una reversión fallida se avisa para hacerla a mano (D-51), y las reglas no se vuelven a aplicar tras un reinicio (D-52).
 
 ### 2.5 Lo que el script no decide
 
@@ -95,7 +95,7 @@ El script sólo protege al propio equipo. **No** conoce la lista de exclusión d
 
 ### 2.6 Agentes Windows
 
-El script equivalente (`.cmd` más PowerShell con `netsh advfirewall`) lo escribe Rodrigo y está en `infra/wazuh/active-response/windows/` (rama `feat/e3-ar-windows-bloquear-ip`, en revisión). Se prueba en EP-WKS-01 (aplicar y quitar) antes de darlo por válido.
+El script equivalente (`.cmd` más PowerShell con `netsh advfirewall`) está en `infra/wazuh/active-response/windows/` (PR #32). Su instalación y prueba van en la parte 10. En Windows, el agente sólo encuentra el script si el comando lleva la extensión (`!kronos-bloquear-ip.cmd`): prueba del 21-10-2026 en EP-WKS-01 (#43).
 
 ## 3. Crear el usuario de API `kronos-execute`
 
@@ -128,7 +128,7 @@ unset ADMIN_PW
 echo "${TOKEN:0:12}"
 ```
 
-Debe mostrar los primeros caracteres de un token. Si muestra un error, la contraseña de `wazuh-wui` del manager no es la vigente (en el laboratorio hubo que usar la del dashboard, ver `wazuh.yml`; ese desajuste es un pendiente del gestor de contraseñas).
+Debe mostrar los primeros caracteres de un token. Si muestra un error, la contraseña de `wazuh-wui` no es la vigente: la que vale es la del dashboard (`config/wazuh_dashboard/wazuh.yml`, parte 04), y el gestor de contraseñas debe guardar esa.
 
 **2. Rol**
 
@@ -198,7 +198,7 @@ El rol debe tener únicamente la política `agents_commands_agents`. La prueba d
 - [ ] Rol `kronos-execute` unido a la política `agents_commands_agents`.
 - [ ] Usuario `kronos-execute` creado, unido al rol y autenticando.
 - [ ] Contraseña en el gestor de contraseñas; ninguna en el chat, el historial ni el repositorio.
-- [ ] Prueba de reversión automática a los 60 minutos, con el agente encendido: **pendiente** (la del ticket n.º 20 falló porque el agente estaba apagado).
+- [ ] Prueba de reversión automática a los 60 minutos, con el agente encendido (en el laboratorio se confirmó el 21-10-2026; la del ticket n.º 20 había fallado porque el agente estaba apagado).
 
 ## Referencias
 

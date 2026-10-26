@@ -2,11 +2,12 @@
 
 | Campo | Valor |
 | :--- | :--- |
-| Responsable | Patricio |
-| Revisor | [POR CONFIRMAR: otro integrante] |
+| Parte | 06 de 15 |
+| Responsable | Patricio González (revisa: Nicolás Zamora) |
 | Componente | SOAR-CLASSIFY |
 | Versiones | Ollama 0.40.0 · qwen2.5:7b · Ubuntu 24.04 |
-| Requisitos | Partes 01 (servidor y NetBird) y 02 (Docker) terminadas |
+| Estado | Vigente para una instalación nueva. En SOAR-CORE-01 el contenedor se creó antes que este archivo: ver la sección «Estado en SOAR-CORE-01» |
+| Requisitos | Partes 01 a 03 (servidor, NetBird y Docker) |
 
 SOAR-CLASSIFY es el modelo de lenguaje que clasifica cada alerta en dos pasos (familia y
 playbook). Corre en SOAR-CORE-01, sin GPU, con Ollama en un contenedor. Sólo escucha en
@@ -136,7 +137,7 @@ bajo 100 % indican que cambió el modelo o el prompt.
 
 ## 7. Prueba de reinicio
 
-Coordinar con el equipo antes de reiniciar el servidor (prueba de reinicio de la parte 02).
+Coordinar con el equipo antes de reiniciar el servidor (prueba de reinicio de la parte 03).
 Después del reinicio:
 
 ```
@@ -157,12 +158,24 @@ Después del reinicio:
 Parámetros de cada llamada: `temperature = 0`, `num_ctx = 4096`, esquema JSON en `format`,
 `keep_alive = -1`. Los prompts están en `decision/prompts/`.
 
-## Pendientes
+## Estado en SOAR-CORE-01
 
-- [POR CONFIRMAR: el contenedor `ollama` que corre hoy en el servidor se creó antes de este
-  archivo, con la imagen `ollama/ollama` sin versión fijada. Para pasar al compose hay que
-  detenerlo y crear el nuevo; coordinar con Nicolás. Los modelos se vuelven a descargar en
-  el volumen `kronos_ollama_modelos` (paso 3); el volumen anterior se borra sólo después de
-  comprobar el paso 6.]
-- [POR CONFIRMAR: SOAR-VALIDATE se conectará a Ollama por la red `kronos_inferencia` cuando
-  exista su propio compose; se define con Rodrigo.]
+El contenedor `ollama` del servidor se creó a mano antes de este archivo, con la imagen
+`ollama/ollama` sin versión fijada. SOAR-VALIDATE llega a él por la red interna `kronos_inferencia`,
+creada a mano y conectada con el alias `ollama` (`infra/docker/servicios/README.md`, SOAR-VALIDATE,
+paso 3). La versión que corre se comprueba así:
+
+```
+[servidor] sudo docker inspect ollama --format '{{.Config.Image}}'
+[servidor] sudo docker exec ollama ollama --version
+```
+
+Para pasarlo a este compose (coordinarlo con Nicolás, porque mientras tanto VALIDATE se abstiene):
+
+1. Desconectar y borrar la red manual: `docker network disconnect kronos_inferencia ollama` y
+   `docker network rm kronos_inferencia`. Compose no adopta una red que no creó.
+2. Detener y borrar el contenedor anterior (`docker stop ollama` y `docker rm ollama`), sin borrar su
+   volumen.
+3. Seguir los pasos 1 a 6 de esta guía. Los modelos se descargan de nuevo en `kronos_ollama_modelos`.
+4. Recrear `validate` y comprobar en su registro «cargando el modelo en memoria».
+5. Borrar el volumen anterior sólo después de comprobar el paso 6.
