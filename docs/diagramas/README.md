@@ -3,8 +3,9 @@
 Fuente Mermaid (`.mmd`) e imagen (`.png`) de cada figura. La fuente es la que vale: la imagen se genera desde
 ella y nunca se edita a mano.
 
-El prefijo del archivo es el número que tenía la figura en los documentos de la entrega del 16-10 (hoy en
-`docs/archivo/`). La última columna dice en cuál de los 31 documentos del proyecto se usa.
+El prefijo del archivo es el número del documento donde nació la figura, en los 17 documentos v0.1 del 14-10
+(hoy en `docs/archivo/documentos-v0.1/`). La última columna dice en cuál de los 31 documentos del proyecto se
+usa.
 
 | Archivo | Figura | Documentos (de los 31) |
 | :--- | :--- | :--- |
