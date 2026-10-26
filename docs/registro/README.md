@@ -29,6 +29,7 @@ repositorio, la guía de instalación y los 31 documentos.
 | 21-10 | [KRO-ACTA-2026-10-21](KRO-ACTA-2026-10-21_punto_de_encuentro_1.md) | Acta | Los tres | Punto de encuentro 1: decisiones D-44 a D-56 |
 | 21-10 | KRO-TAREAS-2026-10-21: [Nicolás](KRO-TAREAS-2026-10-21_nicolas.md), [Patricio](KRO-TAREAS-2026-10-21_patricio.md), [Rodrigo](KRO-TAREAS-2026-10-21_rodrigo.md) | Tareas | Equipo | Tareas de cada uno después del punto de encuentro |
 | 26-10 | [KRO-PLAN-2026-10-26](KRO-PLAN-2026-10-26_replanteamiento_pyme_y_cierre.md) | Plan | Equipo | Replanteamiento PyME, alcance de la v1.0, escenarios E1 a E7 y plan de la semana de cierre (propuestas D-57 a D-65) |
+| 26-10 | [KRO-LOG-2026-10-26](KRO-LOG-2026-10-26_ramas_mezcladas.md) | Registro | Equipo | Las 37 ramas ya mezcladas en `develop`, con su punta, para borrarlas sin perder nada (B1) |
 | 26-10 | [KRO-CHECKLIST-2026-10-26](KRO-CHECKLIST-2026-10-26_github_100.md) | Revisión | Equipo | Lista de corrección del repositorio para la v1.0 (milestone «v1.0: cierre») |
 | 26-10 | KRO-TAREAS-2026-10-26: [Nicolás](KRO-TAREAS-2026-10-26_nicolas.md), [Patricio](KRO-TAREAS-2026-10-26_patricio.md), [Rodrigo](KRO-TAREAS-2026-10-26_rodrigo.md) | Tareas | Equipo | Tareas de la semana de cierre |
 
