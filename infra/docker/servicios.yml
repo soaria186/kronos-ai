@@ -95,6 +95,7 @@ services:
       KRONOS_TELEGRAM_TOKEN_ARCHIVO: /run/secrets/telegram_token
       KRONOS_TELEGRAM_CHAT: ${KRONOS_TELEGRAM_CHAT:?falta KRONOS_TELEGRAM_CHAT en .env}
       KRONOS_TELEGRAM_EQUIPO: ${KRONOS_TELEGRAM_EQUIPO:?falta KRONOS_TELEGRAM_EQUIPO en .env}
+      KRONOS_NOMBRES_INQUILINOS: ${KRONOS_NOMBRES_INQUILINOS:-}
     secrets:
       - kronos_worker_password
       - telegram_token

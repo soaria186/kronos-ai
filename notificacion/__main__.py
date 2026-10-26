@@ -8,7 +8,12 @@ Variables de entorno:
     KRONOS_TELEGRAM_TOKEN_ARCHIVO   archivo con el token del bot
     KRONOS_TELEGRAM_CHAT            identificador del chat del equipo
     KRONOS_TELEGRAM_EQUIPO          cuentas que pueden aprobar: «id:nombre,id:nombre»
+    KRONOS_NOMBRES_INQUILINOS       opcional: nombre de cada PyME en los avisos,
+                                    «inquilino:nombre,inquilino:nombre» (si falta, «PyME 1»)
     KRONOS_ESPERA_SEGUNDOS          espera de la consulta larga (por omisión, 20)
+
+Los avisos nombran cada medida como en el catálogo KRO-CAT-01; si el catálogo no es
+válido, el servicio no arranca.
 """
 
 from __future__ import annotations
@@ -21,7 +26,7 @@ from pathlib import Path
 
 from psycopg.conninfo import make_conninfo
 
-from notificacion.avisos import Avisador
+from notificacion.avisos import Avisador, leer_nombres, textos_de_medidas
 from notificacion.respuestas import Atendedor
 from notificacion.telegram import ClienteTelegram, ErrorTelegram
 from persistencia.repositorio import ACTOR_NOTIFY, EstadoInvalido, Repositorio
@@ -64,12 +69,14 @@ def main() -> int:
         )
         chat = int(os.environ["KRONOS_TELEGRAM_CHAT"])
         equipo = leer_equipo(os.environ["KRONOS_TELEGRAM_EQUIPO"])
+        nombres = leer_nombres(os.environ.get("KRONOS_NOMBRES_INQUILINOS", ""))
+        medidas = textos_de_medidas()
         espera = int(os.environ.get("KRONOS_ESPERA_SEGUNDOS", "20"))
         if not inquilinos or any(t <= 0 for t in inquilinos):
             raise ValueError("KRONOS_INQUILINOS debe tener al menos un entero positivo")
         repo = Repositorio(dsn, actor=ACTOR_NOTIFY)
         cliente = ClienteTelegram(token)
-        avisador = Avisador(repo, cliente, chat)
+        avisador = Avisador(repo, cliente, chat, medidas, nombres)
         atendedor = Atendedor(
             repo, cliente, chat, equipo, cliente.mi_id(), EstadoInvalido
         )

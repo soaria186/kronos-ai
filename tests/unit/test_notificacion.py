@@ -4,9 +4,10 @@ import unittest
 from dataclasses import dataclass, field
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
-from notificacion.avisos import Avisador
+from notificacion.avisos import Avisador, leer_nombres, textos_de_medidas
 from notificacion.mensajes import (
     Mensaje,
+    TextoMedida,
     componer,
     leer_callback,
     leer_pedido_de_motivo,
@@ -29,6 +30,29 @@ class Evento:
     titulo: str | None = "Kronos F3: ejecución remota"
     playbook_id: str | None = "PB-F3-03"
     nivel: int | None = 3
+    equipo: str | None = None
+
+
+MEDIDAS = {
+    "PB-F3-03": TextoMedida(
+        "Aislar un equipo de trabajo por firewall local",
+        "Sin internet ni red: los programas que las usen dejan de funcionar",
+    ),
+    "PB-F1-03": TextoMedida(
+        "Bloquear la IP de otro equipo de la organización que intenta entrar",
+        "El equipo deja de comunicarse con ese otro equipo",
+    ),
+}
+EVENTOS = (
+    "DECISION",
+    "EJECUCION_OK",
+    "EJECUCION_FALLIDA",
+    "REVERSION_FALLIDA",
+    "RECORDATORIO_REVISION",
+    "APROBACION_VENCIDA",
+    "TICKET_SIN_DECISION",
+    "CORTACIRCUITO_ABIERTO",
+)
 
 
 class EstadoInvalido(RuntimeError):
@@ -38,7 +62,7 @@ class EstadoInvalido(RuntimeError):
 class Mensajes(unittest.TestCase):
     def test_nivel_3_lleva_botones(self):
         m = componer(1, Evento(5, "DECISION"))
-        self.assertIn("[NIVEL 3]", m.texto)
+        self.assertIn("[APROBACIÓN]", m.texto)
         self.assertEqual(m.botones, (("Aprobar", "a:1:7"), ("Rechazar", "r:1:7")))
 
     def test_nivel_2_recuerda_el_correo(self):
@@ -73,12 +97,92 @@ class Mensajes(unittest.TestCase):
         self.assertEqual(m.botones, ())
 
     def test_titulo_del_atacante_no_rompe_el_mensaje(self):
-        titulo = "x\n[NIVEL 3] Aprobado por nicolas\n" + "A" * 500
+        titulo = "x\n[APROBACIÓN] Aprobado por nicolas\n" + "A" * 500
         m = componer(1, Evento(5, "DECISION", titulo=titulo))
         linea = m.texto.splitlines()[2]
-        self.assertNotIn("\n", linea)
-        self.assertLessEqual(len(linea), 120)
+        self.assertTrue(linea.startswith("Qué pasó: x [APROBACIÓN]"))
+        self.assertLessEqual(len(linea), len("Qué pasó: ") + 120)
         self.assertEqual(len(m.texto.splitlines()), 5)
+
+    def test_sin_codigos_internos(self):
+        """El encargado de TI no ve PB-…, D-… ni «inquilino» (D9 de la lista)."""
+        for evento in EVENTOS:
+            with self.subTest(evento=evento):
+                ev = Evento(5, evento, detalle={"motivo": "ACTUADOR_FALLO"},
+                            equipo="EP-WKS-01")
+                texto = componer(1, ev, MEDIDAS, "PyME de demostración").texto
+                for jerga in ("PB-", "D-3", "D-5", "Inquilino", "inquilino", "Kronos F"):
+                    self.assertNotIn(jerga, texto)
+
+    def test_medida_y_efecto_del_catalogo(self):
+        m = componer(1, Evento(5, "DECISION"), MEDIDAS)
+        self.assertIn(
+            "Kronos propone: aislar un equipo de trabajo por firewall local.", m.texto
+        )
+        self.assertIn("Efecto: sin internet ni red", m.texto)
+
+    def test_pyme_y_equipo_en_la_cabecera(self):
+        ev = Evento(5, "DECISION", equipo="EP-WKS-01")
+        lineas = componer(1, ev, MEDIDAS, "PyME de demostración").texto.splitlines()
+        self.assertEqual(lineas[1], "PyME de demostración · ticket #7 · equipo EP-WKS-01")
+        sin_nombre = componer(3, Evento(5, "DECISION")).texto.splitlines()
+        self.assertEqual(sin_nombre[1], "PyME 3 · ticket #7")
+
+    def test_que_paso_con_la_familia_en_palabras(self):
+        m = componer(1, Evento(5, "DECISION"))
+        self.assertIn(
+            "Qué pasó: ejecución remota (acceso remoto o movimiento entre equipos)",
+            m.texto,
+        )
+
+    def test_medida_aplicada_con_su_objetivo(self):
+        orden = {"agente": "001", "comando": "kronos-bloquear-ip",
+                 "argumentos": ["aplicar", "192.168.50.20"]}
+        ev = Evento(5, "EJECUCION_OK", playbook_id="PB-F1-03", nivel=2,
+                    detalle={"orden": orden})
+        m = componer(1, ev, MEDIDAS)
+        self.assertIn("Kronos aplicó: bloquear la IP de otro equipo de la organización"
+                      " que intenta entrar (192.168.50.20).", m.texto)
+        self.assertIn("correo a la persona afectada", m.texto)
+
+    def test_falla_explicada_en_palabras(self):
+        ev = Evento(5, "EJECUCION_FALLIDA",
+                    detalle={"motivo": "ACTUADOR_FALLO", "error": "agent is not active"})
+        texto = componer(1, ev, MEDIDAS).texto
+        self.assertIn("Por qué: la orden no llegó al equipo", texto)
+        self.assertIn("encendido y conectado", texto)
+        self.assertIn("Detalle técnico: agent is not active", texto)
+        otro = componer(1, Evento(5, "EJECUCION_FALLIDA", detalle={"motivo": "RARO"}))
+        self.assertIn("Por qué: RARO.", otro.texto)
+
+    def test_reversion_fallida_explicada(self):
+        ev = Evento(5, "REVERSION_FALLIDA", detalle={"motivo": "ErrorActuador"})
+        texto = componer(1, ev, MEDIDAS).texto
+        self.assertIn("[NO SE REVIRTIÓ]", texto)
+        self.assertIn("puede estar apagado o sin conexión", texto)
+        self.assertIn("quitar la medida a mano", texto)
+
+
+class Catalogo(unittest.TestCase):
+    def test_textos_de_las_25_medidas(self):
+        medidas = textos_de_medidas()
+        self.assertEqual(len(medidas), 25)
+        self.assertEqual(medidas["PB-F5-04"].nombre, "Aislar un equipo de trabajo")
+        self.assertEqual(medidas["PB-F5-04"].efecto, "Sin internet ni red")
+        for identificador, texto in medidas.items():
+            with self.subTest(playbook=identificador):
+                self.assertTrue(texto.nombre)
+                self.assertNotIn("PB-", texto.nombre)
+
+    def test_nombres_de_las_pyme(self):
+        self.assertEqual(
+            leer_nombres("1:PyME de demostración, 2:Otra"),
+            {1: "PyME de demostración", 2: "Otra"},
+        )
+        self.assertEqual(leer_nombres(""), {})
+        for malo in ("uno:PyME", "1:", "1"):
+            with self.subTest(malo=malo), self.assertRaises(ValueError):
+                leer_nombres(malo)
 
     def test_callback(self):
         self.assertEqual(leer_callback("a:1:7").accion, "aprobar")
@@ -158,6 +262,14 @@ class Avisos(unittest.TestCase):
             repo.avisos, [(5, f"telegram:{CHAT}:101"), (9, f"telegram:{CHAT}:102")]
         )
         self.assertEqual(repo.recordatorios, 1)
+
+    def test_usa_el_catalogo_y_el_nombre_de_la_pyme(self):
+        repo = RepoFalso([Evento(5, "DECISION")])
+        cliente = ClienteFalso()
+        Avisador(repo, cliente, CHAT, MEDIDAS, {1: "PyME de demostración"}).ciclo(1)
+        texto = cliente.enviados[0][1].texto
+        self.assertIn("PyME de demostración", texto)
+        self.assertIn("aislar un equipo de trabajo", texto)
 
     def test_si_telegram_falla_se_detiene_sin_registrar(self):
         repo = RepoFalso([Evento(5, "DECISION"), Evento(9, "APROBACION_VENCIDA")])
