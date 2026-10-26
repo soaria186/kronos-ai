@@ -17,16 +17,18 @@ class TestAvisos(unittest.TestCase):
         self.t = random.randint(100_000, 2_000_000_000)
         self.repo = Repositorio(DSN)
 
-    def ticket(self, ref, playbook, nivel):
+    def ticket(self, ref, playbook, nivel, equipo=None):
         t = self.repo.registrar_alerta(self.t, ref, "prueba", 12, {"alerta": {}})
         self.repo.registrar_decision(
-            self.t, t.ticket_id, Decision("F1", playbook, 0.9, nivel)
+            self.t, t.ticket_id, Decision("F1", playbook, 0.9, nivel, equipo=equipo)
         )
         return t.ticket_id
 
-    def ejecutar(self, exito):
+    def ejecutar(self, exito, motivo="X"):
         ticket = self.repo.tomar_para_ejecutar(self.t)
-        self.repo.registrar_ejecucion(self.t, ticket.ticket_id, exito, {"motivo": "X"})
+        self.repo.registrar_ejecucion(
+            self.t, ticket.ticket_id, exito, {"motivo": motivo}
+        )
         return ticket.ticket_id
 
     def pendientes(self):
@@ -62,6 +64,32 @@ class TestAvisos(unittest.TestCase):
         )
         self.repo.registrar_aviso(self.t, segundo.seq, "telegram:1:102")
         self.assertEqual(self.repo.eventos_para_avisar(self.t), [])
+
+    def test_cada_aviso_trae_el_equipo_de_la_decision(self):
+        n3 = self.ticket("e3", "PB-F3-03", 3, equipo="EP-WKS-01")
+        f = self.ticket("e2", "PB-F1-03", 2, equipo="EP-SRV-01")
+        self.ejecutar(False, "ACTUADOR_FALLO")
+        self.repo.abrir_cortacircuito(self.t, "30 alertas en 10 minutos")
+        self.assertEqual(
+            [(e.evento, e.ticket_id, e.equipo) for e in self.repo.eventos_para_avisar(self.t)],
+            [
+                ("DECISION", n3, "EP-WKS-01"),
+                ("EJECUCION_FALLIDA", f, "EP-SRV-01"),
+                ("CORTACIRCUITO_ABIERTO", None, None),
+            ],
+        )
+
+    def test_nivel_0_sin_comando_no_se_avisa(self):
+        """D-50: la falla de una consulta de nivel 0 sin comando no llena el grupo."""
+        self.ticket("c0", "PB-F1-01", 0)
+        self.ejecutar(False, "ACCION_NO_IMPLEMENTADA")
+        n0 = self.ticket("o0", "PB-F1-01", 0)
+        self.ejecutar(False, "ACTUADOR_FALLO")  # otra falla de nivel 0: sí se avisa
+        n2 = self.ticket("c2", "PB-F1-03", 2)
+        self.ejecutar(False, "ACCION_NO_IMPLEMENTADA")  # sin comando en nivel 2: sí
+        self.assertEqual(
+            self.pendientes(), [("EJECUCION_FALLIDA", n0), ("EJECUCION_FALLIDA", n2)]
+        )
 
     def test_aviso_de_evento_inexistente(self):
         with self.assertRaises(ValueError):

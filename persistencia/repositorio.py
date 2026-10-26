@@ -76,7 +76,9 @@ EVENTO_RECORDATORIO = "RECORDATORIO_REVISION"
 EVENTO_AVISO_ENVIADO = "AVISO_ENVIADO"
 
 # Eventos que SOAR-NOTIFY avisa siempre. Además: DECISION aprobada de nivel 3
-# (solicitud de aprobación) y EJECUCION_OK de nivel 2 (D-31).
+# (solicitud de aprobación) y EJECUCION_OK de nivel 2 (D-31). Salvo una excepción: la
+# falla de un nivel 0 cuya acción no tiene comando no se avisa (D-50).
+MOTIVO_SIN_COMANDO = "ACCION_NO_IMPLEMENTADA"
 EVENTOS_AVISABLES = (
     EVENTO_EJECUCION_FALLIDA,
     EVENTO_REVERSION_FALLIDA,
@@ -177,6 +179,8 @@ class EventoAvisable:
     titulo: str | None
     playbook_id: str | None
     nivel: int | None
+    # Equipo de la alerta (agent.name), tomado de la DECISION del ticket.
+    equipo: str | None = None
 
 
 @dataclass(frozen=True)
@@ -717,12 +721,23 @@ class Repositorio:
         El punto de avance es el mayor ``seq_origen`` de los eventos AVISO_ENVIADO: un
         aviso que no se pudo enviar se vuelve a ofrecer en el ciclo siguiente.
         Supone un único proceso de SOAR-NOTIFY.
+
+        Cada evento trae el equipo de la alerta (de la DECISION del ticket). La falla de
+        una medida de nivel 0 sin comando (ACCION_NO_IMPLEMENTADA) no se avisa (D-50):
+        queda en la consola, pero no llena el grupo de avisos.
         """
         with self._transaccion(tenant_id) as cur:
             cur.execute(
                 """
                 SELECT a.seq, a.evento, a.ticket_id, a.detalle,
-                       t.titulo, t.playbook, t.autonomia_aplicada
+                       t.titulo, t.playbook, t.autonomia_aplicada,
+                       (SELECT d.detalle->>'equipo'
+                          FROM auditoria d
+                         WHERE d.tenant_id = a.tenant_id
+                           AND d.ticket_id = a.ticket_id
+                           AND d.evento = %s
+                         ORDER BY d.seq DESC
+                         LIMIT 1) AS equipo
                   FROM auditoria a
                   LEFT JOIN tickets t ON t.tenant_id = a.tenant_id AND t.id = a.ticket_id
                  WHERE a.tenant_id = %s
@@ -730,6 +745,9 @@ class Repositorio:
                         OR (a.evento = %s AND a.detalle->>'resultado' = 'aprobada'
                             AND a.detalle->>'nivel' = '3')
                         OR (a.evento = %s AND t.autonomia_aplicada = 2))
+                   AND NOT coalesce(a.evento = %s
+                                    AND a.detalle->>'motivo' = %s
+                                    AND t.autonomia_aplicada = 0, false)
                    AND a.seq > (
                         SELECT coalesce(max((detalle->>'seq_origen')::bigint), 0)
                           FROM auditoria
@@ -738,10 +756,13 @@ class Repositorio:
                  LIMIT %s
                 """,
                 (
+                    EVENTO_DECISION,
                     tenant_id,
                     list(EVENTOS_AVISABLES),
                     EVENTO_DECISION,
                     EVENTO_EJECUCION_OK,
+                    EVENTO_EJECUCION_FALLIDA,
+                    MOTIVO_SIN_COMANDO,
                     tenant_id,
                     EVENTO_AVISO_ENVIADO,
                     limite,
