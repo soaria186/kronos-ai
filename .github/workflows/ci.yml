@@ -88,5 +88,70 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: unittest (tests/unit)
-        run: python -m unittest discover -s tests/unit -v
+      - name: Dependencias de la consola (sin ellas se omiten sus 13 pruebas)
+        run: python -m pip install --disable-pip-version-check -r consola/requirements.txt httpx==0.28.1
+
+      - name: unittest (tests/unit), sin pruebas omitidas
+        run: |
+          set -o pipefail
+          python -m unittest discover -s tests/unit -v 2>&1 | tee unittest.log
+          if grep -q "skipped=" unittest.log; then
+            echo "::error::Hay pruebas omitidas: falta alguna dependencia en el CI."
+            exit 1
+          fi
+
+  integracion:
+    name: pruebas de integración (PostgreSQL 17.11)
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17.11
+        env:
+          POSTGRES_USER: kronos_admin
+          # Base efímera del CI, alcanzable sólo desde el runner: sin contraseña.
+          POSTGRES_HOST_AUTH_METHOD: trust
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U kronos_admin"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      PGHOST: localhost
+      PGPORT: "5432"
+      PGUSER: kronos_admin
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+
+      - name: Dependencias de la capa de base
+        run: python -m pip install --disable-pip-version-check -r persistencia/requirements.txt
+
+      - name: Base kronos_pruebas con el esquema de infra/docker/initdb y las migraciones
+        run: |
+          set -o pipefail
+          bash tests/integracion/preparar_base.sh > conexiones.env
+          sed -n 's/.*password=\([^ ]*\).*/::add-mask::\1/p' conexiones.env
+          cat conexiones.env >> "$GITHUB_ENV"
+          rm conexiones.env
+
+      - name: unittest (tests/integracion; las 5 que usan el modelo se omiten)
+        run: python -m unittest discover -s tests/integracion -v
+
+  entrega:
+    name: verificación de la entrega (PR hacia main)
+    if: github.base_ref == 'main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+
+      - name: tools/verificar_entrega.py
+        run: python tools/verificar_entrega.py --antes-de-publicar
