@@ -37,7 +37,7 @@ Semana de cierre: lunes 26-10 a domingo 01-11-2026. Generado en el chat principa
 
 ## Revisiones que te tocan (regla D-54)
 - **Apruebas** los PR de **Patricio**: cortacircuito (martes), cambios de la medición y documentos. Hazlo el mismo día; si no alcanzas, avisa por WhatsApp.
-- **Tus PR los aprueba Rodrigo.** No mezcles tus propios PR ni mezcles desde `soarai2026`.
+- **Tus PR los aprueba Rodrigo.** No mezcles tus propios PR ni mezcles desde `soaria186`.
 
 ## Decisiones que te tocan como Product Owner
 - D-58: nombre y perfil de la PyME simulada (empresa **ficticia**).

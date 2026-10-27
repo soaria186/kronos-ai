@@ -3,7 +3,7 @@
 | Campo | Valor |
 | :--- | :--- |
 | Fecha | Lunes 26-10-2026 |
-| Repositorio revisado | `soarai2026/kronos-ai`: todas las ramas y los 38 PR, clonado y probado hoy. `develop` está en `66d955e` (21-10); no hay cambios desde entonces |
+| Repositorio revisado | `soaria186/kronos-ai`: todas las ramas y los 38 PR, clonado y probado hoy. `develop` está en `66d955e` (21-10); no hay cambios desde entonces |
 | Complementa | `KRO-PLAN-2026-10-26_replanteamiento_pyme_y_cierre.md`, sección 4. Aquí está el detalle de cada corrección |
 | Herramienta | `verificar_entrega.py` (adjunta): comprueba de forma automática 15 de estos puntos. **Hoy da 2 de 15** (sólo pasan las pruebas unitarias y R1) |
 
@@ -41,10 +41,10 @@ Cada punto dice **qué arreglar**, **cómo comprobarlo** y **quién y cuándo** 
   - **Nicolás, al decidir D-63.**
 - [ ] **A6. Ficha del repositorio («About»).**
   - Descripción en una línea y temas (`soar`, `wazuh`, `ollama`, `llm`, `cybersecurity`, `pyme`, `postgresql`, `fastapi`). Hoy está vacía.
-  - Se edita desde la cuenta dueña, `soarai2026`.
+  - Se edita desde la cuenta dueña, `soaria186`.
   - **Nicolás, sábado 31.**
 - [ ] **A7. Acceso de la comisión (D-63).**
-  - El repositorio es privado y su dueño es una cuenta personal compartida (`soarai2026`).
+  - El repositorio es privado y su dueño es una cuenta personal compartida (`soaria186`).
   - **Opción 1:** invitar al profesor guía como colaborador de lectura.
   - **Opción 2, recomendada:** hacerlo público al publicar la v1.0, después de la sección F. Así se pueden activar gratis las **reglas de protección** de `main` y `develop` (una aprobación obligatoria, checks en verde, sin `force push`). Hoy GitHub no las permite porque el repositorio es privado y la cuenta es gratuita.
   - **Nicolás y Rodrigo.**

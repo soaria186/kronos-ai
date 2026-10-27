@@ -8,7 +8,7 @@
 | Propósito | Entregar a un agente de redacción todo el contexto necesario para escribir la documentación del proyecto hasta antes de instalar los agentes en la farmacia |
 | Ubicación sugerida en el repositorio | `docs/00-indice/KRONOS_CONTEXTO_MAESTRO.md` |
 | Cambios de la 2.1 | Decisiones D-31 a D-35 (14-10, Nicolás): sólo el equipo aprueba y recibe avisos; plazo de 2 días para aprobar el nivel 3; plazo de revisión de 2 días para el nivel 2 con recordatorio diario y sin reversión automática; propuesta de expiración del nivel 3; aviso a la persona afectada por correo, de forma manual. Actualizadas las secciones 4.5, 4.9, 8.5, 9, 12.3, 13 (KRO-DOC-02, 10 y 17) y 18 |
-| Cambios de la 2.0 | Reescrito desde cero. Incorpora el repositorio `soarai2026/kronos-ai` (rama `develop` y ramas de trabajo), los documentos de los otros chats del proyecto («Replanteamiento como SaaS», «Tareas por integrante», catálogo de 25 medidas, casos de uso y plan de instalación en la farmacia) y las respuestas del equipo del 14-10-2026. Reemplaza a las versiones 1.x, que se basaban en documentos de Fase 1 y tenían errores de arquitectura |
+| Cambios de la 2.0 | Reescrito desde cero. Incorpora el repositorio `soaria186/kronos-ai` (rama `develop` y ramas de trabajo), los documentos de los otros chats del proyecto («Replanteamiento como SaaS», «Tareas por integrante», catálogo de 25 medidas, casos de uso y plan de instalación en la farmacia) y las respuestas del equipo del 14-10-2026. Reemplaza a las versiones 1.x, que se basaban en documentos de Fase 1 y tenían errores de arquitectura |
 
 > **No confundir:** este archivo es un **contexto para el agente de redacción**. El proyecto tiene además su propio **«Documento Maestro»** (versión 2, con nueve documentos derivados), que se actualiza en el cierre académico. Este archivo no lo reemplaza.
 
@@ -51,7 +51,7 @@
 
 | # | Fuente | Fecha | Qué aporta |
 | :---: | :--- | :--- | :--- |
-| F1 | Repositorio `soarai2026/kronos-ai`, rama `develop` (commit `4a0b667`) y ramas `feat/*` | 06 al 14-10-2026 | Código, esquema SQL, CI, prompts, mediciones. Es lo único verificable por inspección |
+| F1 | Repositorio `soaria186/kronos-ai`, rama `develop` (commit `4a0b667`) y ramas `feat/*` | 06 al 14-10-2026 | Código, esquema SQL, CI, prompts, mediciones. Es lo único verificable por inspección |
 | F2 | Documento «Kronos AI — Tareas por integrante» | 14-10-2026 | Estado real del servidor, tareas por persona, guía de instalación en 15 partes, decisiones pendientes |
 | F3 | Registro de trabajo KRO-LOG-RR-2026-10-08 (Rodrigo) | 08-10-2026 | Despliegue y pruebas de SOAR-AUDIT en el servidor |
 | F4 | «Plan de instalación de agentes en la farmacia» | 08-10-2026 | Componentes, seis chequeos, niveles, familias, casos de uso por equipo |
@@ -846,7 +846,7 @@ Una **plantilla común** que se construye primero y se reutiliza:
 
 | Insumo | Dónde |
 | :--- | :--- |
-| Repositorio | `github.com/soarai2026/kronos-ai` (privado), rama `develop` |
+| Repositorio | `github.com/soaria186/kronos-ai` (privado), rama `develop` |
 | Tareas por integrante | enlace privado del equipo |
 | Replanteamiento como SaaS | enlace privado del equipo |
 | Anexo — Catálogo de medidas (25 playbooks) | enlace privado del equipo |

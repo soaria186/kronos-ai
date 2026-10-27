@@ -45,7 +45,7 @@ Tareas hacia la instalación del primer agente en la farmacia. Generado en el ch
 ## Reglas
 - Nunca claves en el chat: `read -rs`. Usa `set +H` antes de comandos con `!`. Copia archivos a las VM con `scp -P 2222` (EP-SRV-01) o `-P 2223` (EP-WKS-01).
 - Nunca bloquear `10.0.50.1` ni tu IP de SSH.
-- **Regla de merge (D-54):** nadie mezcla desde `soarai2026`, nunca mezcla el autor y siempre hay una aprobación previa desde la cuenta personal.
+- **Regla de merge (D-54):** nadie mezcla desde `soaria186`, nunca mezcla el autor y siempre hay una aprobación previa desde la cuenta personal.
 - Avisar en Telegram antes de tocar el servidor.
 - Tus commits y PR van sin marcas ni coautoría de herramientas de IA.
 

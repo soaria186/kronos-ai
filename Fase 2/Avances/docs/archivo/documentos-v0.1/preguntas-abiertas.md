@@ -50,7 +50,7 @@ Generado desde los documentos de `docs/entregables/` (versión 0.1, 14-10-2026).
 | 47 | retención de las copias diarias y semanales | 19 · 6. Retención de las copias | Equipo |
 | 48 | RPO y RTO aceptados por el equipo | 19 · 8. Objetivos de recuperación | Equipo |
 | 49 | destino de los datos y copias de la farmacia al terminar el contrato del servidor | 19 · 10. Fin del servicio | Equipo |
-| 50 | quién custodia la cuenta compartida soarai2026 y si se mantiene | 20 · 2. Inventario | Equipo |
+| 50 | quién custodia la cuenta compartida soaria186 y si se mantiene | 20 · 2. Inventario | Equipo |
 | 51 | si SOAR-NOTIFY usará correo transaccional, dado que el aviso a la persona afectada es manual (D-35) | 20 · 2. Inventario | Rodrigo |
 | 52 | procedimiento concreto para pasar los secretos del servidor al gestor sin mostrarlos | 20 · 5. Resguardo | Rodrigo |
 | 53 | cómo reciben la contraseña de kronos_worker (archivo de secreto de Docker u otro) | 20 · 6. Entrega a cada componente | Rodrigo y Patricio |

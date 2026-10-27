@@ -29,7 +29,7 @@ Una fase nueva se agrega con las mismas tres carpetas. El código no se duplica 
 ## Flujo de una tarea
 
 1. Rama desde `develop`, con nombre `tipo/etapa-tema` (por ejemplo `feat/e3-tickets-huerfanos`). Si la tarea
-   está en el [milestone](https://github.com/soarai2026/kronos-ai/milestones), el PR la nombra («Parte de #NN»).
+   está en el [milestone](https://github.com/soaria186/kronos-ai/milestones), el PR la nombra («Parte de #NN»).
 2. Push diario a la rama, aunque el trabajo esté a medias.
 3. Commits en español: `tipo(ámbito): descripción` (`feat`, `fix`, `docs`, `test`, `ci`, `refactor`).
 4. Al terminar, PR hacia `develop` con la plantilla (`.github/pull_request_template.md`): qué cambia, por qué,
@@ -43,7 +43,7 @@ Una fase nueva se agrega con las mismas tres carpetas. El código no se duplica 
 1. **Siempre hay una aprobación previa** («Approve» en GitHub), hecha desde la **cuenta
    personal** de un integrante.
 2. **Nunca mezcla el autor** del PR.
-3. **Nadie mezcla desde la cuenta compartida `soarai2026`.**
+3. **Nadie mezcla desde la cuenta compartida `soaria186`.**
 4. Se mezcla sólo con los checks del CI en verde y sin cambios pedidos pendientes.
 5. **Siempre con commit de merge** («Create a merge commit»): sin aplastar ni rebasar, para que el historial
    muestre cada tarea y quién la hizo.
@@ -56,7 +56,7 @@ Quién revisa a quién:
 | Patricio | Nicolás |
 | Rodrigo | Patricio |
 
-Un PR que se abre desde la cuenta `soarai2026` (por ejemplo, desde un chat del asistente de IA) se atribuye
+Un PR que se abre desde la cuenta `soaria186` (por ejemplo, desde un chat del asistente de IA) se atribuye
 al integrante que lo pidió, y ese integrante cuenta como autor: no lo aprueba ni lo mezcla.
 
 ### Excepciones registradas (R-04)
@@ -69,7 +69,7 @@ excepción y no se repiten:
 | #1 a #16 | Mezclados sin aprobación registrada |
 | #17 a #24 | Aprobados por Nicolás y mezclados por él |
 | #25 a #30 | Mezclados sin aprobación registrada. Revisión de Rodrigo después del hecho (`KRO-REV-RR-2026-10-21`) |
-| #31 a #34 | Mezclados el 21-10 desde `soarai2026` sin aprobación. #31 y #33, con revisión de Rodrigo después del hecho |
+| #31 a #34 | Mezclados el 21-10 desde `soaria186` sin aprobación. #31 y #33, con revisión de Rodrigo después del hecho |
 | #36 | Mezclado el 21-10 por su propio autor, ya vigente la regla. Tenía la aprobación de Nicolás |
 | #75 a #84 | Integrados el 26-10 sin aprobación previa, junto con la reestructuración por fases que pidió la institución. Los tres lo autorizaron el mismo día |
 

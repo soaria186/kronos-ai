@@ -175,7 +175,7 @@ Rama `docs/lab-ep-wks-01-escritorio` hacia `develop`, 1 commit, +9 −5, sólo `
 
 ## 9. Referencias
 
-- Repositorio `soarai2026/kronos-ai`, rama `develop`. PR n.º 31 (`feat/e1-ar-bloquear-ip`) y n.º 33 (`docs/lab-ep-wks-01-escritorio`).
+- Repositorio `soaria186/kronos-ai`, rama `develop`. PR n.º 31 (`feat/e1-ar-bloquear-ip`) y n.º 33 (`docs/lab-ep-wks-01-escritorio`).
 - Ramas vistas en el repositorio y no revisadas por Nicolás: `feat/e3-ar-windows-bloquear-ip`, `feat/e2-plazos-reversion`, `feat/e2-validate-*`, `docs/validate-permiso-secreto`, `feat/validate-mejoras-prueba-20-10`, `fix/pruebas-solo-linux`.
 - Documentos del proyecto: `KRO-ESTADO-2026-10-20_ejecucion_y_plan_paralelo.md`, `KRO-LOG-PG-2026-10-20_bloque_a_patricio.md`, `KRO-LOG-NZ-2026-10-21_bloque_a_nicolas.md`, `KRONOS_CONTEXTO_MAESTRO.md` (v3.1 del 15-10, desactualizada en lo del laboratorio).
 - Wazuh 4.14.8: Active Response y API (`/active-response`, `/agents/insert`, `/security/users`, `/security/roles`, `/security/policies`).

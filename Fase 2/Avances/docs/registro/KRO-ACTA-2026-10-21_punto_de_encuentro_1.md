@@ -17,7 +17,7 @@
 | D-51 | Reversión con el agente apagado | **Aviso manual**, sin reintento automático |
 | D-52 | Reglas que se pierden al reiniciar el equipo | **Se corrige**: deben volver a aplicarse |
 | D-53 | Tickets de prueba #1, #2 y #5 | **Se dejan como evidencia** |
-| D-54 | Regla de merge | Nadie mezcla desde `soarai2026`; nunca mezcla el autor; siempre hay una aprobación previa desde la cuenta personal. Los PR #7 al #34 quedan como excepción R-04 |
+| D-54 | Regla de merge | Nadie mezcla desde `soaria186`; nunca mezcla el autor; siempre hay una aprobación previa desde la cuenta personal. Los PR #7 al #34 quedan como excepción R-04 |
 | D-55 | Despliegue en SOAR-CORE-01 | **Rodrigo** pasa `/opt/kronos/audit` a un `git clone` con etiquetas de versión. Nadie despliega sin avisar en el grupo de Telegram |
 | D-56 | Roles de Scrum | **Product Owner: Nicolás. Scrum Master: Rodrigo. Equipo de desarrollo: los tres**, con Patricio a cargo de la calidad de la decisión (IA y mediciones) |
 

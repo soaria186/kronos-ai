@@ -104,7 +104,7 @@ Registro de trabajo del 21-10-2026 (hora de Chile). Sin secretos: el token del b
 ## 6. Revisión cruzada ✅
 
 - Documento `KRO-REV-RR-2026-10-21_revision_cruzada.md`, con los comentarios listos para pegar desde la cuenta personal de GitHub de Rodrigo.
-- **Los PR #31, #32, #33 y #34 se mezclaron el 21-10 a las 14:37** desde la cuenta compartida `soarai2026`, sin revisión registrada. Se anota como excepción (R-04).
+- **Los PR #31, #32, #33 y #34 se mezclaron el 21-10 a las 14:37** desde la cuenta compartida `soaria186`, sin revisión registrada. Se anota como excepción (R-04).
 - Las observaciones al #31 (rechazar la puerta de enlace y exigir dos argumentos) pasan a un **PR nuevo de Nicolás**.
 - La contradicción del #33 queda resuelta: la reversión de 60 minutos se confirmó en la segunda prueba de Nicolás (21-10, 16:35 UTC).
 - Del #28 quedan dos hallazgos:

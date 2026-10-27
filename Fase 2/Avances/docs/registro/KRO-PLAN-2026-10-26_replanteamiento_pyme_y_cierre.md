@@ -5,7 +5,7 @@
 | Fecha | Lunes 26-10-2026 |
 | Para | Nicolás (Product Owner), Rodrigo (Scrum Master) y Patricio. Se usa en el chat principal «kronos maestro» y en los chats individuales, junto con `KRO-TAREAS-2026-10-26_<nombre>.md` |
 | Qué responde | La decisión del profesor guía: **no habrá farmacia ni cliente real**. Kronos AI se presenta como solución para **PyMEs que no pueden pagar un especialista en ciberseguridad y sólo tienen un encargado de TI generalista**. Cómo terminar el proyecto en una semana y dejar el mes restante para estudiar y ensayar la defensa ante la comisión (primera semana de diciembre) |
-| Fuentes revisadas | Repositorio `soarai2026/kronos-ai` completo (43 ramas, PR #1 a #38, CI), clonado y probado hoy. Documentos del proyecto: registros KRO-LOG del 08, 15, 20 y 21-10, revisión cruzada de Rodrigo, acta del punto de encuentro 1, tareas del 21-10, contexto maestro v3.1 y pendientes de la entrega del 16-10. Este chat |
+| Fuentes revisadas | Repositorio `soaria186/kronos-ai` completo (43 ramas, PR #1 a #38, CI), clonado y probado hoy. Documentos del proyecto: registros KRO-LOG del 08, 15, 20 y 21-10, revisión cruzada de Rodrigo, acta del punto de encuentro 1, tareas del 21-10, contexto maestro v3.1 y pendientes de la entrega del 16-10. Este chat |
 | Límites | No puedo leer los chats individuales: sólo veo lo que quedó en documentos del proyecto o en GitHub. Lo hecho **después del 21-10** que no esté ahí no lo conozco (por eso hay puntos «por confirmar»). Los 31 Word están en el Drive de Rodrigo y no son visibles desde aquí: su estado sale de la lista de pendientes del 16-10. Las guías de la Fase 3 de Duoc no son públicas: hay que subirlas al proyecto |
 
 ---
@@ -231,7 +231,7 @@ Van al documento 6.5 y al informe final.
 
 ### 7.3 Reglas de la semana
 - **Alcance congelado** (sección 5).
-- **Regla de merge D-54 sin excepciones:** aprobación previa desde la cuenta personal, nunca mezcla el autor y nunca desde `soarai2026`. **Revisión el mismo día:** un PR que espera más de 12 horas se avisa por WhatsApp.
+- **Regla de merge D-54 sin excepciones:** aprobación previa desde la cuenta personal, nunca mezcla el autor y nunca desde `soaria186`. **Revisión el mismo día:** un PR que espera más de 12 horas se avisa por WhatsApp.
 - **Servidor:** se avisa en el grupo de Telegram antes de desplegar, y despliega una sola persona a la vez. Desde el lunes, sólo con `git pull` y la etiqueta: no más copias desde Windows.
 - **Avance diario por WhatsApp:** tres líneas (qué hice, qué sigue, qué me bloquea). Sirve además como evidencia de Scrum.
 - **Redacción con el asistente de IA en cada chat, con revisión humana:** documentos, guía, README, manual e informe. Nadie entrega un texto que no leyó.

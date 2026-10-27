@@ -60,7 +60,7 @@ Cada pregunta aparece una vez, con los documentos donde se usa. Al responderla, 
 | POR CONFIRMAR | procedimiento de cierre al terminar el contrato del servidor | 1.7, 5.4 |
 | POR CONFIRMAR | qué define la restricción R4 | 2.3, 3.1 |
 | POR CONFIRMAR | destino de los datos y de las copias de la farmacia al terminar el contrato | 3.2, 5.3 |
-| POR CONFIRMAR | custodia de la cuenta compartida soarai2026 | 5.1, 5.5 |
+| POR CONFIRMAR | custodia de la cuenta compartida soaria186 | 5.1, 5.5 |
 | POR CONFIRMAR | gestor de contraseñas del equipo | 5.4, 5.5 |
 | POR CONFIRMAR | revisión del análisis legal por el profesor guía | 1.1 |
 | POR CONFIRMAR | patrocinador formal | 1.2 |
@@ -93,7 +93,7 @@ Cada pregunta aparece una vez, con los documentos donde se usa. Al responderla, 
 | POR CONFIRMAR | cómo se cerrará BR-05 antes de instalar en la farmacia | 5.3 |
 | POR CONFIRMAR | acceso del profesor al repositorio | 5.4 |
 | POR CONFIRMAR | 2FA en las cuentas de GitHub | 5.4 |
-| POR CONFIRMAR | custodia de la cuenta compartida soarai2026 y si se mantiene | 5.4 |
+| POR CONFIRMAR | custodia de la cuenta compartida soaria186 y si se mantiene | 5.4 |
 | POR CONFIRMAR | frecuencia de rotación periódica | 5.5 |
 | POR CONFIRMAR | canal alternativo del equipo | 5.6 |
 | POR CONFIRMAR | medio acordado con el profesor | 5.6 |
@@ -156,7 +156,7 @@ Cada pregunta aparece una vez, con los documentos donde se usa. Al responderla, 
 | Tipo | Qué falta | Documentos |
 | :--- | :--- | :--- |
 | POR CONFIRMAR | horas semanales de Rodrigo | 1.6 |
-| POR CONFIRMAR | plan de la organización soarai2026 | 3.2 |
+| POR CONFIRMAR | plan de la organización soaria186 | 3.2 |
 | POR CONFIRMAR | qué campos de la alerta incluye el aviso de Telegram | 5.3 |
 | POR CONFIRMAR | cómo se abre el cortacircuito a mano (la consola sólo lo cierra) | 5.6 |
 | POR CONFIRMAR | reglas adicionales de ruff que el equipo quiera fijar | 6.1 |
@@ -409,7 +409,7 @@ Cada pregunta aparece una vez, con los documentos donde se usa. Al responderla, 
 | 7.1 Costo del servidor | POR CONFIRMAR | monto real facturado y período | Nicolás |
 | 7.1 Costo del servidor | POR CONFIRMAR | fecha de inicio del contrato del servidor | Nicolás |
 | 7.2 Otros costos | POR CONFIRMAR | plan de NetBird usado (gratuito o pago) | Nicolás |
-| 7.2 Otros costos | POR CONFIRMAR | plan de la organización soarai2026 | Rodrigo |
+| 7.2 Otros costos | POR CONFIRMAR | plan de la organización soaria186 | Rodrigo |
 | 7.2 Otros costos | POR CONFIRMAR | si se compra un dominio y su costo | Nicolás |
 | 7.3 Uso de los recursos | POR CONFIRMAR | uso medido de CPU, memoria y disco del servidor con todos los servicios | Nicolás |
 | 7.4 Costo por agente y punto de equilibrio | POR CONFIRMAR | horas del equipo y costo de soporte por cliente | Equipo |
@@ -440,7 +440,7 @@ Cada pregunta aparece una vez, con los documentos donde se usa. Al responderla, 
 | 5.2 Alerta, modelo y validador (F2 a F5) | POR CONFIRMAR | aprobación del mapa de severidad, la lista de exclusión y los contadores | Equipo |
 | 5.5 Avisos y aprobaciones (F8 a F10) | POR CONFIRMAR | verificación en dos pasos de Telegram en las cuentas de los integrantes | Equipo |
 | 5.6 Servidor, red y desarrollo | POR CONFIRMAR | estado actual del VNC de Contabo | Nicolás |
-| 5.6 Servidor, red y desarrollo | POR CONFIRMAR | custodia de la cuenta compartida soarai2026 | Equipo |
+| 5.6 Servidor, red y desarrollo | POR CONFIRMAR | custodia de la cuenta compartida soaria186 | Equipo |
 | Referencias | POR CONFIRMAR | año y edición, tomados de la portada | Patricio |
 
 ### 5.2 Matriz de Evaluación y Gestión de Riesgos de Seguridad
@@ -474,7 +474,7 @@ Cada pregunta aparece una vez, con los documentos donde se usa. Al responderla, 
 | 5. Autenticación | POR CONFIRMAR | segundo factor en NetBird | Nicolás |
 | 5. Autenticación | POR CONFIRMAR | 2FA en las cuentas de GitHub | Equipo |
 | 6.3 Baja | POR CONFIRMAR | procedimiento de cierre al terminar el contrato del servidor | Equipo |
-| 7. Excepciones y riesgos abiertos | POR CONFIRMAR | custodia de la cuenta compartida soarai2026 y si se mantiene | Equipo |
+| 7. Excepciones y riesgos abiertos | POR CONFIRMAR | custodia de la cuenta compartida soaria186 y si se mantiene | Equipo |
 | 7. Excepciones y riesgos abiertos | POR CONFIRMAR | gestor de contraseñas del equipo | Equipo |
 | Referencias | POR CONFIRMAR | año y edición, tomados de la portada | Patricio |
 
@@ -483,7 +483,7 @@ Cada pregunta aparece una vez, con los documentos donde se usa. Al responderla, 
 | Sección | Tipo | Qué falta | Preguntar a |
 | :--- | :--- | :--- | :--- |
 | 3. Inventario de secretos | POR CONFIRMAR | dominio propio | Nicolás |
-| 3. Inventario de secretos | POR CONFIRMAR | custodia de la cuenta compartida soarai2026 | Equipo |
+| 3. Inventario de secretos | POR CONFIRMAR | custodia de la cuenta compartida soaria186 | Equipo |
 | 4.1 Dos niveles | POR CONFIRMAR | gestor de contraseñas del equipo | Equipo |
 | 5.2 Entrega | POR CONFIRMAR | cómo recibirá la contraseña de kronos_worker sin compartir el GID 999 | Patricio y Rodrigo |
 | 5.3 Rotación | POR CONFIRMAR | frecuencia de rotación periódica | Equipo |

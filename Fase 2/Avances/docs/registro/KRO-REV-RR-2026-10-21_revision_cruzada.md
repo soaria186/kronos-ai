@@ -1,6 +1,6 @@
 # KRO-REV-RR-2026-10-21 — Revisión cruzada de Rodrigo
 
-Revisión de los PR de Nicolás abiertos (#31 y #33) y de los PR #25 a #30, ya mezclados sin revisión registrada (revisión «después del hecho»). Cada sección trae el texto listo para pegar como comentario en GitHub **desde la cuenta personal de Rodrigo**. La sesión del asistente de IA usa la cuenta compartida `soarai2026`, y una revisión desde ahí no quedaría a nombre de Rodrigo.
+Revisión de los PR de Nicolás abiertos (#31 y #33) y de los PR #25 a #30, ya mezclados sin revisión registrada (revisión «después del hecho»). Cada sección trae el texto listo para pegar como comentario en GitHub **desde la cuenta personal de Rodrigo**. La sesión del asistente de IA usa la cuenta compartida `soaria186`, y una revisión desde ahí no quedaría a nombre de Rodrigo.
 
 Severidad: 🔴 bloquea el merge · 🟡 corregir pronto, en este PR u otro · ⚪ observación.
 

@@ -4,7 +4,7 @@ Cambios de Kronos AI por sprint y por versión, con el pull request de cada uno.
 
 ## Sin publicar: semana de cierre (26-10 al 01-11-2026)
 
-Milestone [«v1.0: cierre»](https://github.com/soarai2026/kronos-ai/milestone/1). Esta sección pasa a ser la versión 1.0.0 al publicarla.
+Milestone [«v1.0: cierre»](https://github.com/soaria186/kronos-ai/milestone/1). Esta sección pasa a ser la versión 1.0.0 al publicarla.
 
 ### Cambiado
 

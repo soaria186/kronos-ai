@@ -21,6 +21,6 @@
 
 ## Revisión (D-54)
 
-- **Autor:** <!-- integrante; si se abre desde soarai2026, quien lo pidió -->
+- **Autor:** <!-- integrante; si se abre desde soaria186, quien lo pidió -->
 - **Aprueba:** <!-- Nicolás → Rodrigo · Patricio → Nicolás · Rodrigo → Patricio -->
 - Lo mezcla un integrante distinto del autor, desde su cuenta personal, con los checks en verde.

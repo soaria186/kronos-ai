@@ -49,7 +49,7 @@ Tareas hacia la instalación del primer agente en la farmacia. Generado en el ch
 ## Reglas
 - Nada de secretos en el chat ni en el repositorio. No abrir `getUpdates` en el navegador.
 - **No convertir el grupo de Telegram en supergrupo**: cambiaría su id.
-- **Regla de merge (D-54):** nadie mezcla desde `soarai2026`, nunca mezcla el autor y siempre hay una aprobación previa desde la cuenta personal.
+- **Regla de merge (D-54):** nadie mezcla desde `soaria186`, nunca mezcla el autor y siempre hay una aprobación previa desde la cuenta personal.
 - Avisar en Telegram antes de tocar el servidor.
 
 ## Al terminar

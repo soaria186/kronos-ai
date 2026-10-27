@@ -42,7 +42,7 @@ El repositorio está ordenado por fases y el proyecto vive en `Fase 2/Avances`. 
 servidor lleva espacios, y todos los comandos de esta guía usan `/opt/kronos/audit`.
 
 ```
-[servidor] sudo GIT_SSH_COMMAND='ssh -i /root/.ssh/kronos_despliegue' git clone git@github.com:soarai2026/kronos-ai.git /opt/kronos/kronos-ai
+[servidor] sudo GIT_SSH_COMMAND='ssh -i /root/.ssh/kronos_despliegue' git clone git@github.com:soaria186/kronos-ai.git /opt/kronos/kronos-ai
 [servidor] sudo git -C /opt/kronos/kronos-ai config core.sshCommand 'ssh -i /root/.ssh/kronos_despliegue'
 [servidor] sudo git -C /opt/kronos/kronos-ai checkout v1.0.0
 [servidor] sudo ln -s "/opt/kronos/kronos-ai/Fase 2/Avances" /opt/kronos/audit
@@ -51,7 +51,7 @@ servidor lleva espacios, y todos los comandos de esta guía usan `/opt/kronos/au
 ```
 
 **Debe mostrar:** `v1.0.0` y los archivos de `infra/docker` (`docker-compose.yml`, `servicios.yml`…). Si el
-repositorio es público, basta con `git clone https://github.com/soarai2026/kronos-ai.git`.
+repositorio es público, basta con `git clone https://github.com/soaria186/kronos-ai.git`.
 
 Lo que vive **sólo en el servidor**, fuera de git (`.gitignore`): `infra/docker/.env`, `infra/docker/secrets/`,
 `infra/docker/initdb/03_roles.sql` e `infra/docker/initdb/05_clave_consola.sql`, todos dentro de

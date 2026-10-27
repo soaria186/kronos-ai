@@ -100,7 +100,7 @@
 - [ ] Decidir si los playbooks serán de varios pasos (Patricio recomienda un solo paso por ahora).
 - [ ] Definir cómo se asigna el inquilino a cada alerta y las redes internas de cada cliente (`validate.json`).
 - [ ] Crear el bot de Telegram y activar la verificación en dos pasos en las tres cuentas.
-- [ ] Definir el gestor de contraseñas y la custodia de la cuenta `soarai2026`.
+- [ ] Definir el gestor de contraseñas y la custodia de la cuenta `soaria186`.
 - [ ] Revisar después del hecho los PR **#25 al #29**, o anotarlos como excepción junto con los #7 al #16, que se integraron sin revisión registrada. Desde ahora, cada PR lo aprueba otro integrante antes de integrarlo.
 
 ---
