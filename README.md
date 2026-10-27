@@ -1,17 +1,43 @@
 # Kronos AI
 
-Kronos AI es una plataforma **SOAR** (orquestación, automatización y respuesta de seguridad) para pequeñas y
-medianas empresas que no tienen un especialista en ciberseguridad. Vigila los equipos de la empresa con Wazuh,
-clasifica cada alerta con un modelo de lenguaje que corre en el propio servidor y responde con medidas
-reversibles: bloquear una IP, deshabilitar una cuenta o aislar un equipo. 
+<p align="center"><b>Duoc UC</b><br>
+Escuela de Informática y Telecomunicaciones<br>
+Sede Padre Alonso de Ovalle, Santiago</p>
 
-El encargado de TI de la PyME recibe avisos en lenguaje claro por Telegram y sólo interviene cuando hace falta
-criterio humano: aprobar una medida de alto impacto o revertir una que ya se aplicó. Kronos corre en un servidor
-en la nube (Contabo, con Docker) y se valida en una PyME simulada: un puesto con Windows 11 y un servidor con
-Ubuntu, atacados con siete escenarios reproducibles e inofensivos.
+## Institución
 
-Proyecto de título (Capstone) de Ingeniería en Informática, Duoc UC, 2026, de Nicolás Zamora, Rodrigo Riveros y
-Patricio González.
+**Duoc UC** · Escuela de Informática y Telecomunicaciones, carrera de **Ingeniería en Informática**, sede Padre Alonso de Ovalle, Santiago de Chile.
+
+## Asignatura
+
+| | |
+| :--- | :--- |
+| Asignatura | Capstone · Portafolio de Título APT (APT122) |
+| Periodo | Segundo semestre de 2026, del 10 de agosto al 13 de diciembre |
+| Modalidad | Proyecto de título en tres fases: definición, desarrollo, y cierre y defensa |
+
+## Profesor guía
+
+**Ceferino Aníbal Sotelo Becerra**
+
+## Integrantes
+
+| Integrante | Responsabilidades en el proyecto |
+| :--- | :--- |
+| Nicolás Zamora | Servidor y red, detección con Wazuh, agentes y laboratorio de la PyME simulada |
+| Rodrigo Riveros | Base de datos y auditoría, ejecución, notificaciones, consola web, respaldos y despliegue |
+| Patricio González | Inteligencia artificial, validación de decisiones, catálogo de respuestas y mediciones |
+
+## Descripción del proyecto
+
+**Kronos AI** es una plataforma **SOAR** (orquestación, automatización y respuesta de seguridad) en la nube, pensada para pequeñas y medianas empresas que no cuentan con un especialista en ciberseguridad.
+
+- **Vigila:** Wazuh revisa los equipos de la organización.
+- **Clasifica:** un modelo de lenguaje que corre en el propio servidor clasifica cada alerta. Los datos de la empresa no salen a servicios externos.
+- **Responde:** aplica medidas reversibles, como bloquear una dirección IP, deshabilitar una cuenta o aislar un equipo.
+- **Decide sin la IA:** la medida la decide y la aplica un código determinista, con un catálogo cerrado de respuestas y seis chequeos de seguridad.
+- **Registra:** cada acción queda en una bitácora que no se puede alterar.
+
 
 [English summary](#english-summary)
 
