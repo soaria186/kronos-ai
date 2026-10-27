@@ -4,25 +4,21 @@
 Escuela de Informática y Telecomunicaciones<br>
 Sede Padre Alonso de Ovalle, Santiago</p>
 
-## Institución
-
-**Duoc UC** · Escuela de Informática y Telecomunicaciones, carrera de **Ingeniería en Informática**, sede Padre Alonso de Ovalle, Santiago de Chile.
-
 ## Asignatura
 
 | | |
 | :--- | :--- |
 | Asignatura | Capstone · Portafolio de Título APT (APT122) |
-| Periodo | Segundo semestre de 2026, del 10 de agosto al 13 de diciembre |
-| Modalidad | Proyecto de título en tres fases: definición, desarrollo, y cierre y defensa |
+| Periodo | Segundo semestre de 2026. |
 
-## Profesor guía
+
+## Profesor Asignado
 
 **Ceferino Aníbal Sotelo Becerra**
 
 ## Integrantes
 
-| Integrante | Responsabilidades en el proyecto |
+| Alumnos | Responsabilidades en el proyecto |
 | :--- | :--- |
 | Nicolás Zamora | Servidor y red, detección con Wazuh, agentes y laboratorio de la PyME simulada |
 | Rodrigo Riveros | Base de datos y auditoría, ejecución, notificaciones, consola web, respaldos y despliegue |
@@ -35,7 +31,7 @@ Sede Padre Alonso de Ovalle, Santiago</p>
 - **Vigila:** Wazuh revisa los equipos de la organización.
 - **Clasifica:** un modelo de lenguaje que corre en el propio servidor clasifica cada alerta. Los datos de la empresa no salen a servicios externos.
 - **Responde:** aplica medidas reversibles, como bloquear una dirección IP, deshabilitar una cuenta o aislar un equipo.
-- **Decide sin la IA:** la medida la decide y la aplica un código determinista, con un catálogo cerrado de respuestas y seis chequeos de seguridad.
+- **Decide** la medida la decide y la aplica un código determinista, con un catálogo cerrado de respuestas y seis chequeos de seguridad junto a la IA.
 - **Registra:** cada acción queda en una bitácora que no se puede alterar.
 
 
@@ -174,8 +170,7 @@ Cómo trabajamos (ramas `develop` y `main`, revisión cruzada, regla de merge y 
 
 ## Licencia
 
-Proyecto académico. Mientras no se publique una licencia (decisión D-63), el código queda con todos los derechos
-reservados por sus autores.
+Proyecto académico.
 
 ## English summary
 
@@ -185,7 +180,7 @@ computer send events to a central server, where 15 custom rules tag every alert 
 families.
 
 A language model running locally on the server (qwen2.5:7b on Ollama) classifies each alert in two steps: first
-the family, then the response. The model **only picks an identifier from a closed catalog of 25 measures**; it
+the family, then the response. The model only picks an identifier from a closed catalog of 25 measures; it
 never writes commands. Deterministic code checks the proposal six ways and fails safe, sending the case to manual
 review, if any check fails or the model is down. Approved measures run through Wazuh Active Response;
 high-impact ones wait for the IT person's approval on Telegram or in a web console. Every step is recorded in an
