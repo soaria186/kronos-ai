@@ -17,10 +17,13 @@ El repositorio sigue las fases del proyecto de título (pedido de la institució
 
 | Carpeta | Qué va ahí |
 | :--- | :--- |
-| `Fase 1/` y `Fase 2/` | Una por fase, cada una con `Avances/`, `Documentación Individual/` y `Documentación Grupal/` |
+| `Fase 1/`, `Fase 2/` y `Fase 3/` | Una por fase, cada una con `Avances/`, `Documentación Individual/` y `Documentación Grupal/` (la Fase 3 está reservada) |
 | `Fase 2/Avances/` | **El proyecto:** código, infraestructura, pruebas, herramientas y documentación técnica (`docs/`). Es la raíz para todos los comandos: `cd "Fase 2/Avances"` |
-| `Fase X/Documentación Grupal/` | Los documentos del equipo en PDF (en la Fase 2, los 31 documentos, el informe final y el manual) |
+| `Fase X/Documentación Grupal/` | Los documentos grupales de la fase (en la Fase 2, el diario de reflexión, la formativa, las guías, el informe final y el manual) |
 | `Fase X/Documentación Individual/` | Una carpeta por integrante con sus documentos en PDF |
+| `Documentacion/` | Los 31 documentos oficiales del proyecto, por área. Es la única versión válida de cada uno |
+| `Instalacion/` | La guía de instalación en 15 partes, una carpeta por componente |
+| `Paso a Paso/` | Reservada para las guías paso a paso |
 | `.github/` | CI, plantilla de PR, esta guía y la política de seguridad |
 
 Una fase nueva se agrega con las mismas tres carpetas. El código no se duplica entre fases: sigue en

@@ -1,16 +1,16 @@
 # Documentación técnica
 
 La documentación del proyecto que no es código. Cada carpeta tiene su README con lo que contiene y cómo se
-mantiene. Los documentos formales (los 31, el informe final y el manual) están en
-[`Fase 2/Documentación Grupal`](../../Documentaci%C3%B3n%20Grupal/).
+mantiene. Los 31 documentos oficiales están en [`Documentacion`](../../../Documentacion/), y la guía de
+instalación en 15 partes (D-18), una carpeta por componente, en [`Instalacion`](../../../Instalacion/): cada
+responsable escribe su parte y la revisa otro integrante.
 
 | Carpeta | Contenido | Quién la mantiene |
 | :--- | :--- | :--- |
-| [`instalacion/`](instalacion/) | Guía de instalación en 15 partes (D-18) | Cada responsable su parte; la revisa otro integrante |
 | [`diagramas/`](diagramas/) | Fuente Mermaid (`.mmd`) e imagen de cada figura | Quien cambia una figura vuelve a generar su imagen |
 | [`evidencia/`](evidencia/) | Salidas, extractos y capturas de las pruebas | Quien hace la prueba |
 | [`registro/`](registro/) | Registros de trabajo, estados, actas, revisiones, planes y el [registro de decisiones](registro/decisiones.md) | Cada integrante sus registros |
-| [`archivo/`](archivo/) | Lo que ya no está vigente: los 17 documentos v0.1 del 14-10 y su índice | No se modifica |
+| [`archivo/`](archivo/) | Lo que ya no está vigente: el índice y las fuentes de los 17 documentos v0.1 del 14-10 (los Word se retiraron el 27-10; siguen en el historial de git) | No se modifica |
 
 ## Reglas para toda la carpeta
 

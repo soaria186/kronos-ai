@@ -40,10 +40,13 @@ Sede Padre Alonso de Ovalle, Santiago</p>
 ## Cómo está organizado este repositorio
 
 El repositorio sigue las fases del proyecto de título. En cada fase hay tres carpetas: los **avances** (lo que
-se construyó), la **documentación individual** de cada integrante y la **documentación grupal**.
+se construyó), la **documentación individual** de cada integrante y la **documentación grupal**. La
+documentación oficial del proyecto y la guía de instalación tienen su propia carpeta en la raíz.
 
 ```text
 kronos-ai/
+├── .github/                        Integración continua, plantilla de PR, forma de trabajo y política de seguridad
+├── Documentacion/                  Los 31 documentos oficiales del proyecto, por área
 ├── Fase 1/                         Definición del proyecto (agosto y septiembre de 2026)
 │   ├── Avances/                    Resumen del diseño original, el laboratorio y los objetivos
 │   ├── Documentación Individual/   Autoevaluaciones y diarios de reflexión
@@ -51,15 +54,18 @@ kronos-ai/
 ├── Fase 2/                         Desarrollo de Kronos en la nube (desde el 25-09-2026)
 │   ├── Avances/                    El proyecto completo: código, infraestructura, pruebas y documentación técnica
 │   ├── Documentación Individual/   Documentos de cada integrante
-│   └── Documentación Grupal/       Los 31 documentos del proyecto, el informe final y el manual del encargado de TI
+│   └── Documentación Grupal/       Diario de reflexión, Formativa de avance y guías de la Fase 2
+├── Fase 3/                         Reservada para la siguiente fase
+├── Instalacion/                    Guía de instalación, una carpeta por componente
+├── Paso a Paso/                    Reservada para las guías paso a paso
 └── README.md                       Este archivo
 ```
 
 | Busco… | Está en |
 | :--- | :--- |
+| Los 31 documentos oficiales del proyecto | [`Documentacion`](Documentacion/) |
+| La guía de instalación de cada componente, en 15 partes | [`Instalacion`](Instalacion/) |
 | El código de Kronos y cómo correr sus pruebas | [`Fase 2/Avances`](Fase%202/Avances/) |
-| La guía de instalación paso a paso, en 15 partes | [`Fase 2/Avances/docs/instalacion`](Fase%202/Avances/docs/instalacion/) |
-| Los 31 documentos, el informe final y el manual | [`Fase 2/Documentación Grupal`](Fase%202/Documentaci%C3%B3n%20Grupal/) |
 | Los diagramas de arquitectura | [`Fase 2/Avances/docs/diagramas`](Fase%202/Avances/docs/diagramas/) |
 | Las evidencias de las pruebas | [`Fase 2/Avances/docs/evidencia`](Fase%202/Avances/docs/evidencia/) |
 | Cómo se llevó el proyecto: registros, actas, planes y decisiones | [`Fase 2/Avances/docs/registro`](Fase%202/Avances/docs/registro/) |
@@ -188,5 +194,6 @@ append-only PostgreSQL log with a per-tenant hash chain.
 
 The repository follows the phases of the degree project: `Fase 1` (project definition) and `Fase 2`
 (development), each with progress (`Avances`), individual documents and group documents. The working system
-lives in `Fase 2/Avances`. It is a Capstone project in Computer Engineering at Duoc UC (Chile), 2026, by Nicolás
+lives in `Fase 2/Avances`, the 31 official project documents in `Documentacion`, and the installation guide,
+one folder per component, in `Instalacion`. It is a Capstone project in Computer Engineering at Duoc UC (Chile), 2026, by Nicolás
 Zamora, Rodrigo Riveros and Patricio González.

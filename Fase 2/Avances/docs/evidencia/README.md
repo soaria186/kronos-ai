@@ -16,7 +16,7 @@ Salidas, extractos y capturas que respaldan lo que dicen el README del repositor
 | :--- | :--- | :--- |
 | Tickets #19 y #20 del 20-10: el primer recorrido completo con alertas reales (fuerza bruta por SSH, bloqueo de la IP en EP-SRV-01) | Nicolás | Jue 29-10 |
 | Reversión automática del 21-10: la regla se quitó a los 60 minutos y 3 segundos | Nicolás | Jue 29-10 |
-| Prueba integral, escenarios E1 a E7 ([parte 15 de la guía](../instalacion/)): capturas de Telegram y de la consola, extractos de registros y de la bitácora | Nicolás y Patricio | Jue 29-10 |
+| Prueba integral, escenarios E1 a E7 ([parte 15 de la guía](../../../../Instalacion/10-Operacion-y-Verificacion/15-verificacion-de-punta-a-punta.md)): capturas de Telegram y de la consola, extractos de registros y de la bitácora | Nicolás y Patricio | Jue 29-10 |
 | Tabla de métricas de cada escenario: familia y medida esperadas y obtenidas, tiempos y falla segura | Patricio | Vie 30-10 |
 | Prueba de estrés: 30 alertas en 10 minutos y apertura del cortacircuito (E6) | Patricio | Vie 30-10 |
 
