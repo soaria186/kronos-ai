@@ -57,8 +57,4 @@ lleva en su portada un código (1.1 a 6.5) que indica su área y su orden.
   está en [`Fase 2/Avances/docs`](../Fase%202/Avances/docs/). La guía para instalar cada componente está en
   [`Instalacion`](../Instalacion/).
 
-## Versiones anteriores
 
-Esta carpeta reemplaza a los 17 documentos de la versión 0.1 (14-10-2026), que estaban en
-`Fase 2/Avances/docs/archivo/documentos-v0.1/`. Esos archivos se retiraron del repositorio para que exista una
-sola versión válida de cada documento; siguen disponibles en el historial de git.
