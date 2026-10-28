@@ -57,7 +57,6 @@ kronos-ai/
 │   └── Documentación Grupal/       Diario de reflexión, Formativa de avance y guías de la Fase 2
 ├── Fase 3/                         Reservada para la siguiente fase
 ├── Instalacion/                    Guía de instalación, una carpeta por componente
-├── Paso a Paso/                    Reservada para las guías paso a paso
 └── README.md                       Este archivo
 ```
 
