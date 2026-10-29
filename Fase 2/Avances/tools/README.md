@@ -5,6 +5,7 @@ Scripts de apoyo al desarrollo. Sólo usan la biblioteca estándar de Python y g
 | Script | Qué hace | Dónde corre |
 | :--- | :--- | :--- |
 | `check_r1.py` | Regla R1: el código de `decision/` no importa `ejecucion`, `persistencia` ni `conectores`. Revisa `import`, `from … import`, imports relativos e imports dinámicos con nombre literal | Check «R1» del CI, en cada PR y en cada cambio a `develop` y `main` |
+| `medir_escenarios.py` | Mide qué medida elige la IA en los escenarios E1 a E4 (alertas con la forma real de Wazuh, repetidas varias veces) y si VALIDATE la aprobaría. Usa el ciclo real de VALIDATE con una base falsa en memoria: no escribe en ninguna base ni actúa sobre ningún equipo, pero **llama al Ollama** (por el túnel, `--url`) | A mano, con el túnel abierto; coordinar con Nicolás si usa el Ollama del servidor |
 | `verificar_entrega.py` | Revisa que el repositorio esté listo para una entrega: `main` y la etiqueta v1.x, README, CHANGELOG, estructura por fases, guía en 15 partes, sin farmacia ni marcas de pendiente, `.env.example` completo, catálogo y `validate.json` aprobados, sin ramas ya mezcladas y, con `--pruebas`, las pruebas unitarias y R1 | Job del CI en los PR hacia `main` (con `--antes-de-publicar`) |
 
 Desde la carpeta del proyecto (`Fase 2/Avances`):
