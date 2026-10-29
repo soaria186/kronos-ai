@@ -116,8 +116,9 @@ def comprobar_documentacion(lista: list[str]) -> None:
     cortos = [a for a in lista
               if a.endswith("README.md") and len(leer(a).splitlines()) <= 2]
     anotar(not cortos, "ningún README de una línea", ", ".join(cortos))
+    # La guía está en la raíz del repositorio, una carpeta por componente.
     partes = sorted({m.group(1) for a in lista
-                     if (m := re.match(re.escape(P) + r"docs/instalacion/(\d\d)-", a))})
+                     if (m := re.match(r"Instalacion/[^/]+/(\d\d)-", a))})
     anotar(len(partes) == 15, "guía de instalación en 15 partes",
            f"partes: {', '.join(partes)}")
     farmacia = []

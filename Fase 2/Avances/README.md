@@ -92,7 +92,7 @@ segura con aviso. Qué acciones tienen script en cada sistema operativo lo dice 
 
 ## Instalación
 
-Se necesita un servidor Linux con Docker y NetBird, y el agente de Wazuh 4.14.8 en cada equipo de la PyME. La **guía de instalación paso a paso, en 15 partes**, está en [`docs/instalacion/`](docs/instalacion/): servidor, NetBird, Docker, Wazuh y reglas, Ollama, base y servicios, Active Response, agentes, Telegram, respaldo, alta y retiro de una PyME, y verificación de punta a punta.
+Se necesita un servidor Linux con Docker y NetBird, y el agente de Wazuh 4.14.8 en cada equipo de la PyME. La **guía de instalación paso a paso, en 15 partes**, está en [`Instalacion`](../../Instalacion/), con una carpeta por componente: servidor, NetBird, Docker, Wazuh y reglas, Ollama, base y servicios, Active Response, agentes, Telegram, respaldo, alta y retiro de una PyME, y verificación de punta a punta.
 
 Para trabajar en el código basta con Python 3.12:
 
@@ -118,10 +118,11 @@ En cada pull request y en cada cambio a `develop` y `main`, GitHub Actions corre
 
 | Qué | Dónde |
 | :--- | :--- |
-| Guía de instalación, en 15 partes | [`docs/instalacion/`](docs/instalacion/) |
+| Guía de instalación, en 15 partes, una carpeta por componente | [`../../Instalacion/`](../../Instalacion/) |
 | Diagramas (Mermaid e imagen) | [`docs/diagramas/`](docs/diagramas/) |
 | Evidencias de las pruebas | [`docs/evidencia/`](docs/evidencia/) |
 | Registro de trabajo: registros, actas, revisiones, planes y decisiones | [`docs/registro/`](docs/registro/) |
-| Lo que ya no está vigente (17 documentos v0.1 del 14-10) | [`docs/archivo/`](docs/archivo/) |
-| Los 31 documentos, el informe final y el manual del encargado de TI | [`../Documentación Grupal/`](../Documentaci%C3%B3n%20Grupal/) |
+| Lo que ya no está vigente (índice y fuentes de los documentos v0.1 del 14-10) | [`docs/archivo/`](docs/archivo/) |
+| Los 31 documentos oficiales del proyecto | [`../../Documentacion/`](../../Documentacion/) |
+| Diario de reflexión, Formativa de avance y guías de la Fase 2 | [`../Documentación Grupal/`](../Documentaci%C3%B3n%20Grupal/) |
 | Cómo trabaja el equipo | [`../../.github/CONTRIBUTING.md`](../../.github/CONTRIBUTING.md) |

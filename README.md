@@ -1,27 +1,52 @@
 # Kronos AI
 
-Kronos AI es una plataforma **SOAR** (orquestación, automatización y respuesta de seguridad) para pequeñas y
-medianas empresas que no tienen un especialista en ciberseguridad. Vigila los equipos de la empresa con Wazuh,
-clasifica cada alerta con un modelo de lenguaje que corre en el propio servidor y responde con medidas
-reversibles: bloquear una IP, deshabilitar una cuenta o aislar un equipo. 
+<p align="center"><b>Duoc UC</b><br>
+Escuela de Informática y Telecomunicaciones<br>
+Sede Padre Alonso de Ovalle, Santiago</p>
 
-El encargado de TI de la PyME recibe avisos en lenguaje claro por Telegram y sólo interviene cuando hace falta
-criterio humano: aprobar una medida de alto impacto o revertir una que ya se aplicó. Kronos corre en un servidor
-en la nube (Contabo, con Docker) y se valida en una PyME simulada: un puesto con Windows 11 y un servidor con
-Ubuntu, atacados con siete escenarios reproducibles e inofensivos.
+## Asignatura
 
-Proyecto de título (Capstone) de Ingeniería en Informática, Duoc UC, 2026, de Nicolás Zamora, Rodrigo Riveros y
-Patricio González.
+| | |
+| :--- | :--- |
+| Asignatura | Capstone · Portafolio de Título APT (APT122) |
+| Periodo | Segundo semestre de 2026. |
+
+
+## Profesor Asignado
+
+**Ceferino Aníbal Sotelo Becerra**
+
+## Integrantes
+
+| Alumnos | Responsabilidades en el proyecto |
+| :--- | :--- |
+| Nicolás Zamora | Servidor y red, detección con Wazuh, agentes y laboratorio de la PyME simulada |
+| Rodrigo Riveros | Base de datos y auditoría, ejecución, notificaciones, consola web, respaldos y despliegue |
+| Patricio González | Inteligencia artificial, validación de decisiones, catálogo de respuestas y mediciones |
+
+## Descripción del proyecto
+
+**Kronos AI** es una plataforma **SOAR** (orquestación, automatización y respuesta de seguridad) en la nube, pensada para pequeñas y medianas empresas que no cuentan con un especialista en ciberseguridad.
+
+- **Vigila:** Wazuh revisa los equipos de la organización.
+- **Clasifica:** un modelo de lenguaje que corre en el propio servidor clasifica cada alerta. Los datos de la empresa no salen a servicios externos.
+- **Responde:** aplica medidas reversibles, como bloquear una dirección IP, deshabilitar una cuenta o aislar un equipo.
+- **Decide** la medida la decide y la aplica un código determinista, con un catálogo cerrado de respuestas y seis chequeos de seguridad junto a la IA.
+- **Registra:** cada acción queda en una bitácora que no se puede alterar.
+
 
 [English summary](#english-summary)
 
 ## Cómo está organizado este repositorio
 
 El repositorio sigue las fases del proyecto de título. En cada fase hay tres carpetas: los **avances** (lo que
-se construyó), la **documentación individual** de cada integrante y la **documentación grupal**.
+se construyó), la **documentación individual** de cada integrante y la **documentación grupal**. La
+documentación oficial del proyecto y la guía de instalación tienen su propia carpeta en la raíz.
 
 ```text
 kronos-ai/
+├── .github/                        Integración continua, plantilla de PR, forma de trabajo y política de seguridad
+├── Documentacion/                  Los 31 documentos oficiales del proyecto, por área
 ├── Fase 1/                         Definición del proyecto (agosto y septiembre de 2026)
 │   ├── Avances/                    Resumen del diseño original, el laboratorio y los objetivos
 │   ├── Documentación Individual/   Autoevaluaciones y diarios de reflexión
@@ -29,15 +54,17 @@ kronos-ai/
 ├── Fase 2/                         Desarrollo de Kronos en la nube (desde el 25-09-2026)
 │   ├── Avances/                    El proyecto completo: código, infraestructura, pruebas y documentación técnica
 │   ├── Documentación Individual/   Documentos de cada integrante
-│   └── Documentación Grupal/       Los 31 documentos del proyecto, el informe final y el manual del encargado de TI
+│   └── Documentación Grupal/       Diario de reflexión, Formativa de avance y guías de la Fase 2
+├── Fase 3/                         Reservada para la siguiente fase
+├── Instalacion/                    Guía de instalación, una carpeta por componente
 └── README.md                       Este archivo
 ```
 
 | Busco… | Está en |
 | :--- | :--- |
+| Los 31 documentos oficiales del proyecto | [`Documentacion`](Documentacion/) |
+| La guía de instalación de cada componente, en 15 partes | [`Instalacion`](Instalacion/) |
 | El código de Kronos y cómo correr sus pruebas | [`Fase 2/Avances`](Fase%202/Avances/) |
-| La guía de instalación paso a paso, en 15 partes | [`Fase 2/Avances/docs/instalacion`](Fase%202/Avances/docs/instalacion/) |
-| Los 31 documentos, el informe final y el manual | [`Fase 2/Documentación Grupal`](Fase%202/Documentaci%C3%B3n%20Grupal/) |
 | Los diagramas de arquitectura | [`Fase 2/Avances/docs/diagramas`](Fase%202/Avances/docs/diagramas/) |
 | Las evidencias de las pruebas | [`Fase 2/Avances/docs/evidencia`](Fase%202/Avances/docs/evidencia/) |
 | Cómo se llevó el proyecto: registros, actas, planes y decisiones | [`Fase 2/Avances/docs/registro`](Fase%202/Avances/docs/registro/) |
@@ -148,8 +175,7 @@ Cómo trabajamos (ramas `develop` y `main`, revisión cruzada, regla de merge y 
 
 ## Licencia
 
-Proyecto académico. Mientras no se publique una licencia (decisión D-63), el código queda con todos los derechos
-reservados por sus autores.
+Proyecto académico.
 
 ## English summary
 
@@ -159,7 +185,7 @@ computer send events to a central server, where 15 custom rules tag every alert 
 families.
 
 A language model running locally on the server (qwen2.5:7b on Ollama) classifies each alert in two steps: first
-the family, then the response. The model **only picks an identifier from a closed catalog of 25 measures**; it
+the family, then the response. The model only picks an identifier from a closed catalog of 25 measures; it
 never writes commands. Deterministic code checks the proposal six ways and fails safe, sending the case to manual
 review, if any check fails or the model is down. Approved measures run through Wazuh Active Response;
 high-impact ones wait for the IT person's approval on Telegram or in a web console. Every step is recorded in an
@@ -167,5 +193,6 @@ append-only PostgreSQL log with a per-tenant hash chain.
 
 The repository follows the phases of the degree project: `Fase 1` (project definition) and `Fase 2`
 (development), each with progress (`Avances`), individual documents and group documents. The working system
-lives in `Fase 2/Avances`. It is a Capstone project in Computer Engineering at Duoc UC (Chile), 2026, by Nicolás
+lives in `Fase 2/Avances`, the 31 official project documents in `Documentacion`, and the installation guide,
+one folder per component, in `Instalacion`. It is a Capstone project in Computer Engineering at Duoc UC (Chile), 2026, by Nicolás
 Zamora, Rodrigo Riveros and Patricio González.

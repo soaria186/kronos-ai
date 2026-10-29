@@ -1,7 +1,7 @@
 # Infraestructura
 
 Lo que corre en SOAR-CORE-01 y en los equipos de la PyME. Cada carpeta tiene su README, y la instalación paso
-a paso está en la guía de [`docs/instalacion/`](../docs/instalacion/).
+a paso está en la guía de [`Instalacion`](../../../Instalacion/), con una carpeta por componente.
 
 | Carpeta | Qué tiene | Guía |
 | :--- | :--- | :--- |
