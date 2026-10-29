@@ -9,9 +9,16 @@ Orden de cada alerta de alerts.json (``Validador.procesar``):
  1. Se crea el ticket y se guarda la alerta completa (validacion.servicio). Una alerta
     sin etiqueta kronos_fX se omite; una inválida se descarta sin tocar la base; una ya
     vista (rotación del archivo, reinicio) no se vuelve a procesar.
- 2. Cortacircuito: si las alertas de la ventana llegan al disparo, se abre; si está
-    abierto, la alerta se rechaza ahí mismo, sin llamar al modelo (lo que importa en una
-    inundación es no gastar 20 s de inferencia por alerta).
+ 2. Cortacircuito: si las alertas RECIBIDAS en la ventana llegan al disparo, se abre; si
+    está abierto, la alerta se rechaza ahí mismo, sin llamar al modelo (lo que importa en
+    una inundación es no gastar 20 s de inferencia por alerta). El disparo mide las que
+    llegaron, no las que alcanzaron a procesarse: ``anotar_llegadas`` cuenta un lote
+    completo antes de procesar la primera, y el cortacircuito toma el MAYOR entre esas
+    llegadas y lo que SOAR-AUDIT tiene registrado en la ventana (tickets más alertas
+    agrupadas). Se usa el máximo y no la suma para no contar dos veces una misma alerta.
+    Limitación: las llegadas viven en memoria; si VALIDATE se reinicia se pierden y sólo
+    queda lo registrado en la base. Una alerta releída tras una rotación del archivo
+    también cuenta como llegada.
  3. El agente 000 es el manager: nunca se actúa sobre él (EXECUTE tampoco lo haría);
     la alerta se rechaza como ACTIVO_EXCLUIDO sin llamar al modelo.
  4. El modelo clasifica en dos pasos (decision.inferencia). Si falla, la alerta pasa a
@@ -34,6 +41,7 @@ from __future__ import annotations
 
 import logging
 import time
+from collections import deque
 from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass
 from enum import StrEnum
@@ -206,6 +214,40 @@ class Validador:
         # Grupos abiertos, en memoria: si VALIDATE se reinicia se pierden y, a lo más, el
         # ataque en curso recibe una decisión más.
         self._grupos: dict[tuple[str, str, str], _Grupo] = {}
+        # Instantes de llegada de las alertas de cada inquilino, para el disparo del
+        # cortacircuito. También en memoria: tras un reinicio manda lo que dice la base.
+        self._llegadas: dict[int, deque[float]] = {}
+
+    def anotar_llegadas(self, tenant_id: int, alertas: Sequence[Mapping]) -> int:
+        """Cuenta las alertas de un lote que llegaron, antes de procesar ninguna.
+
+        Cuentan las que pasaron por una regla de sobre (las mismas que ``procesar`` llevaría
+        a un ticket o a una agrupación). No cuentan las omitidas (sin etiqueta kronos_fX)
+        ni las inválidas. Devuelve cuántas anotó.
+        """
+        ahora = self._reloj()
+        cola = self._llegadas.setdefault(tenant_id, deque())
+        anotadas = 0
+        for alerta_wazuh in alertas:
+            try:
+                if preparar(dict(alerta_wazuh)) is None:
+                    continue
+            except AlertaInvalida:
+                continue
+            cola.append(ahora)
+            anotadas += 1
+        self._podar_llegadas(tenant_id)
+        return anotadas
+
+    def _podar_llegadas(self, tenant_id: int) -> int:
+        """Descarta las llegadas fuera de la ventana y devuelve las que quedan."""
+        cola = self._llegadas.get(tenant_id)
+        if cola is None:
+            return 0
+        limite = self._reloj() - self._config.disparo_cortacircuito.ventana_minutos * 60
+        while cola and cola[0] <= limite:
+            cola.popleft()
+        return len(cola)
 
     def procesar(self, tenant_id: int, alerta_wazuh: dict) -> Resultado:
         try:
@@ -354,12 +396,21 @@ class Validador:
         return self._config.redes_internas.ambito(alerta.ip_origen)
 
     def _cortacircuito_abierto(self, tenant_id: int) -> bool:
-        """Abre el cortacircuito si las alertas de la ventana llegan al disparo."""
+        """Abre el cortacircuito si las alertas recibidas en la ventana llegan al disparo.
+
+        Toma el mayor entre las llegadas anotadas en memoria y lo registrado en la base:
+        las primeras no existen tras un reinicio; la segunda sólo sabe de las alertas ya
+        procesadas. El máximo, y no la suma, evita contar dos veces la misma alerta.
+        """
+        if self._almacen.cortacircuito_abierto(tenant_id):
+            return True  # ya abierto: sólo una persona lo cierra, no se vuelve a abrir
         disparo = self._config.disparo_cortacircuito
-        alertas = self._almacen.alertas_en_ventana(tenant_id, disparo.ventana_minutos)
+        registradas = self._almacen.alertas_en_ventana(tenant_id, disparo.ventana_minutos)
+        alertas = max(registradas, self._podar_llegadas(tenant_id))
         if self._config.debe_abrir_cortacircuito(alertas):
             self._almacen.abrir_cortacircuito(
-                tenant_id, f"{alertas} alertas en {disparo.ventana_minutos} min"
+                tenant_id,
+                f"{alertas} alertas recibidas en {disparo.ventana_minutos} min",
             )
         return self._almacen.cortacircuito_abierto(tenant_id)
 

@@ -31,6 +31,14 @@ no responde o se pasa del plazo (falla segura). Las alertas de un mismo ataque (
 mismo equipo, dentro de 10 minutos) se resuelven con una sola decisión y quedan como `ALERTA_AGRUPADA`. Nunca se
 actúa sobre el manager (agente 000).
 
+**Cortacircuito por alertas recibidas.** El disparo (30 alertas en 10 minutos por inquilino) mide las alertas
+que **llegan**, no las que VALIDATE alcanza a procesar. Antes de procesar un lote se anotan todas las que pasaron
+por una regla de sobre (`Validador.anotar_llegadas`), y el cortacircuito toma el mayor entre esas llegadas y lo
+registrado en la base (tickets más alertas agrupadas). Así, 30 alertas casi juntas lo abren con la primera, antes
+de llamar al modelo. Limitaciones conocidas: las llegadas viven en memoria, así que si VALIDATE se reinicia se
+pierden y sólo queda lo registrado en la base; y una alerta releída tras una rotación de `alerts.json` también
+cuenta como llegada.
+
 Despliegue: `infra/docker/servicios/README.md` y la parte 07 de la guía de instalación. Alta de una PyME
 (inquilino, exclusiones y redes internas): parte 13. Pruebas: `tests/unit/test_chequeos.py`,
 `test_contrato.py`, `test_ciclo.py`, `test_alerta.py` y `test_configuracion.py`, entre otras.
