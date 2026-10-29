@@ -6,8 +6,11 @@ requests y revisión cruzada.
 
 | Carpeta | Contenido |
 | :--- | :--- |
-| [`Avances`](Avances/) | El proyecto completo: código, infraestructura, pruebas, guía de instalación, diagramas, evidencias y registro de trabajo |
+| [`Avances`](Avances/) | El proyecto completo: código, infraestructura, pruebas, diagramas, evidencias y registro de trabajo |
 | [`Documentación Individual`](Documentaci%C3%B3n%20Individual/) | Autoevaluación de avance de cada integrante |
 | [`Documentación Grupal`](Documentaci%C3%B3n%20Grupal/) | Diario de reflexión, Formativa de avance y guías de la Fase 2 |
+
+Los 31 documentos oficiales del proyecto están en [`../Documentacion`](../Documentacion/), y la guía de
+instalación, una carpeta por componente, en [`../Instalacion`](../Instalacion/).
 
 La Fase 1, con la definición del proyecto, está en [`../Fase 1`](../Fase%201/).

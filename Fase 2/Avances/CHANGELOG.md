@@ -10,6 +10,7 @@ Milestone [«v1.0: cierre»](https://github.com/soaria186/kronos-ai/milestone/1)
 
 - **Repositorio ordenado por fases**, a pedido de la institución: `Fase 1/` y `Fase 2/`, cada una con `Avances/`, `Documentación Individual/` y `Documentación Grupal/`. El proyecto completo pasó a `Fase 2/Avances/` y los documentos formales a `Fase 2/Documentación Grupal/`. Quedan sólo las ramas `develop` y `main`; los PR #75 a #84 y las ramas de experimentos se integraron en el mismo cambio (26-10).
 - Kronos se presenta como solución para **PyMEs sin especialista en ciberseguridad**, con el encargado de TI como usuario principal. Se valida en una PyME simulada, por retroalimentación del profesor guía (decisiones D-57 a D-65 del arranque del 26-10).
+- **Documentación oficial e instalación en la raíz del repositorio** (27-10): los 31 documentos oficiales, en su versión corregida, pasan a `Documentacion/`, por área, y se retiran los 17 documentos v0.1 en Word de `docs/archivo/` (siguen en el historial de git). La guía de instalación pasa de `docs/instalacion/` a `Instalacion/`, con una carpeta por componente y las mismas 15 partes. Se agregan `Fase 3/` y `Paso a Paso/`, reservadas.
 
 ### Agregado
 

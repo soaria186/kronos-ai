@@ -1,5 +1,5 @@
 # SOAR-CLASSIFY: Ollama con los modelos de Kronos AI.
-# Instalación paso a paso: docs/instalacion/06-ollama.md
+# Instalación paso a paso: Instalacion/05-IA-Ollama/06-ollama.md (en la raíz del repositorio)
 #
 # - Imagen fijada: una actualización de Ollama cambia los tiempos y puede cambiar las
 #   respuestas; las mediciones del 14-10-2026 se hicieron con la 0.40.0.

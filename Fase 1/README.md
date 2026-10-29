@@ -10,4 +10,6 @@ laboratorio local.
 | [`Documentación Individual`](Documentaci%C3%B3n%20Individual/) | Autoevaluaciones y diarios de reflexión de cada integrante |
 | [`Documentación Grupal`](Documentaci%C3%B3n%20Grupal/) | Definición del proyecto, Formativa Fase 1 y presentación |
 
-La Fase 2, con el desarrollo en la nube, está en [`../Fase 2`](../Fase%202/).
+La Fase 2, con el desarrollo en la nube, está en [`../Fase 2`](../Fase%202/). Los 31 documentos oficiales del
+proyecto, incluidos los que vienen de esta fase (como el acta de constitución y la minuta del kick-off), están en
+[`../Documentacion`](../Documentacion/).

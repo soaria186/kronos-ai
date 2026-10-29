@@ -96,7 +96,7 @@ la referencia guarda el nombre enviado (`wazuh-ar:002:kronos-bloquear-ip.cmd`).
 
 ## Lo que necesita Wazuh
 
-Paso a paso en la parte 08 de la guía de instalación (`docs/instalacion/`).
+Paso a paso en la [parte 08 de la guía de instalación](../../../Instalacion/04-Wazuh/08-active-response.md).
 
 1. **Usuario de API de permisos mínimos.** `kronos-execute`, con un rol propio unido a la
    política de fábrica `agents_commands_agents` (sólo `active-response:command` sobre
