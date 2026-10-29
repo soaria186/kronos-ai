@@ -2,7 +2,7 @@
   "codigo": "KRO-VAL-CONF",
   "version": "1.0",
   "estado": "aprobado",
-  "nota": "Versión 1.0, aprobada por el equipo (D-65): mapa de severidad, exclusiones, contadores, agrupación y disparo del cortacircuito. La lista de exclusión y las redes internas se completan con los datos de cada PyME al darla de alta (docs/instalacion/13-alta-de-una-pyme.md); en la PyME simulada, la única entrada es la puerta de enlace del laboratorio. Las versiones 0.1 (15-10) y 0.2 (20-10) fueron propuestas de Patricio.",
+  "nota": "Versión 1.0, aprobada por el equipo (D-65): mapa de severidad, exclusiones, contadores, agrupación y disparo del cortacircuito. La lista de exclusión y las redes internas se completan con los datos de cada PyME al darla de alta (Instalacion/10-Operacion-y-Verificacion/13-alta-de-una-pyme.md); en la PyME simulada, la única entrada es la puerta de enlace del laboratorio. Las versiones 0.1 (15-10) y 0.2 (20-10) fueron propuestas de Patricio.",
   "mapa_severidad": [
     {"desde": 0, "hasta": 6, "nivel_maximo": 0, "motivo": "Severidad baja: sólo reunir contexto"},
     {"desde": 7, "hasta": 9, "nivel_maximo": 1, "motivo": "Archivo vigilado modificado, disco lleno, agente caído, RDP remoto: sólo medidas reversibles"},
