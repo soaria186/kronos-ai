@@ -67,6 +67,8 @@ services:
       KRONOS_WAZUH_CLAVE_ARCHIVO: /run/secrets/wazuh_api_password
       KRONOS_WAZUH_CA: /run/secrets/wazuh_api_ca
       KRONOS_WAZUH_NOMBRE_SERVIDOR: ${KRONOS_WAZUH_NOMBRE_SERVIDOR:-}
+      # Sistema operativo de cada agente («001:linux,002:windows»); ver ejecucion/README.md.
+      KRONOS_AGENTES_SO: ${KRONOS_AGENTES_SO:-}
     secrets:
       - kronos_worker_password
       - wazuh_api_password

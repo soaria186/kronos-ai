@@ -17,7 +17,8 @@
 Verificado con Wazuh 4.14.8 el 20-10-2026: la API acepta el prefijo «!» sin declarar un
 <command> en el manager, y el script del agente recibe «arguments» en
 parameters.extra_args. En Windows el agente sólo encuentra el script con su extensión
-(«!kronos-bloquear-ip.cmd»; prueba del 21-10-2026 en EP-WKS-01).
+(«!kronos-bloquear-ip.cmd»; prueba del 21-10-2026 en EP-WKS-01): por eso, si la orden
+es para un agente Windows, se agrega «.cmd» al nombre del comando.
 """
 
 from __future__ import annotations
@@ -40,6 +41,7 @@ PLAZO_SEGUNDOS = 10.0
 # El token de la API dura 900 s por omisión; se renueva antes.
 VIGENCIA_TOKEN_SEGUNDOS = 600.0
 PREFIJO_COMANDO = "!"
+EXTENSION_WINDOWS = ".cmd"
 
 Conectar = Callable[[], http.client.HTTPConnection]
 
@@ -92,8 +94,9 @@ class ActuadorWazuh:
         )
 
     def enviar(self, orden: Orden) -> str:
+        script = orden.comando + (EXTENSION_WINDOWS if orden.sistema == "windows" else "")
         cuerpo = {
-            "command": PREFIJO_COMANDO + orden.comando,
+            "command": PREFIJO_COMANDO + script,
             "arguments": list(orden.argumentos),
         }
         ruta = "/active-response?" + urllib.parse.urlencode(
@@ -109,7 +112,7 @@ class ActuadorWazuh:
             raise ErrorActuador(
                 f"el agente {orden.agente} no recibió la orden: {_fallas(fallas)}"
             )
-        return f"wazuh-ar:{orden.agente}:{orden.comando}"
+        return f"wazuh-ar:{orden.agente}:{script}"
 
     # ------------------------------------------------------------------ interno
 

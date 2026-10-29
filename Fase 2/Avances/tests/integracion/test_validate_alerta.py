@@ -66,7 +66,7 @@ class TestValidateAlerta(unittest.TestCase):
 
         self.assertEqual(ticket.ticket_id, registrada.ticket_id)
         self.assertEqual(ticket.alerta["alerta"], alerta)
-        orden = construir("bloquear_ip", ticket.alerta.get("alerta", {}))
+        orden = construir("bloquear_ip", ticket.alerta.get("alerta", {}), sistema="linux")
         self.assertEqual(orden.agente, "003")
         self.assertEqual(orden.argumentos, ("aplicar", "192.0.2.77"))
         self.assertTrue(self.cadena_integra())

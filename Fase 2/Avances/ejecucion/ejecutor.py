@@ -11,6 +11,12 @@ Un ciclo, por inquilino:
 3. Toma las reversiones vencidas (nivel 1 al vencer su plazo, o pedidas por una
    persona) y las ejecuta.
 
+Antes de armar cada orden (y cada reversión) se determina el sistema operativo del
+agente (``ordenes.sistema_operativo``) y se comprueba que la acción tenga script en ese
+sistema (``actuadores_v1`` del catálogo). Si no se sabe el sistema, o no hay script, no
+se envía nada: la API de Wazuh confirmaría la entrega aunque el script no exista, y el
+ticket quedaría en SUCCESS sin que nada pasara en el equipo.
+
 Falla segura: si la orden no se puede armar o no se puede entregar, el ticket queda
 en FAILED con el motivo y nada se reintenta solo. Una medida de reversión automática
 sin plazo en el catálogo no se ejecuta: no se aplica algo que después no se sabría
@@ -28,8 +34,10 @@ from ejecucion.medidas import Medida
 from ejecucion.ordenes import (
     AccionNoImplementada,
     OrdenInvalida,
+    agente,
     construir,
     construir_reversion,
+    sistema_operativo,
 )
 
 if TYPE_CHECKING:  # sin dependencia de psycopg al importar (pruebas unitarias)
@@ -60,10 +68,14 @@ class Ejecutor:
         repositorio: Repositorio,
         actuador: Actuador,
         medidas: Mapping[str, Medida],
+        actuadores: Mapping[str, frozenset[str]],
+        agentes_so: Mapping[str, str] | None = None,
     ) -> None:
         self._repo = repositorio
         self._actuador = actuador
         self._medidas = medidas
+        self._actuadores = actuadores
+        self._agentes_so = agentes_so or {}
 
     def ciclo(self, tenant_id: int) -> Resumen:
         resumen = Resumen()
@@ -100,8 +112,10 @@ class Ejecutor:
             if medida.plazo_minutos is None:
                 return self._fallo(tenant_id, ticket_id, MOTIVO_SIN_PLAZO, playbook_id)
             plazo = medida.plazo_minutos
+        datos = alerta.get("alerta", {})
         try:
-            orden = construir(medida.accion, alerta.get("alerta", {}))
+            sistema = self._sistema(medida.accion, datos)
+            orden = construir(medida.accion, datos, sistema=sistema)
         except AccionNoImplementada as exc:
             return self._fallo(tenant_id, ticket_id, MOTIVO_NO_IMPLEMENTADA, str(exc))
         except OrdenInvalida as exc:
@@ -129,7 +143,9 @@ class Ejecutor:
         try:
             if medida is None:
                 raise AccionNoImplementada(f"{playbook_id}: sin medida en el catálogo")
-            orden = construir_reversion(medida.accion, alerta.get("alerta", {}))
+            datos = alerta.get("alerta", {})
+            sistema = self._sistema(medida.accion, datos)
+            orden = construir_reversion(medida.accion, datos, sistema=sistema)
             detalle["orden"] = orden.como_detalle()
             detalle["referencia"] = self._actuador.enviar(orden)
         except (AccionNoImplementada, OrdenInvalida, ErrorActuador) as exc:
@@ -139,6 +155,22 @@ class Ejecutor:
             return False
         self._repo.registrar_reversion(tenant_id, ticket_id, True, detalle)
         return True
+
+    def _sistema(self, accion: str, alerta: Mapping) -> str:
+        """Sistema del agente, si la acción tiene script en él.
+
+        Un agente inválido (o el 000) lanza OrdenInvalida, igual que al armar la orden;
+        sin sistema conocido o sin script en ese sistema, AccionNoImplementada.
+        """
+        agente_id = agente(alerta)
+        sistema = sistema_operativo(alerta, self._agentes_so)
+        if sistema is None:
+            raise AccionNoImplementada(
+                f"no se pudo determinar el sistema operativo del agente {agente_id}"
+            )
+        if accion not in self._actuadores.get(sistema, frozenset()):
+            raise AccionNoImplementada(f"{accion}: sin script en {sistema} en la v1.0")
+        return sistema
 
     def _fallo(
         self,

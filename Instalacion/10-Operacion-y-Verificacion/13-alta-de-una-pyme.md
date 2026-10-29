@@ -82,6 +82,12 @@ En la PyME simulada, la única entrada es la puerta de enlace del laboratorio, `
 ## 6. Agentes y scripts
 
 En cada equipo de la PyME: agente de Wazuh registrado desde el servidor y scripts `kronos-*` (partes 08 a 10).
+
+Anotar el número de cada agente y su sistema operativo en `KRONOS_AGENTES_SO` de `infra/docker/.env`, por ejemplo
+`001:linux,002:windows`, y recrear `execute`. EXECUTE lo usa para el nombre del script (en Windows lleva `.cmd`)
+y para no enviar una medida que no tiene script en ese sistema. Si un agente no está anotado, el sistema se deduce
+de la alerta; si no se puede saber, la medida no se aplica y llega el aviso `[NO SE APLICÓ]`.
+
 Comprobar que todos aparecen `Active`:
 
 ```
