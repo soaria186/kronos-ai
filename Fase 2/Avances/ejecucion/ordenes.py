@@ -9,6 +9,10 @@ Esta es la frontera con el equipo del cliente, así que todo es cerrado:
   limpia ni se recorta.
 - Los argumentos viajan como lista, nunca como texto de shell.
 - Nunca se actúa sobre el manager (agente 000) ni sobre la IP del propio equipo.
+- Cada orden lleva el sistema operativo del agente («linux» o «windows»): el actuador
+  lo usa para el nombre del script, y EXECUTE para no enviar una medida que no tiene
+  script en ese sistema. Si no se puede saber con certeza, no se actúa (ver
+  ``sistema_operativo``).
 
 Los campos de la alerta se buscan en el mismo orden que usa la lista de exclusión de
 VALIDATE (validacion/alerta.py), para que EXECUTE actúe sobre lo que VALIDATE revisó.
@@ -59,6 +63,10 @@ CUENTAS_PROTEGIDAS = frozenset(
 PID_MINIMO = 5  # 0 a 4 son del sistema en Windows y Linux
 
 
+SISTEMAS = frozenset({"linux", "windows"})
+_UNIDAD_WINDOWS = re.compile(r"^[A-Za-z]:\\")
+
+
 class OrdenInvalida(ValueError):
     """La alerta no trae un objetivo válido para la medida."""
 
@@ -72,27 +80,100 @@ class Orden:
     agente: str
     comando: str
     argumentos: tuple[str, ...]
+    sistema: str
+
+    def __post_init__(self) -> None:
+        if self.sistema not in SISTEMAS:
+            raise ValueError(f"sistema operativo desconocido: {self.sistema!r}")
 
     def como_detalle(self) -> dict[str, Any]:
         return {
             "agente": self.agente,
+            "sistema": self.sistema,
             "comando": self.comando,
             "argumentos": list(self.argumentos),
         }
 
 
-def construir(accion: str, alerta: Mapping[str, Any]) -> Orden:
-    """Orden que aplica la medida."""
+def construir(accion: str, alerta: Mapping[str, Any], *, sistema: str) -> Orden:
+    """Orden que aplica la medida en un agente del sistema operativo indicado."""
     comando, _ = _comando(accion)
-    return Orden(_agente(alerta), comando, ("aplicar", *_objetivo(accion, alerta)))
+    return Orden(
+        _agente(alerta), comando, ("aplicar", *_objetivo(accion, alerta)), sistema
+    )
 
 
-def construir_reversion(accion: str, alerta: Mapping[str, Any]) -> Orden:
+def construir_reversion(
+    accion: str, alerta: Mapping[str, Any], *, sistema: str
+) -> Orden:
     """Orden que deshace la medida, con el mismo objetivo que la original."""
     comando, inversa = _comando(accion)
     if inversa is None:
         raise AccionNoImplementada(f"{accion}: no se revierte desde Kronos")
-    return Orden(_agente(alerta), comando, (inversa, *_objetivo(accion, alerta)))
+    return Orden(
+        _agente(alerta), comando, (inversa, *_objetivo(accion, alerta)), sistema
+    )
+
+
+def leer_mapa_agentes(texto: str) -> dict[str, str]:
+    """Lee el mapa «agente:sistema» de KRONOS_AGENTES_SO, por ejemplo
+    «001:linux,002:windows». Vacío es válido (se deduce de cada alerta).
+
+    Un formato inválido lanza ValueError: EXECUTE no arranca con un mapa dudoso.
+    """
+    mapa: dict[str, str] = {}
+    for parte in texto.split(","):
+        parte = parte.strip()
+        if not parte:
+            continue
+        agente, separador, sistema = parte.partition(":")
+        agente, sistema = agente.strip(), sistema.strip()
+        if not separador or not _AGENTE.match(agente) or sistema not in SISTEMAS:
+            raise ValueError(
+                f"KRONOS_AGENTES_SO: {parte!r} no tiene la forma agente:linux o "
+                "agente:windows (agente de 3 a 8 dígitos)"
+            )
+        if int(agente) == 0:
+            raise ValueError("KRONOS_AGENTES_SO: el manager (agente 000) no va en el mapa")
+        if agente in mapa:
+            raise ValueError(f"KRONOS_AGENTES_SO: el agente {agente} está repetido")
+        mapa[agente] = sistema
+    return mapa
+
+
+def sistema_operativo(
+    alerta: Mapping[str, Any], mapa: Mapping[str, str]
+) -> str | None:
+    """Sistema operativo del agente de la alerta, o None si no se puede saber.
+
+    1. El mapa explícito de la configuración manda.
+    2. Si el agente no está en el mapa, se deduce de campos de la alerta.
+    3. Si la alerta no dice nada claro, o el mapa y la alerta se contradicen, None:
+       EXECUTE no actúa.
+    """
+    agente = _valor(alerta, ("agent", "id"))
+    deducido = _deducir_sistema(alerta)
+    declarado = mapa.get(agente) if agente is not None else None
+    if declarado is not None and deducido is not None and declarado != deducido:
+        return None
+    return declarado or deducido
+
+
+def _deducir_sistema(alerta: Mapping[str, Any]) -> str | None:
+    ubicacion = _valor(alerta, ("location",)) or ""
+    decodificador = _valor(alerta, ("decoder", "name")) or ""
+    ruta = _valor(alerta, ("syscheck", "path")) or ""
+    datos = alerta.get("data") if isinstance(alerta, Mapping) else None
+    windows = (
+        (isinstance(datos, Mapping) and isinstance(datos.get("win"), Mapping))
+        or ubicacion == "EventChannel"
+        or decodificador.lower().startswith("windows")
+        or bool(_UNIDAD_WINDOWS.match(ruta))
+    )
+    linux = ruta.startswith("/") or ubicacion.startswith("/") or ubicacion == "journald"
+    if windows == linux:  # ninguna señal, o señales de los dos sistemas
+        return None
+    return "windows" if windows else "linux"
 
 
 def _comando(accion: str) -> tuple[str, str | None]:
@@ -111,6 +192,11 @@ def _objetivo(accion: str, alerta: Mapping[str, Any]) -> tuple[str, ...]:
     if accion == "detener_servicio":
         return (_validado(alerta, _CAMPOS_SERVICIO, _SERVICIO, "servicio"),)
     return ()  # aislar_equipo: actúa sobre el propio equipo
+
+
+def agente(alerta: Mapping[str, Any]) -> str:
+    """Agente de la alerta, validado (nunca el 000); si no sirve, OrdenInvalida."""
+    return _agente(alerta)
 
 
 def _agente(alerta: Mapping[str, Any]) -> str:

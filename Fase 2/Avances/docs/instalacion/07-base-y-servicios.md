@@ -160,6 +160,7 @@ Lo que cambia respecto del ejemplo:
 | :--- | :--- |
 | `KRONOS_INQUILINO` y `KRONOS_INQUILINOS` | El número de la PyME (parte 13) |
 | `KRONOS_WAZUH_NOMBRE_SERVIDOR` | `localhost`, con el certificado de fábrica de la API |
+| `KRONOS_AGENTES_SO` | El sistema operativo de cada agente, `001:linux,002:windows` en la PyME simulada (parte 13) |
 | `KRONOS_TELEGRAM_CHAT`, `KRONOS_TELEGRAM_EQUIPO` y `KRONOS_NOMBRES_INQUILINOS` | Parte 11 |
 | `KRONOS_CONSOLA_IP` | La IP de NetBird del servidor; nunca `0.0.0.0` |
 

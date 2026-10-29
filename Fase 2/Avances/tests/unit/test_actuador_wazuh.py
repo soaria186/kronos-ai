@@ -13,7 +13,8 @@ from ejecucion.actuador import ErrorActuador
 from ejecucion.actuador_wazuh import ActuadorWazuh
 from ejecucion.ordenes import Orden
 
-ORDEN = Orden("002", "kronos-bloquear-ip", ("aplicar", "203.0.113.7"))
+ORDEN = Orden("002", "kronos-bloquear-ip", ("aplicar", "203.0.113.7"), "linux")
+ORDEN_WINDOWS = Orden("002", "kronos-bloquear-ip", ("aplicar", "203.0.113.7"), "windows")
 
 
 class ApiFalsa(BaseHTTPRequestHandler):
@@ -116,6 +117,14 @@ class Envio(Base):
         self.assertEqual(
             peticion["cuerpo"],
             {"command": "!kronos-bloquear-ip", "arguments": ["aplicar", "203.0.113.7"]},
+        )
+
+    def test_en_windows_envia_el_cmd(self):
+        referencia = self.actuador().enviar(ORDEN_WINDOWS)
+        self.assertEqual(referencia, "wazuh-ar:002:kronos-bloquear-ip.cmd")
+        self.assertEqual(
+            self.estado["peticiones"][0]["cuerpo"],
+            {"command": "!kronos-bloquear-ip.cmd", "arguments": ["aplicar", "203.0.113.7"]},
         )
 
     def test_reutiliza_el_token(self):

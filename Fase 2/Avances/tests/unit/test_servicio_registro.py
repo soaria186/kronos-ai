@@ -196,7 +196,7 @@ class ContratoConExecute(unittest.TestCase):
         repo = RepoFalso()
         registrar(repo, 1, ssh())
         detalle = repo.llamadas[0]["detalle"]
-        orden = construir("bloquear_ip", detalle.get("alerta", {}))
+        orden = construir("bloquear_ip", detalle.get("alerta", {}), sistema="linux")
         self.assertEqual(orden.agente, "003")
         self.assertEqual(orden.comando, "kronos-bloquear-ip")
         self.assertEqual(orden.argumentos, ("aplicar", "192.0.2.77"))
@@ -204,7 +204,7 @@ class ContratoConExecute(unittest.TestCase):
     def test_execute_saca_la_cuenta_de_lo_guardado(self):
         repo = RepoFalso()
         registrar(repo, 1, ssh())
-        orden = construir("deshabilitar_cuenta", repo.llamadas[0]["detalle"]["alerta"])
+        orden = construir("deshabilitar_cuenta", repo.llamadas[0]["detalle"]["alerta"], sistema="windows")
         self.assertEqual(orden.argumentos, ("aplicar", "operador02"))
 
     def test_execute_saca_el_pid_de_una_alerta_de_sysmon_guardada(self):
@@ -231,7 +231,7 @@ class ContratoConExecute(unittest.TestCase):
         }
         repo = RepoFalso()
         registrar(repo, 1, alerta)
-        orden = construir("terminar_proceso", repo.llamadas[0]["detalle"]["alerta"])
+        orden = construir("terminar_proceso", repo.llamadas[0]["detalle"]["alerta"], sistema="windows")
         self.assertEqual((orden.agente, orden.argumentos), ("007", ("aplicar", "4312")))
 
 
@@ -250,7 +250,7 @@ class EjecutarSoloLoQueSeRevisó(unittest.TestCase):
     def ordenes(self, accion, alertas=None):
         for alerta in alertas or self.alertas:
             try:
-                yield alerta, construir(accion, alerta)
+                yield alerta, construir(accion, alerta, sistema="linux")
             except (OrdenInvalida, AccionNoImplementada):
                 continue
 
@@ -298,7 +298,7 @@ class EjecutarSoloLoQueSeRevisó(unittest.TestCase):
             disfrazada = copy.deepcopy(alerta)
             disfrazada["data"]["srcip"] = f"::ffff:{ip}"
             try:
-                construir("bloquear_ip", disfrazada)
+                construir("bloquear_ip", disfrazada, sistema="linux")
             except OrdenInvalida:
                 self.fail(
                     f"{alerta['id']}: EXECUTE debería aceptar {disfrazada['data']['srcip']}"

@@ -14,7 +14,7 @@ DSN = dsn_de_pruebas()
 if DSN:
     from ejecucion.actuador import ErrorActuador
     from ejecucion.ejecutor import Ejecutor
-    from ejecucion.medidas import Medida
+    from ejecucion.medidas import Medida, cargar_actuadores
     from persistencia.repositorio import (
         Decision,
         EstadoInvalido,
@@ -48,7 +48,10 @@ class TestEjecucion(unittest.TestCase):
             "PB-F1-03": Medida("PB-F1-03", "bloquear_ip", 2, "manual", None),
             "PB-F3-03": Medida("PB-F3-03", "aislar_equipo", 3, "manual", None),
         }
-        self.ejecutor = Ejecutor(self.repo, self.actuador, medidas)
+        # La alerta de prueba es del agente 002 (Windows en la PyME simulada).
+        self.ejecutor = Ejecutor(
+            self.repo, self.actuador, medidas, cargar_actuadores(), {"002": "windows"}
+        )
 
     # ------------------------------------------------------------ utilidades
 
