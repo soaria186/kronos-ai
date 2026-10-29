@@ -121,6 +121,40 @@ class TestAgrupacion(unittest.TestCase):
         self.assertEqual(otro.motivo, "CORTACIRCUITO_ABIERTO")
         self.assertTrue(self.repo.cortacircuito_abierto(self.t))
 
+    def test_treinta_alertas_recibidas_abren_el_cortacircuito_antes_de_inferir(self):
+        v = self.validador()
+        lote = [self.alerta(srcip=f"198.51.100.{i + 1}") for i in range(30)]
+
+        self.assertEqual(v.anotar_llegadas(self.t, lote), 30)
+        resultados = [v.procesar(self.t, a) for a in lote]
+
+        self.assertEqual({r.motivo for r in resultados}, {"CORTACIRCUITO_ABIERTO"})
+        self.assertEqual(self.modelo.llamadas, 0)  # ninguna llegó al modelo
+        self.assertTrue(self.repo.cortacircuito_abierto(self.t))
+        aperturas = self.sql(
+            "SELECT count(*) FROM cortacircuito WHERE abierto AND ambito = 'inquilino'"
+        )
+        self.assertEqual(aperturas[0][0], 1)  # una sola fila de apertura
+        decisiones = self.sql(
+            "SELECT count(*) FROM auditoria WHERE evento = 'DECISION'"
+        )
+        self.assertEqual(decisiones[0][0], 30)
+        aprobadas = self.sql(
+            "SELECT count(*) FROM tickets WHERE playbook IS NOT NULL"
+        )
+        self.assertEqual(aprobadas[0][0], 0)  # nada quedó para EXECUTE
+        self.assertTrue(self.sql("SELECT fn_verificar_cadena(%s) IS NULL", self.t)[0][0])
+
+    def test_veintinueve_alertas_recibidas_no_lo_abren(self):
+        v = self.validador()
+        lote = [self.alerta(srcip=f"198.51.100.{i + 1}") for i in range(29)]
+        v.anotar_llegadas(self.t, lote)
+
+        primera = v.procesar(self.t, lote[0])
+
+        self.assertEqual(primera.destino, Destino.APROBADA)
+        self.assertFalse(self.repo.cortacircuito_abierto(self.t))
+
 
 if __name__ == "__main__":
     unittest.main()

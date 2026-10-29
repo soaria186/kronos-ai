@@ -625,6 +625,137 @@ class AgrupacionDeAlertas(unittest.TestCase):
         self.assertIsNone(clave_de_grupo(a, None))
 
 
+class CortacircuitoPorAlertasRecibidas(unittest.TestCase):
+    """El disparo mide las alertas que llegaron, no las que alcanzaron a procesarse."""
+
+    def setUp(self):
+        self.reloj = Reloj()
+        self.disparo = CONFIG.disparo_cortacircuito
+
+    def lote(self, cantidad):
+        """Alertas distintas (otra IP cada una, así que no se agrupan)."""
+        lote = []
+        for i in range(cantidad):
+            a = alerta_ssh()
+            a["id"] = f"llegada-{i}"
+            a["data"]["srcip"] = f"198.51.100.{i + 1}"
+            lote.append(a)
+        return lote
+
+    def validador(self, almacen, modelo):
+        return Validador(
+            almacen,
+            modelo,
+            PLANTILLAS,
+            catalogo_del_prompt(),
+            CONFIG,
+            DecisionFalsa,
+            reloj=self.reloj,
+        )
+
+    def test_un_lote_del_tope_abre_con_la_primera_sin_llamar_al_modelo(self):
+        almacen, modelo = AlmacenFalso(), acierta()
+        v = self.validador(almacen, modelo)
+        lote = self.lote(self.disparo.tope)
+
+        self.assertEqual(v.anotar_llegadas(1, lote), self.disparo.tope)
+        resultado = v.procesar(1, lote[0])
+
+        self.assertEqual(resultado.destino, Destino.RECHAZADA)
+        self.assertEqual(resultado.motivo, "CORTACIRCUITO_ABIERTO")
+        self.assertEqual(modelo.llamadas, 0)
+        self.assertEqual(len(almacen.aperturas), 1)
+        self.assertEqual(
+            almacen.aperturas[0],
+            f"{self.disparo.tope} alertas recibidas en {self.disparo.ventana_minutos} min",
+        )
+
+    def test_las_demas_del_lote_se_rechazan_sin_llamar_al_modelo(self):
+        almacen, modelo = AlmacenFalso(), acierta()
+        v = self.validador(almacen, modelo)
+        lote = self.lote(self.disparo.tope)
+        v.anotar_llegadas(1, lote)
+
+        resultados = [v.procesar(1, a) for a in lote]
+
+        self.assertEqual({r.motivo for r in resultados}, {"CORTACIRCUITO_ABIERTO"})
+        self.assertEqual(modelo.llamadas, 0)
+        self.assertEqual(len(almacen.aperturas), 1)  # se abre una sola vez
+        self.assertTrue(all(d.nivel is None for _, _, d in almacen.decisiones))
+
+    def test_un_lote_bajo_el_tope_no_abre(self):
+        almacen, modelo = AlmacenFalso(), acierta()
+        v = self.validador(almacen, modelo)
+        lote = self.lote(self.disparo.tope - 1)
+        v.anotar_llegadas(1, lote)
+
+        self.assertEqual(v.procesar(1, lote[0]).destino, Destino.APROBADA)
+        self.assertEqual(almacen.aperturas, [])
+
+    def test_las_llegadas_fuera_de_la_ventana_dejan_de_contar(self):
+        almacen, modelo = AlmacenFalso(), acierta()
+        v = self.validador(almacen, modelo)
+        lote = self.lote(self.disparo.tope)
+        v.anotar_llegadas(1, lote)
+        self.reloj.t += self.disparo.ventana_minutos * 60 + 1
+
+        self.assertEqual(v.procesar(1, lote[0]).destino, Destino.APROBADA)
+        self.assertEqual(almacen.aperturas, [])
+
+    def test_las_llegadas_de_varios_lotes_se_suman_dentro_de_la_ventana(self):
+        almacen, modelo = AlmacenFalso(), acierta()
+        v = self.validador(almacen, modelo)
+        primero, segundo = self.lote(20), self.lote(self.disparo.tope - 20)
+        v.anotar_llegadas(1, primero)
+        self.reloj.t += (self.disparo.ventana_minutos * 60) // 2
+        v.anotar_llegadas(1, segundo)
+
+        self.assertEqual(v.procesar(1, segundo[0]).motivo, "CORTACIRCUITO_ABIERTO")
+
+    def test_las_omitidas_y_las_invalidas_no_suman(self):
+        almacen, modelo = AlmacenFalso(), acierta()
+        v = self.validador(almacen, modelo)
+        lote = self.lote(self.disparo.tope - 1)
+        sin_etiqueta = alerta_ssh()
+        sin_etiqueta["id"] = "sin-etiqueta"
+        sin_etiqueta["rule"]["groups"] = ["syslog", "sshd"]
+        sin_id = alerta_ssh()
+        del sin_id["id"]
+        lote += [sin_etiqueta, sin_id]
+
+        self.assertEqual(v.anotar_llegadas(1, lote), self.disparo.tope - 1)
+        self.assertEqual(v.procesar(1, lote[0]).destino, Destino.APROBADA)
+        self.assertEqual(almacen.aperturas, [])
+
+    def test_si_la_base_informa_mas_que_la_memoria_manda_la_base(self):
+        # Reinicio de VALIDATE: la memoria está vacía y la base ya sabe de 30 alertas.
+        almacen, modelo = AlmacenFalso(alertas=self.disparo.tope), acierta()
+        v = self.validador(almacen, modelo)
+
+        self.assertEqual(v.procesar(1, self.lote(1)[0]).motivo, "CORTACIRCUITO_ABIERTO")
+        self.assertEqual(modelo.llamadas, 0)
+
+    def test_se_usa_el_maximo_y_no_la_suma(self):
+        # 15 llegadas en memoria y 15 en la base son las mismas alertas, no 30.
+        mitad = self.disparo.tope // 2
+        almacen, modelo = AlmacenFalso(alertas=mitad), acierta()
+        v = self.validador(almacen, modelo)
+        lote = self.lote(mitad)
+        v.anotar_llegadas(1, lote)
+
+        self.assertEqual(v.procesar(1, lote[0]).destino, Destino.APROBADA)
+        self.assertEqual(almacen.aperturas, [])
+
+    def test_cada_inquilino_cuenta_las_suyas(self):
+        almacen, modelo = AlmacenFalso(), acierta()
+        v = self.validador(almacen, modelo)
+        v.anotar_llegadas(1, self.lote(self.disparo.tope))
+        otro = self.lote(1)[0]
+
+        self.assertEqual(v.procesar(2, otro).destino, Destino.APROBADA)
+        self.assertEqual(almacen.aperturas, [])
+
+
 class PromptYCatalogo(unittest.TestCase):
     def test_el_prompt_describe_el_catalogo_real(self):
         comprobar_prompt(PLANTILLAS, cargar_catalogo())
