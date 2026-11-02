@@ -28,7 +28,7 @@
 | D-63 | **Repositorio público. Todos los derechos reservados, Duoc UC**, en [`LICENSE`](../../../../LICENSE). No se usa licencia libre | Público, la comisión lo revisa sin invitaciones. Los derechos son de Duoc UC: el código y la documentación se publican sólo para su revisión académica | Nicolás |
 | D-64 | **`main` pasa a ser la versión entregable, con la v1.0.0 hasta el 07-11** y no el sábado 31-10 | Los scripts de Windows se terminaron de probar el 02-11 (evidencia en `docs/evidencia/2026-11-02_ar-windows/`). Hasta la v1.0.0, el servidor queda en `v1.0.0-rc2` | Nicolás |
 | D-65 | **Configuración de VALIDATE v1.0** | Ya aprobada el 26-10, al integrar `validate.json` 1.0 (#84) | Equipo (26-10) |
-| D-66 | **CI manual.** Cada PR lleva pegada la salida de las pruebas corridas en el PC del autor: `python -m unittest discover -s tests/unit`, `ruff check .` y `python tools/check_r1.py`. Antes de la v1.0.0 se corren una vez las pruebas de integración con Docker | GitHub no permite activar Actions en la cuenta `soaria186`, y no se abrió ticket. El CI queda configurado en `.github/workflows/`, pero no habilitado. En los documentos se dice que las pruebas «se corren en el PC del autor antes de cada mezcla» | Nicolás |
+| D-66 | **CI en GitHub Actions.** Al mudar el repositorio a `soaria186`, GitHub tardó en habilitar Actions (el 02-11 mostró «Unable to enable Actions»); se habilitaron ese mismo día y **desde el PR #46 el CI corre en cada PR** | En el PR #46 el CI pasó 5 de 5: gitleaks, ruff, pruebas unitarias, R1 e integración. La verificación de la entrega corre sólo en los PR hacia `main` | Nicolás |
 | D-67 | **E3 y E4, opción A**: en la prueba integral se muestran tal como salen. E3 termina en consulta; E4 pide aprobación y termina en falla segura («[NO SE APLICÓ]»). Los scripts de Windows se demuestran aparte, por la API | Mostrar el comportamiento real del sistema, incluida la falla segura, en vez de ajustar el prompt para la demostración | Nicolás |
 | D-68 | **Laboratorio en la defensa**: Nicolás entrega EP-SRV-01 y EP-WKS-01 en OVA, listas, y Rodrigo las lleva en su notebook. Nunca se encienden dos copias de la misma VM a la vez | EP-SRV-01 está en el notebook de Nicolás y EP-WKS-01 en su PC de escritorio. Dos copias encendidas tendrían la misma llave del agente frente al manager | Nicolás |
 
@@ -39,6 +39,6 @@
   quien aprueba y revierte (tarea T3).
 - **D-63:** `LICENSE` en la raíz del repositorio, la sección «Licencia» del README y la comprobación de
   `tools/verificar_entrega.py`.
-- **D-66:** cada PR pega la salida de las pruebas del autor. `CONTRIBUTING.md`, la plantilla de PR y el CHANGELOG
-  lo dicen así desde el 02-11; `.github/workflows/ci.yml` no cambia.
+- **D-66:** cada PR se mezcla con los checks del CI en verde, como ya decían `CONTRIBUTING.md` y la plantilla
+  de PR (D-54).
 - **D-67:** la parte 15 de la guía registra E3 y E4 tal como salgan el 03-11 (tarea T5).

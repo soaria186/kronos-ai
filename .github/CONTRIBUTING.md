@@ -34,11 +34,8 @@ Una fase nueva se agrega con las mismas tres carpetas. El código no se duplica 
 3. Commits en español: `tipo(ámbito): descripción` (`feat`, `fix`, `docs`, `test`, `ci`, `refactor`).
 4. Al terminar, PR hacia `develop` con la plantilla (`.github/pull_request_template.md`): qué cambia, por qué,
    cómo se probó, qué falta para desplegar y quién aprueba.
-5. Las pruebas se corren en el PC del autor antes de cada mezcla y su salida se pega en el PR (D-66): desde
-   `Fase 2/Avances`, `python -m unittest discover -s tests/unit`, `python -m ruff check .` y
-   `python tools/check_r1.py`; gitleaks corre en cada commit como hook de pre-commit. Las pruebas de integración
-   se corren una vez antes de la v1.0.0. El CI está configurado en `.github/workflows/`, pero no habilitado en
-   la cuenta.
+5. Los checks del CI en verde: gitleaks, ruff, R1, pruebas unitarias y pruebas de integración. Los comandos
+   para correrlos antes, desde `Fase 2/Avances`, están en su README.
 6. Revisión cruzada y mezcla según la regla de abajo.
 
 ## Regla de merge (D-54)
@@ -47,7 +44,7 @@ Una fase nueva se agrega con las mismas tres carpetas. El código no se duplica 
    personal** de un integrante.
 2. **Nunca mezcla el autor** del PR.
 3. **Nadie mezcla desde la cuenta compartida `soaria186`.**
-4. Se mezcla sólo con las pruebas del autor pegadas en el PR, sin fallas, y sin cambios pedidos pendientes.
+4. Se mezcla sólo con los checks del CI en verde y sin cambios pedidos pendientes.
 5. **Siempre con commit de merge** («Create a merge commit»): sin aplastar ni rebasar, para que el historial
    muestre cada tarea y quién la hizo.
 

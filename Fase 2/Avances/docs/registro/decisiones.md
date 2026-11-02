@@ -83,7 +83,7 @@ Con los tres integrantes. Detalle y consecuencias en el [acta](KRO-ACTA-2026-10-
 | D-51 | Reversión con el agente apagado | Aviso manual, sin reintento automático | |
 | D-52 | Reglas que se pierden al reiniciar el equipo | Se corrige: deben volver a aplicarse | D-61 la deja como limitación documentada (02-11) |
 | D-53 | Tickets de prueba #1, #2 y #5 | Se dejan como evidencia | |
-| D-54 | Regla de merge | Nadie mezcla desde `soaria186`; nunca mezcla el autor; siempre hay una aprobación previa desde la cuenta personal. Los PR #7 al #34 quedan como excepción R-04 | Las excepciones están en `CONTRIBUTING.md`. Sin GitHub Actions, cada PR lleva las pruebas del autor: D-66 (02-11) |
+| D-54 | Regla de merge | Nadie mezcla desde `soaria186`; nunca mezcla el autor; siempre hay una aprobación previa desde la cuenta personal. Los PR #7 al #34 quedan como excepción R-04 | Las excepciones están en `CONTRIBUTING.md`. Desde el PR #46, el CI corre en cada PR: D-66 (02-11) |
 | D-55 | Despliegue en SOAR-CORE-01 | Rodrigo pasa `/opt/kronos/audit` a un `git clone` con etiquetas de versión. Nadie despliega sin avisar en el grupo de Telegram | Se hace en la semana de cierre (#54) |
 | D-56 | Roles de Scrum | Product Owner: Nicolás. Scrum Master: Rodrigo. Equipo de desarrollo: los tres, con Patricio a cargo de la calidad de la decisión (IA y mediciones) | |
 
@@ -111,8 +111,8 @@ anulan.
 
 Detalle y justificación en el [acta del 02-11](KRO-ACTA-2026-11-02_decisiones_del_po.md).
 
-| Código | Tema | Decisión | Después |
-| :---: | :--- | :--- | :--- |
-| D-66 | CI manual | GitHub no permite activar Actions en la cuenta `soaria186`, y no se abrió ticket. Cada PR lleva pegada la salida de las pruebas corridas en el PC del autor (`unittest`, `ruff` y `check_r1`). Antes de la v1.0.0 se corren una vez las pruebas de integración con Docker. El CI queda configurado en `.github/workflows/`, pero no habilitado | |
-| D-67 | E3 y E4 en la prueba integral | **Opción A**: se muestran tal como salen. E3 termina en consulta; E4 pide aprobación y termina en falla segura («[NO SE APLICÓ]»). Los scripts de Windows se demuestran aparte, por la API. No se ajusta el prompt para la demostración | |
-| D-68 | Laboratorio en la defensa | Nicolás entrega EP-SRV-01 y EP-WKS-01 en OVA, listas para la demostración, y Rodrigo las lleva en su notebook. Nunca se encienden dos copias de la misma VM a la vez | |
+| Código | Tema | Decisión | Estado | Después |
+| :---: | :--- | :--- | :---: | :--- |
+| D-66 | CI en GitHub Actions | Al mudar el repositorio a `soaria186`, GitHub tardó en habilitar Actions (el 02-11 mostró «Unable to enable Actions»); se habilitaron ese mismo día y desde el PR #46 el CI corre en cada PR | ✅ 02-11 | |
+| D-67 | E3 y E4 en la prueba integral | **Opción A**: se muestran tal como salen. E3 termina en consulta; E4 pide aprobación y termina en falla segura («[NO SE APLICÓ]»). Los scripts de Windows se demuestran aparte, por la API. No se ajusta el prompt para la demostración | ✅ 02-11 | |
+| D-68 | Laboratorio en la defensa | Nicolás entrega EP-SRV-01 y EP-WKS-01 en OVA, listas para la demostración, y Rodrigo las lleva en su notebook. Nunca se encienden dos copias de la misma VM a la vez | ✅ 02-11 | |

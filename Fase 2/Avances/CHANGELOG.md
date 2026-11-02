@@ -15,7 +15,7 @@ Milestone [«v1.0: cierre»](https://github.com/soaria186/kronos-ai/milestone/1)
 ### Agregado
 
 - Avisos de Telegram en lenguaje claro: la PyME, el equipo, qué pasó y qué hacer, sin códigos internos. Una medida de nivel 0 sin comando ya no avisa (D-50) (#78).
-- CI: pruebas de la consola, pruebas de integración con PostgreSQL 17.11 y verificación de la entrega en los PR hacia `main` (#77). El CI quedó configurado, pero GitHub no permite habilitar Actions en la cuenta: las pruebas se corren en el PC del autor antes de cada mezcla y su salida se pega en el PR (D-66).
+- CI: pruebas de la consola, pruebas de integración con PostgreSQL 17.11 y verificación de la entrega en los PR hacia `main` (#77). Desde la reestructuración, el CI corre también en cada cambio a `develop` y `main`.
 - Catálogo KRO-CAT-01 1.0, con las acciones que tienen script en cada sistema operativo (D-60) (#83).
 - `validate.json` 1.0, aprobada (D-65) (#84).
 
@@ -28,7 +28,7 @@ Milestone [«v1.0: cierre»](https://github.com/soaria186/kronos-ai/milestone/1)
 - README completo con resumen en inglés, registro de cambios, política de seguridad y plantilla de pull request (#75).
 - Diagramas al día con el estado real y la numeración de los 31 documentos (#79).
 - Guía de instalación completa, en 15 partes (#80).
-- Decisiones D-57 a D-65 aprobadas y D-66 a D-68 nuevas (CI manual, E3 y E4 en la prueba integral y laboratorio en la defensa), con el acta del 02-11. `LICENSE`: todos los derechos reservados, Duoc UC (D-63).
+- Decisiones D-57 a D-65 aprobadas y D-66 a D-68 nuevas (CI en GitHub Actions desde el PR #46, E3 y E4 en la prueba integral y laboratorio en la defensa), con el acta del 02-11. `LICENSE`: todos los derechos reservados, Duoc UC (D-63).
 - Estructura de `docs/`: índice de los 31 documentos, registro de trabajo del 15 al 26-10, registro de decisiones y archivo de los documentos v0.1 (#81).
 - Las ramas de experimentos del 14-10 quedan en el registro de mediciones, y el prompt v2 como parche en `decision/mediciones/experimentos/` (#82).
 

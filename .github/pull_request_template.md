@@ -8,9 +8,8 @@
 
 ## Cómo se probó
 
-<!-- Pega la salida de las pruebas corridas en tu PC antes de pedir la mezcla (D-66): el CI está configurado,
-     pero no habilitado en la cuenta. Los comandos se corren desde la carpeta del proyecto: cd "Fase 2/Avances".
-     Agrega las de integración (sólo en kronos_pruebas), del laboratorio o del servidor si las corriste. -->
+<!-- Comandos y resultados: pruebas unitarias, de integración (sólo en kronos_pruebas), laboratorio o servidor.
+     Los comandos se corren desde la carpeta del proyecto: cd "Fase 2/Avances". -->
 
 - [ ] `python -m unittest discover -s tests/unit`
 - [ ] `python -m ruff check .` y `python tools/check_r1.py`
@@ -24,4 +23,4 @@
 
 - **Autor:** <!-- integrante; si se abre desde soaria186, quien lo pidió -->
 - **Aprueba:** <!-- Nicolás → Rodrigo · Patricio → Nicolás · Rodrigo → Patricio -->
-- Lo mezcla un integrante distinto del autor, desde su cuenta personal, con las pruebas del autor pegadas en este PR (CI manual).
+- Lo mezcla un integrante distinto del autor, desde su cuenta personal, con los checks en verde.
