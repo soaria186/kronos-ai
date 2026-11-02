@@ -104,7 +104,8 @@ def comprobar_portada(publicada: bool = True) -> None:
         r"(?i)^#{2,3} .*(english|summary|abstract)", readme, re.MULTILINE
     )
     anotar(bool(ingles), "README con resumen en inglés")
-    anotar((RAIZ / "LICENSE").exists(), "LICENSE", obligatoria=False)
+    anotar("Todos los derechos reservados" in leer("LICENSE"),
+           "LICENSE con «Todos los derechos reservados» (D-63)")
     anotar((RAIZ / P / "CHANGELOG.md").exists(), "CHANGELOG.md")
     faltan = [f"{f}/{c}" for f in FASES for c in CARPETAS_FASE
               if not (RAIZ / f / c / "README.md").exists()]
