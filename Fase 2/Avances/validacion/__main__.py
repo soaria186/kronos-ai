@@ -107,6 +107,9 @@ def main() -> int:
     while True:
         alertas = lector.leer()
         resumen: Counter[str] = Counter()
+        # El cortacircuito mide las alertas que llegan, no las que alcanzan a procesarse:
+        # el lote se cuenta completo antes de llamar al modelo con la primera.
+        validador.anotar_llegadas(inquilino, alertas)
         for alerta in alertas:
             try:
                 resultado = validador.procesar(inquilino, alerta)
