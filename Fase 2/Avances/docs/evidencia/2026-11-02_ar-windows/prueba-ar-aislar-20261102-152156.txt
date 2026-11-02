@@ -1,0 +1,59 @@
+﻿**********************
+Inicio de la transcripción de Windows PowerShell
+Hora de inicio: 20261102152157
+Nombre de usuario: EP-WKS-01\labadmin
+Usuario RunAs: EP-WKS-01\labadmin
+Nombre de la configuración: 
+Máquina: EP-WKS-01 (Microsoft Windows NT 10.0.26300.0)
+Aplicación host: C:\WINDOWS\System32\WindowsPowerShell\v1.0\powershell.exe -ExecutionPolicy Bypass -File C:\Users\labadmin\probar-ar-windows.ps1 -Parte aislar
+Id. de proceso: 7012
+PSVersion: 5.1.26100.9711
+PSEdition: Desktop
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1.26100.9711
+BuildVersion: 10.0.26100.9711
+CLRVersion: 4.0.30319.42000
+WSManStackVersion: 3.0
+PSRemotingProtocolVersion: 2.3
+SerializationVersion: 1.1.0.1
+**********************
+== Kronos, prueba 'aislar' en EP-WKS-01, 2026-11-02 15:21:57 (hora local)
+   antes: 494 reglas, 240 activas; Domain:True:NotConfigured:NotConfigured Private:True:NotConfigured:NotConfigured Public:True:NotConfigured:NotConfigured
+OK     rechaza dos argumentos (obtenido: 1)
+OK     rechaza sin argumentos (obtenido: 1)
+OK     rechaza operacion 'borrar' (obtenido: 1)
+OK     rechaza entrada vacia (obtenido: 1)
+OK     rechaza JSON roto (obtenido: 1)
+OK     los rechazos no tocaron el firewall (obtenido: True)
+OK     aplicar (obtenido: 0)
+OK     internet bloqueado (1.1.1.1:443) (obtenido: False)
+
+DisplayName                     Direction Enabled
+-----------                     --------- -------
+Kronos-aislamiento-manager-1     Outbound    True
+Kronos-aislamiento-dhcp-salida   Outbound    True
+Kronos-aislamiento-dhcp-entrada   Inbound    True
+
+
+OK     aplicar de nuevo (obtenido: 0)
+OK     servicio del agente en marcha (obtenido: Running)
+   AHORA: espera 5 minutos, revisa en el servidor que el agente 002 siga Active y quita el aislamiento POR LA API.
+
+== Ultimas lineas de active-responses.log
+2026-11-02T18:17:29Z kronos-deshabilitar-cuenta: ERROR no existe como cuenta local: noexiste01
+2026-11-02T18:17:30Z kronos-deshabilitar-cuenta: ERROR se esperaban 2 argumentos y llegaron 3
+2026-11-02T18:17:30Z kronos-deshabilitar-cuenta: ERROR operacion no permitida: borrar
+2026-11-02T18:17:31Z kronos-deshabilitar-cuenta: ERROR sin entrada JSON
+2026-11-02T18:17:31Z kronos-deshabilitar-cuenta: ERROR la entrada no es JSON
+2026-11-02T18:22:01Z kronos-aislar-equipo: ERROR se esperaba 1 argumento y llegaron 2
+2026-11-02T18:22:02Z kronos-aislar-equipo: ERROR se esperaba 1 argumento y llegaron 0
+2026-11-02T18:22:03Z kronos-aislar-equipo: ERROR operacion no permitida: borrar
+2026-11-02T18:22:05Z kronos-aislar-equipo: ERROR sin entrada JSON
+2026-11-02T18:22:06Z kronos-aislar-equipo: ERROR la entrada no es JSON
+2026-11-02T18:23:12Z kronos-aislar-equipo: aplicar OK; manager permitido: 203.0.113.10 (203.0.113.10) TCP/1514
+2026-11-02T18:23:39Z kronos-aislar-equipo: aplicar OK (ya estaba aislado)
+
+== RESULTADO: todo OK (aislar)
+**********************
+Fin de la transcripción de Windows PowerShell
+Hora de finalización: 20261102152339
+**********************
