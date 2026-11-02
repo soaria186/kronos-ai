@@ -51,12 +51,12 @@
 </section>
 
 <section class="tarjeta">
-  <h2>Nivel 2: medidas vigentes ({{ panel.activas|length }})</h2>
+  <h2>Niveles 2 y 3: medidas vigentes ({{ panel.activas|length }})</h2>
   {% for t in panel.activas %}
   <article {% if t.revisar_antes_de and t.revisar_antes_de < ahora() %}class="vencida"{% endif %}>
     <h3>#{{ t.id }} · {{ t.titulo }}</h3>
-    <p class="tenue">Medida {{ t.playbook }} · aplicada {{ t.ejecutada_en|fecha }} · revisar antes de {{ t.revisar_antes_de|fecha }}</p>
-    <p class="tenue">Recordar el aviso por correo a la persona afectada (D-35).</p>
+    <p class="tenue">Nivel {{ t.nivel }} · medida {{ t.playbook }} · aplicada {{ t.ejecutada_en|fecha }}{% if t.revisar_antes_de %} · revisar antes de {{ t.revisar_antes_de|fecha }}{% endif %}</p>
+    {% if t.nivel == 2 %}<p class="tenue">Recordar el aviso por correo a la persona afectada (D-35).</p>{% endif %}
     {% if t.reversion_pedida %}
       <p>Reversión en curso.</p>
     {% else %}
@@ -67,7 +67,7 @@
     </form>
     {% endif %}
   </article>
-  {% else %}<p class="tenue">Ninguna medida de nivel 2 vigente.</p>{% endfor %}
+  {% else %}<p class="tenue">Ninguna medida de nivel 2 o 3 vigente.</p>{% endfor %}
 </section>
 
 <section class="tarjeta">
