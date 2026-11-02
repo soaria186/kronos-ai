@@ -4,8 +4,8 @@
 | :--- | :--- |
 | Parte | 07 de 15 |
 | Responsable | Rodrigo Riveros (revisa: Patricio González) |
-| Versión | 0.9, 26-10-2026 |
-| Estado | Borrador para revisión: reúne `infra/docker/docker-compose.yml`, `infra/docker/servicios/README.md` y el despliegue desde un clon de git (D-55). Rodrigo lo sigue al pasar el servidor al clon y lo corrige |
+| Versión | 1.0, 01-11-2026 |
+| Estado | Vigente: seguida el 01-11-2026 (02-11, 00:03 UTC) al pasar SOAR-CORE-01 de una copia a mano a un clon de git en `v1.0.0-rc1` (caso a de la sección 1). Las secciones 2 a 6 describen la instalación desde cero, que se hizo el 15 y 16-10-2026 |
 | Requisitos | Partes 01 a 04 y 06 |
 
 Esta parte levanta SOAR-AUDIT (PostgreSQL 17.11) y los cuatro servicios de Kronos: SOAR-VALIDATE, SOAR-EXECUTE,
@@ -27,23 +27,35 @@ con el sistema de archivos de sólo lectura y sin capacidades.
 Se despliega sólo lo que está en el repositorio, en una **etiqueta de versión**. No se copian archivos desde
 Windows: el 21-10-2026 eso rompió los permisos de una carpeta dentro de la imagen.
 
-Mientras el repositorio sea privado, el servidor clona con una **llave de despliegue de sólo lectura** (GitHub →
-*Settings* → *Deploy keys*, desde la cuenta dueña):
+El servidor clona con una **llave de despliegue de sólo lectura** (GitHub → *Settings* → *Deploy keys*, desde
+la cuenta dueña del repositorio). GitHub no deja usar la misma llave en dos repositorios, así que es una por
+repositorio:
 
 ```
-[servidor] sudo ssh-keygen -t ed25519 -N '' -C kronos-despliegue -f /root/.ssh/kronos_despliegue
-[servidor] sudo cat /root/.ssh/kronos_despliegue.pub
+[servidor] sudo ssh-keygen -t ed25519 -N '' -C kronos-despliegue-soaria186 -f /root/.ssh/kronos_despliegue_soaria186
+[servidor] sudo cat /root/.ssh/kronos_despliegue_soaria186.pub
+[servidor] ssh-keyscan -t ed25519 github.com 2>/dev/null | sudo tee -a /root/.ssh/known_hosts >/dev/null
+[servidor] ssh-keygen -lf <(ssh-keyscan -t ed25519 github.com 2>/dev/null)
 ```
 
-Agregar esa llave pública como *Deploy key* **sin** permiso de escritura. Después:
+**Debe mostrar:** la llave pública (una línea `ssh-ed25519 …`) y la huella de github.com,
+`SHA256:+DiY3wvvV6TuJJhbpZisF/zLDA0zPMSvHdkr4UvCOqU`, igual a la publicada en docs.github.com («GitHub's SSH key
+fingerprints»). Agregar la línea pública como *Deploy key* **sin** marcar *Allow write access* y comprobar:
+
+```
+[servidor] sudo ssh -i /root/.ssh/kronos_despliegue_soaria186 -T git@github.com
+```
+
+**Debe mostrar:** `Hi soaria186/kronos-ai! You've successfully authenticated, but GitHub does not provide shell
+access.` Después:
 
 El repositorio está ordenado por fases y el proyecto vive en `Fase 2/Avances`. Se clona en
 `/opt/kronos/kronos-ai` y `/opt/kronos/audit` es un enlace a la carpeta del proyecto: así ninguna ruta del
 servidor lleva espacios, y todos los comandos de esta guía usan `/opt/kronos/audit`.
 
 ```
-[servidor] sudo GIT_SSH_COMMAND='ssh -i /root/.ssh/kronos_despliegue' git clone git@github.com:soaria186/kronos-ai.git /opt/kronos/kronos-ai
-[servidor] sudo git -C /opt/kronos/kronos-ai config core.sshCommand 'ssh -i /root/.ssh/kronos_despliegue'
+[servidor] sudo GIT_SSH_COMMAND='ssh -i /root/.ssh/kronos_despliegue_soaria186' git clone git@github.com:soaria186/kronos-ai.git /opt/kronos/kronos-ai
+[servidor] sudo git -C /opt/kronos/kronos-ai config core.sshCommand 'ssh -i /root/.ssh/kronos_despliegue_soaria186'
 [servidor] sudo git -C /opt/kronos/kronos-ai checkout v1.0.0
 [servidor] sudo ln -s "/opt/kronos/kronos-ai/Fase 2/Avances" /opt/kronos/audit
 [servidor] sudo git -C /opt/kronos/kronos-ai describe --tags
@@ -90,6 +102,14 @@ el clon a su ruta nueva y llevar lo que vive sólo en el servidor a la carpeta d
 
 En los dos casos, después: el `ln -s` de arriba, `cd /opt/kronos/audit/infra/docker` y recrear los servicios
 (sección 7).
+
+**Así se hizo en SOAR-CORE-01 (caso a), el 01-11-2026:** respaldo previo; clon en `v1.0.0-rc1`; los cuatro
+archivos que viven sólo en el servidor copiados al clon; la copia vieja apartada en
+`/opt/kronos/audit.antes-del-clon` y el enlace creado. `git status --short --ignored` mostró sólo esos cuatro
+archivos. Después se agregó `KRONOS_AGENTES_SO`, se aplicaron las tres migraciones sin errores y los cinco
+servicios quedaron en marcha. Todo eso, junto, lo hace `infra/docker/desplegar.sh` (sección 8). La copia vieja
+se borra cuando la versión nueva lleve unos días funcionando; el respaldo `/root/audit-antes-del-clon-*.tar.gz`
+se conserva hasta el cierre.
 
 ## 2. La base
 
@@ -202,7 +222,7 @@ Para quitar una cuenta se borra su entrada de `consola_usuarios.json` y se recre
 **Debe mostrar:**
 
 - `validate`: `en marcha para el inquilino 1`;
-- `execute`: `en marcha para los inquilinos [1]`;
+- `execute`: `en marcha para los inquilinos [1]` y `sistema operativo por agente: {'001': 'linux', '002': 'windows'}`;
 - `notify`: `equipo de N cuentas`;
 - `consola`: `en marcha: N cuentas`.
 
@@ -215,17 +235,22 @@ Si falta algo, el servicio no arranca y su registro dice qué (`no arranca: falt
 ## 8. Desplegar una versión nueva
 
 1. Avisar en el grupo de Telegram y confirmar que no hay una prueba en curso. Un despliegue a la vez.
-2. Respaldo: `sudo systemctl start kronos-respaldo-postgres.service`.
-3. Traer la etiqueta y cambiarse a ella:
+2. Correr el script de despliegue con la etiqueta. Hace el respaldo previo, el `fetch` y el `checkout` de la
+   etiqueta, agrega `KRONOS_AGENTES_SO` si falta, aplica las migraciones (todas son idempotentes), reconstruye
+   los servicios y muestra la comprobación de la sección 7. Se detiene en el primer error:
 
    ```
-   [servidor] sudo git -C /opt/kronos/kronos-ai fetch --tags
-   [servidor] sudo git -C /opt/kronos/kronos-ai checkout vX.Y.Z
+   [servidor] bash /opt/kronos/audit/infra/docker/desplegar.sh vX.Y.Z
    ```
 
-4. Migraciones nuevas, si las hay (sección 2).
-5. `sudo docker compose -f docker-compose.yml -f servicios.yml up -d --build` y la comprobación de la sección 7.
-6. Anotar en el registro del día qué se desplegó y a qué hora (UTC).
+   **Debe mostrar:** `versión desplegada: vX.Y.Z`, sólo los cuatro archivos que viven en el servidor fuera de git,
+   las migraciones sin `ERROR`, los cinco servicios `running` y las líneas de arranque de la sección 7. El
+   registro queda en `~/kronos-despliegue-<fecha UTC>.log`.
+
+   A mano, los pasos son los mismos: `sudo systemctl start kronos-respaldo-postgres.service`,
+   `sudo git -C /opt/kronos/kronos-ai fetch --tags`, `sudo git -C /opt/kronos/kronos-ai checkout vX.Y.Z`, las
+   migraciones de la sección 2 y `sudo docker compose -f docker-compose.yml -f servicios.yml up -d --build`.
+3. Anotar en el registro del día qué se desplegó y a qué hora (UTC).
 
 ## 9. Lista de comprobación
 
