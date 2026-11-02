@@ -1,102 +1,102 @@
 # Historial de issues y pull requests de kronos-ai
 
-Exportado el 27-10-2026 desde el repositorio original `soarai2026/kronos-ai`, antes de migrarlo a la cuenta nueva. Los issues y los PR no viajan con git: este archivo conserva su contenido, sus revisiones y sus comentarios.
+Exportado el 27-10-2026 desde el repositorio original, antes de migrarlo a la cuenta nueva. Los issues y los PR no viajan con git: este archivo conserva su contenido, sus revisiones y sus comentarios.
 
 Total: 48 pull requests y 36 issues.
 
 | # | Tipo | Título | Autor | Creado | Estado | Mezclado | Aprobaciones |
 | --: | :-- | :-- | :-- | :-- | :-- | :-- | :-- |
-| 1 | PR | ci: gitleaks, lint y chequeo de R1 | soarai2026 | 2026-10-06 | closed | 2026-10-06 | — |
-| 2 | PR | feat(persistencia): esquema de SOAR-AUDIT con cadena de hash por inquilino | soarai2026 | 2026-10-08 | closed | 2026-10-08 | — |
-| 3 | PR | docs(evidencia): pruebas del esquema de SOAR-AUDIT en el servidor | soarai2026 | 2026-10-08 | closed | 2026-10-08 | — |
-| 4 | PR | feat(decision): prompts en dos pasos y medición de la inferencia | soarai2026 | 2026-10-14 | closed | 2026-10-14 | — |
-| 5 | PR | test(decision): casos de frontera y confianza en la medición | soarai2026 | 2026-10-14 | closed | 2026-10-14 | — |
-| 6 | PR | feat(validacion): núcleo de SOAR-VALIDATE, KRO-CAT-01 0.1 y casos ESC-04 | soarai2026 | 2026-10-14 | closed | 2026-10-14 | — |
+| 1 | PR | ci: gitleaks, lint y chequeo de R1 | cuenta compartida | 2026-10-06 | closed | 2026-10-06 | — |
+| 2 | PR | feat(persistencia): esquema de SOAR-AUDIT con cadena de hash por inquilino | cuenta compartida | 2026-10-08 | closed | 2026-10-08 | — |
+| 3 | PR | docs(evidencia): pruebas del esquema de SOAR-AUDIT en el servidor | cuenta compartida | 2026-10-08 | closed | 2026-10-08 | — |
+| 4 | PR | feat(decision): prompts en dos pasos y medición de la inferencia | cuenta compartida | 2026-10-14 | closed | 2026-10-14 | — |
+| 5 | PR | test(decision): casos de frontera y confianza en la medición | cuenta compartida | 2026-10-14 | closed | 2026-10-14 | — |
+| 6 | PR | feat(validacion): núcleo de SOAR-VALIDATE, KRO-CAT-01 0.1 y casos ESC-04 | cuenta compartida | 2026-10-14 | closed | 2026-10-14 | — |
 | 7 | PR | feat(infra): compose de Wazuh sin secretos | nicozdevp | 2026-10-14 | closed | 2026-10-14 | — |
 | 8 | PR | feat(deteccion): reglas de sobre F1 a F6 | nicozdevp | 2026-10-14 | closed | 2026-10-14 | — |
-| 9 | PR | docs: documentos de la entrega del 16-10-2026 | soarai2026 | 2026-10-14 | closed | 2026-10-14 | — |
-| 10 | PR | feat(validacion): mapa de severidad, exclusiones y contadores (propuesta) | soarai2026 | 2026-10-15 | closed | 2026-10-15 | — |
-| 11 | PR | feat(validacion): lectura de alerts.json y coincidencia con la regla de sobre | soarai2026 | 2026-10-15 | closed | 2026-10-15 | — |
-| 12 | PR | test(decision): mediciones del 14-10 en el servidor y elección del 7B | soarai2026 | 2026-10-15 | closed | 2026-10-15 | — |
-| 13 | PR | feat(infra): Ollama versionado, keep_alive y parte 06 de la guía | soarai2026 | 2026-10-15 | closed | 2026-10-15 | — |
-| 14 | PR | test(decision): medición con alertas en formato real de alerts.json | soarai2026 | 2026-10-15 | closed | 2026-10-15 | — |
-| 15 | PR | test(decision): conjunto de 150 casos etiquetados (familia y regla) | soarai2026 | 2026-10-15 | closed | 2026-10-15 | — |
-| 16 | PR | feat(persistencia): motivos nuevos y alerta única por inquilino | soarai2026 | 2026-10-15 | closed | 2026-10-15 | — |
-| 17 | PR | feat(persistencia): capa de acceso a SOAR-AUDIT para VALIDATE | soarai2026 | 2026-10-15 | closed | 2026-10-15 | nicozdevp |
-| 18 | PR | ci: pruebas unitarias en cada PR | soarai2026 | 2026-10-15 | closed | 2026-10-15 | nicozdevp |
-| 19 | PR | feat(respaldo): respaldo cifrado de PostgreSQL (SOAR-AUDIT) | soarai2026 | 2026-10-15 | closed | 2026-10-15 | nicozdevp |
-| 20 | PR | feat(ejecucion): núcleo de SOAR-EXECUTE | soarai2026 | 2026-10-15 | closed | 2026-10-15 | nicozdevp |
-| 21 | PR | feat(notificacion): SOAR-NOTIFY por Telegram | soarai2026 | 2026-10-15 | closed | 2026-10-15 | nicozdevp |
-| 22 | PR | feat(infra): despliegue de SOAR-EXECUTE y SOAR-NOTIFY | soarai2026 | 2026-10-15 | closed | 2026-10-15 | nicozdevp |
-| 23 | PR | feat(persistencia): rol kronos_console y esquema consola | soarai2026 | 2026-10-15 | closed | 2026-10-15 | nicozdevp |
-| 24 | PR | feat(consola): SOAR-CONSOLE | soarai2026 | 2026-10-15 | closed | 2026-10-15 | nicozdevp |
-| 25 | PR | feat(validacion): VALIDATE guarda la alerta completa en ALERTA_RECIBIDA | soarai2026 | 2026-10-15 | closed | 2026-10-16 | — |
-| 26 | PR | test: omitir en Windows tres pruebas que fallan sólo ahí | soarai2026 | 2026-10-15 | closed | 2026-10-16 | — |
-| 27 | PR | feat(decision): plazos de reversión del nivel 1 en KRO-CAT-01 0.2 (propuesta) | soarai2026 | 2026-10-15 | closed | 2026-10-16 | — |
-| 28 | PR | feat(validacion): ciclo de VALIDATE y python -m validacion | soarai2026 | 2026-10-15 | closed | 2026-10-16 | — |
-| 29 | PR | feat(infra): SOAR-VALIDATE en servicios.yml | soarai2026 | 2026-10-16 | closed | 2026-10-16 | — |
-| 30 | PR | docs(infra): permiso del secreto de la base antes de levantar VALIDATE | soarai2026 | 2026-10-16 | closed | 2026-10-16 | — |
+| 9 | PR | docs: documentos de la entrega del 16-10-2026 | cuenta compartida | 2026-10-14 | closed | 2026-10-14 | — |
+| 10 | PR | feat(validacion): mapa de severidad, exclusiones y contadores (propuesta) | cuenta compartida | 2026-10-15 | closed | 2026-10-15 | — |
+| 11 | PR | feat(validacion): lectura de alerts.json y coincidencia con la regla de sobre | cuenta compartida | 2026-10-15 | closed | 2026-10-15 | — |
+| 12 | PR | test(decision): mediciones del 14-10 en el servidor y elección del 7B | cuenta compartida | 2026-10-15 | closed | 2026-10-15 | — |
+| 13 | PR | feat(infra): Ollama versionado, keep_alive y parte 06 de la guía | cuenta compartida | 2026-10-15 | closed | 2026-10-15 | — |
+| 14 | PR | test(decision): medición con alertas en formato real de alerts.json | cuenta compartida | 2026-10-15 | closed | 2026-10-15 | — |
+| 15 | PR | test(decision): conjunto de 150 casos etiquetados (familia y regla) | cuenta compartida | 2026-10-15 | closed | 2026-10-15 | — |
+| 16 | PR | feat(persistencia): motivos nuevos y alerta única por inquilino | cuenta compartida | 2026-10-15 | closed | 2026-10-15 | — |
+| 17 | PR | feat(persistencia): capa de acceso a SOAR-AUDIT para VALIDATE | cuenta compartida | 2026-10-15 | closed | 2026-10-15 | nicozdevp |
+| 18 | PR | ci: pruebas unitarias en cada PR | cuenta compartida | 2026-10-15 | closed | 2026-10-15 | nicozdevp |
+| 19 | PR | feat(respaldo): respaldo cifrado de PostgreSQL (SOAR-AUDIT) | cuenta compartida | 2026-10-15 | closed | 2026-10-15 | nicozdevp |
+| 20 | PR | feat(ejecucion): núcleo de SOAR-EXECUTE | cuenta compartida | 2026-10-15 | closed | 2026-10-15 | nicozdevp |
+| 21 | PR | feat(notificacion): SOAR-NOTIFY por Telegram | cuenta compartida | 2026-10-15 | closed | 2026-10-15 | nicozdevp |
+| 22 | PR | feat(infra): despliegue de SOAR-EXECUTE y SOAR-NOTIFY | cuenta compartida | 2026-10-15 | closed | 2026-10-15 | nicozdevp |
+| 23 | PR | feat(persistencia): rol kronos_console y esquema consola | cuenta compartida | 2026-10-15 | closed | 2026-10-15 | nicozdevp |
+| 24 | PR | feat(consola): SOAR-CONSOLE | cuenta compartida | 2026-10-15 | closed | 2026-10-15 | nicozdevp |
+| 25 | PR | feat(validacion): VALIDATE guarda la alerta completa en ALERTA_RECIBIDA | cuenta compartida | 2026-10-15 | closed | 2026-10-16 | — |
+| 26 | PR | test: omitir en Windows tres pruebas que fallan sólo ahí | cuenta compartida | 2026-10-15 | closed | 2026-10-16 | — |
+| 27 | PR | feat(decision): plazos de reversión del nivel 1 en KRO-CAT-01 0.2 (propuesta) | cuenta compartida | 2026-10-15 | closed | 2026-10-16 | — |
+| 28 | PR | feat(validacion): ciclo de VALIDATE y python -m validacion | cuenta compartida | 2026-10-15 | closed | 2026-10-16 | — |
+| 29 | PR | feat(infra): SOAR-VALIDATE en servicios.yml | cuenta compartida | 2026-10-16 | closed | 2026-10-16 | — |
+| 30 | PR | docs(infra): permiso del secreto de la base antes de levantar VALIDATE | cuenta compartida | 2026-10-16 | closed | 2026-10-16 | — |
 | 31 | PR | feat(infra): script kronos-bloquear-ip (Linux) y guía 08 de Active Response | nicozdevp | 2026-10-21 | closed | 2026-10-21 | — |
-| 32 | PR | feat(ejecucion): Active Response kronos-bloquear-ip para Windows | soarai2026 | 2026-10-21 | closed | 2026-10-21 | — |
+| 32 | PR | feat(ejecucion): Active Response kronos-bloquear-ip para Windows | cuenta compartida | 2026-10-21 | closed | 2026-10-21 | — |
 | 33 | PR | docs(lab): EP-WKS-01 pasa al PC de escritorio y estado del laboratorio al 21-10 | nicozdevp | 2026-10-21 | closed | 2026-10-21 | — |
-| 34 | PR | feat(persistencia): tope y retención de las alertas guardadas (R-09) | soarai2026 | 2026-10-21 | closed | 2026-10-21 | — |
-| 35 | PR | feat(ejecucion): recuperador de tickets huérfanos | soarai2026 | 2026-10-21 | closed | 2026-10-21 | PatricioDU |
-| 36 | PR | feat(validate): mejoras de la prueba del 20-10, pruebas aparte y doc 02 §8.1 | soarai2026 | 2026-10-21 | closed | 2026-10-21 | nicozdevp |
-| 37 | PR | docs: regla de merge (D-54), roles y excepciones R-04 en CONTRIBUTING.md | soarai2026 | 2026-10-21 | closed | 2026-10-21 | PatricioDU |
-| 38 | PR | docs(02): estados del ticket y del cortacircuito al día con #35 y #36 | soarai2026 | 2026-10-21 | closed | 2026-10-21 | nicozdevp |
-| 39 | issue | Arranque: aprobar las decisiones D-57 a D-65 | soarai2026 | 2026-10-26 | open | — | — |
-| 40 | issue | Prueba integral: escenarios E1 a E7 con evidencias (punto de encuentro 2) | soarai2026 | 2026-10-26 | open | — | — |
-| 41 | issue | Guía de instalación en 15 partes | soarai2026 | 2026-10-26 | open | — | — |
-| 42 | issue | Diagramas al día (fuente .mmd e imagen) | soarai2026 | 2026-10-26 | open | — | — |
-| 43 | issue | Probar kronos-bloquear-ip de Windows en EP-WKS-01 | soarai2026 | 2026-10-26 | closed | — | — |
-| 44 | issue | Preparar EP-WKS-01 para los escenarios E3 y E4 | soarai2026 | 2026-10-26 | open | — | — |
-| 45 | issue | Confirmar el nuevo alcance con el profesor guía | soarai2026 | 2026-10-26 | open | — | — |
-| 46 | issue | README completo, con resumen en inglés | soarai2026 | 2026-10-26 | open | — | — |
-| 47 | issue | Correcciones al script Linux kronos-bloquear-ip (revisión del #31) | soarai2026 | 2026-10-26 | open | — | — |
-| 48 | issue | Probar kronos-deshabilitar-cuenta y kronos-aislar-equipo en EP-WKS-01 | soarai2026 | 2026-10-26 | open | — | — |
-| 49 | issue | Video de respaldo de la demostración | soarai2026 | 2026-10-26 | open | — | — |
-| 50 | issue | Presentación para la comisión (borrador) | soarai2026 | 2026-10-26 | open | — | — |
-| 51 | issue | Documentos de Nicolás sin la farmacia (1.1, 1.2, 2.1, 2.7, 3.2, 5.1, 5.2, 5.6 y 6.2) | soarai2026 | 2026-10-26 | open | — | — |
-| 52 | issue | Acta del replanteamiento (D-57 a D-65) | soarai2026 | 2026-10-26 | open | — | — |
-| 53 | issue | Respaldo del laboratorio: exportar EP-SRV-01 y EP-WKS-01 | soarai2026 | 2026-10-26 | open | — | — |
-| 54 | issue | Servidor como clon de git con etiquetas (D-55) | soarai2026 | 2026-10-26 | open | — | — |
-| 55 | issue | kronos-deshabilitar-cuenta para Windows | soarai2026 | 2026-10-26 | open | — | — |
-| 56 | issue | EXECUTE con .cmd para agentes Windows y registro del .ps1 | soarai2026 | 2026-10-26 | open | — | — |
-| 57 | issue | kronos-aislar-equipo para Windows | soarai2026 | 2026-10-26 | open | — | — |
-| 58 | issue | Avisos de Telegram en lenguaje claro y D-50 | soarai2026 | 2026-10-26 | open | — | — |
-| 59 | issue | Desplegar la versión candidata v1.0.0-rc1 | soarai2026 | 2026-10-26 | open | — | — |
-| 60 | issue | Manual del encargado de TI | soarai2026 | 2026-10-26 | open | — | — |
-| 61 | issue | Documentos de Rodrigo sin la farmacia (1.5, 1.6, 1.8, 1.9, 2.5, 3.1, 4.2, 5.3, 5.4, 5.5 y 6.3) | soarai2026 | 2026-10-26 | open | — | — |
-| 62 | issue | Versión 1.0.0: PR develop → main, etiqueta y notas | soarai2026 | 2026-10-26 | open | — | — |
-| 63 | issue | Orden del repositorio | soarai2026 | 2026-10-26 | open | — | — |
-| 64 | issue | Coherencia: .env.example, una sola construcción de la imagen y textos «pendiente» | soarai2026 | 2026-10-26 | open | — | — |
-| 65 | issue | CI: pruebas de la consola y verificación de la entrega | soarai2026 | 2026-10-26 | open | — | — |
-| 66 | issue | Cortacircuito por alertas recibidas | soarai2026 | 2026-10-26 | open | — | — |
-| 67 | issue | Qué medida elige la IA en los escenarios E1 a E4 | soarai2026 | 2026-10-26 | open | — | — |
-| 68 | issue | Precisión de punta a punta con al menos 50 casos etiquetados | soarai2026 | 2026-10-26 | open | — | — |
-| 69 | issue | Prueba de estrés (E6) y prueba de la ráfaga | soarai2026 | 2026-10-26 | open | — | — |
-| 70 | issue | Documentos de Patricio sin la farmacia (1.3, 1.4, 1.7, 2.2, 2.3, 2.4, 2.6, 4.1, 6.1, 6.4 y 6.5) | soarai2026 | 2026-10-26 | open | — | — |
-| 71 | issue | Informe final integrado, con resumen en inglés | soarai2026 | 2026-10-26 | open | — | — |
-| 72 | issue | Catálogo KRO-CAT-01 v1.0 | soarai2026 | 2026-10-26 | open | — | — |
-| 73 | issue | validate.json v1.0 (D-65) | soarai2026 | 2026-10-26 | open | — | — |
-| 74 | issue | Ramas de experimentos: archivar como etiquetas | soarai2026 | 2026-10-26 | open | — | — |
-| 75 | PR | docs: portada del repositorio (README, CHANGELOG, SECURITY, plantilla de PR y CONTRIBUTING) | soarai2026 | 2026-10-26 | closed | 2026-10-26 | — |
-| 76 | PR | fix: coherencia de la configuración (.env.example, una sola construcción) y textos «pendiente» ya resueltos | soarai2026 | 2026-10-26 | closed | 2026-10-26 | — |
-| 77 | PR | ci: pruebas de la consola e integración en el CI, y verificación de la entrega | soarai2026 | 2026-10-26 | closed | 2026-10-26 | — |
-| 78 | PR | feat(notificacion): avisos de Telegram en lenguaje claro para el encargado de TI, y D-50 | soarai2026 | 2026-10-26 | closed | 2026-10-26 | — |
-| 79 | PR | docs(diagramas): 14 diagramas al día con la v1.0 y el replanteamiento PyME | soarai2026 | 2026-10-26 | closed | 2026-10-26 | — |
-| 80 | PR | docs(instalacion): guía de instalación en 15 partes | soarai2026 | 2026-10-26 | closed | 2026-10-26 | — |
-| 81 | PR | docs: estructura de docs/, registro de trabajo y archivo | soarai2026 | 2026-10-26 | closed | 2026-10-26 | — |
-| 82 | PR | docs(mediciones): ramas de experimentos archivadas como etiquetas | soarai2026 | 2026-10-26 | closed | 2026-10-26 | — |
-| 83 | PR | feat(catalogo): KRO-CAT-01 1.0 con los actuadores de la v1.0 | soarai2026 | 2026-10-26 | closed | 2026-10-26 | — |
-| 84 | PR | feat(validacion): validate.json 1.0, aprobada (D-65) | soarai2026 | 2026-10-26 | closed | 2026-10-26 | — |
+| 34 | PR | feat(persistencia): tope y retención de las alertas guardadas (R-09) | cuenta compartida | 2026-10-21 | closed | 2026-10-21 | — |
+| 35 | PR | feat(ejecucion): recuperador de tickets huérfanos | cuenta compartida | 2026-10-21 | closed | 2026-10-21 | PatricioDU |
+| 36 | PR | feat(validate): mejoras de la prueba del 20-10, pruebas aparte y doc 02 §8.1 | cuenta compartida | 2026-10-21 | closed | 2026-10-21 | nicozdevp |
+| 37 | PR | docs: regla de merge (D-54), roles y excepciones R-04 en CONTRIBUTING.md | cuenta compartida | 2026-10-21 | closed | 2026-10-21 | PatricioDU |
+| 38 | PR | docs(02): estados del ticket y del cortacircuito al día con #35 y #36 | cuenta compartida | 2026-10-21 | closed | 2026-10-21 | nicozdevp |
+| 39 | issue | Arranque: aprobar las decisiones D-57 a D-65 | cuenta compartida | 2026-10-26 | open | — | — |
+| 40 | issue | Prueba integral: escenarios E1 a E7 con evidencias (punto de encuentro 2) | cuenta compartida | 2026-10-26 | open | — | — |
+| 41 | issue | Guía de instalación en 15 partes | cuenta compartida | 2026-10-26 | open | — | — |
+| 42 | issue | Diagramas al día (fuente .mmd e imagen) | cuenta compartida | 2026-10-26 | open | — | — |
+| 43 | issue | Probar kronos-bloquear-ip de Windows en EP-WKS-01 | cuenta compartida | 2026-10-26 | closed | — | — |
+| 44 | issue | Preparar EP-WKS-01 para los escenarios E3 y E4 | cuenta compartida | 2026-10-26 | open | — | — |
+| 45 | issue | Confirmar el nuevo alcance con el profesor guía | cuenta compartida | 2026-10-26 | open | — | — |
+| 46 | issue | README completo, con resumen en inglés | cuenta compartida | 2026-10-26 | open | — | — |
+| 47 | issue | Correcciones al script Linux kronos-bloquear-ip (revisión del #31) | cuenta compartida | 2026-10-26 | open | — | — |
+| 48 | issue | Probar kronos-deshabilitar-cuenta y kronos-aislar-equipo en EP-WKS-01 | cuenta compartida | 2026-10-26 | open | — | — |
+| 49 | issue | Video de respaldo de la demostración | cuenta compartida | 2026-10-26 | open | — | — |
+| 50 | issue | Presentación para la comisión (borrador) | cuenta compartida | 2026-10-26 | open | — | — |
+| 51 | issue | Documentos de Nicolás sin la farmacia (1.1, 1.2, 2.1, 2.7, 3.2, 5.1, 5.2, 5.6 y 6.2) | cuenta compartida | 2026-10-26 | open | — | — |
+| 52 | issue | Acta del replanteamiento (D-57 a D-65) | cuenta compartida | 2026-10-26 | open | — | — |
+| 53 | issue | Respaldo del laboratorio: exportar EP-SRV-01 y EP-WKS-01 | cuenta compartida | 2026-10-26 | open | — | — |
+| 54 | issue | Servidor como clon de git con etiquetas (D-55) | cuenta compartida | 2026-10-26 | open | — | — |
+| 55 | issue | kronos-deshabilitar-cuenta para Windows | cuenta compartida | 2026-10-26 | open | — | — |
+| 56 | issue | EXECUTE con .cmd para agentes Windows y registro del .ps1 | cuenta compartida | 2026-10-26 | open | — | — |
+| 57 | issue | kronos-aislar-equipo para Windows | cuenta compartida | 2026-10-26 | open | — | — |
+| 58 | issue | Avisos de Telegram en lenguaje claro y D-50 | cuenta compartida | 2026-10-26 | open | — | — |
+| 59 | issue | Desplegar la versión candidata v1.0.0-rc1 | cuenta compartida | 2026-10-26 | open | — | — |
+| 60 | issue | Manual del encargado de TI | cuenta compartida | 2026-10-26 | open | — | — |
+| 61 | issue | Documentos de Rodrigo sin la farmacia (1.5, 1.6, 1.8, 1.9, 2.5, 3.1, 4.2, 5.3, 5.4, 5.5 y 6.3) | cuenta compartida | 2026-10-26 | open | — | — |
+| 62 | issue | Versión 1.0.0: PR develop → main, etiqueta y notas | cuenta compartida | 2026-10-26 | open | — | — |
+| 63 | issue | Orden del repositorio | cuenta compartida | 2026-10-26 | open | — | — |
+| 64 | issue | Coherencia: .env.example, una sola construcción de la imagen y textos «pendiente» | cuenta compartida | 2026-10-26 | open | — | — |
+| 65 | issue | CI: pruebas de la consola y verificación de la entrega | cuenta compartida | 2026-10-26 | open | — | — |
+| 66 | issue | Cortacircuito por alertas recibidas | cuenta compartida | 2026-10-26 | open | — | — |
+| 67 | issue | Qué medida elige la IA en los escenarios E1 a E4 | cuenta compartida | 2026-10-26 | open | — | — |
+| 68 | issue | Precisión de punta a punta con al menos 50 casos etiquetados | cuenta compartida | 2026-10-26 | open | — | — |
+| 69 | issue | Prueba de estrés (E6) y prueba de la ráfaga | cuenta compartida | 2026-10-26 | open | — | — |
+| 70 | issue | Documentos de Patricio sin la farmacia (1.3, 1.4, 1.7, 2.2, 2.3, 2.4, 2.6, 4.1, 6.1, 6.4 y 6.5) | cuenta compartida | 2026-10-26 | open | — | — |
+| 71 | issue | Informe final integrado, con resumen en inglés | cuenta compartida | 2026-10-26 | open | — | — |
+| 72 | issue | Catálogo KRO-CAT-01 v1.0 | cuenta compartida | 2026-10-26 | open | — | — |
+| 73 | issue | validate.json v1.0 (D-65) | cuenta compartida | 2026-10-26 | open | — | — |
+| 74 | issue | Ramas de experimentos: archivar como etiquetas | cuenta compartida | 2026-10-26 | open | — | — |
+| 75 | PR | docs: portada del repositorio (README, CHANGELOG, SECURITY, plantilla de PR y CONTRIBUTING) | cuenta compartida | 2026-10-26 | closed | 2026-10-26 | — |
+| 76 | PR | fix: coherencia de la configuración (.env.example, una sola construcción) y textos «pendiente» ya resueltos | cuenta compartida | 2026-10-26 | closed | 2026-10-26 | — |
+| 77 | PR | ci: pruebas de la consola e integración en el CI, y verificación de la entrega | cuenta compartida | 2026-10-26 | closed | 2026-10-26 | — |
+| 78 | PR | feat(notificacion): avisos de Telegram en lenguaje claro para el encargado de TI, y D-50 | cuenta compartida | 2026-10-26 | closed | 2026-10-26 | — |
+| 79 | PR | docs(diagramas): 14 diagramas al día con la v1.0 y el replanteamiento PyME | cuenta compartida | 2026-10-26 | closed | 2026-10-26 | — |
+| 80 | PR | docs(instalacion): guía de instalación en 15 partes | cuenta compartida | 2026-10-26 | closed | 2026-10-26 | — |
+| 81 | PR | docs: estructura de docs/, registro de trabajo y archivo | cuenta compartida | 2026-10-26 | closed | 2026-10-26 | — |
+| 82 | PR | docs(mediciones): ramas de experimentos archivadas como etiquetas | cuenta compartida | 2026-10-26 | closed | 2026-10-26 | — |
+| 83 | PR | feat(catalogo): KRO-CAT-01 1.0 con los actuadores de la v1.0 | cuenta compartida | 2026-10-26 | closed | 2026-10-26 | — |
+| 84 | PR | feat(validacion): validate.json 1.0, aprobada (D-65) | cuenta compartida | 2026-10-26 | closed | 2026-10-26 | — |
 
 ---
 
 ## #1 · ci: gitleaks, lint y chequeo de R1
 
-- **Tipo:** PR · **Autor:** soarai2026 · **Creado:** 2026-10-06 · **Estado:** closed · **Cerrado:** 2026-10-06
-- **Rama:** `feat/e1-ci` → `develop` · **Mezclado:** 2026-10-06 por soarai2026 · 2 commits, 3 archivos (+218 / −0)
+- **Tipo:** PR · **Autor:** cuenta compartida · **Creado:** 2026-10-06 · **Estado:** closed · **Cerrado:** 2026-10-06
+- **Rama:** `feat/e1-ci` → `develop` · **Mezclado:** 2026-10-06 por la cuenta compartida · 2 commits, 3 archivos (+218 / −0)
 
 ## Resumen
 
@@ -124,8 +124,8 @@ Total: 48 pull requests y 36 issues.
 
 ## #2 · feat(persistencia): esquema de SOAR-AUDIT con cadena de hash por inquilino
 
-- **Tipo:** PR · **Autor:** soarai2026 · **Creado:** 2026-10-08 · **Estado:** closed · **Cerrado:** 2026-10-08
-- **Rama:** `feat/e1-esquema-audit` → `develop` · **Mezclado:** 2026-10-08 por soarai2026 · 10 commits, 15 archivos (+1032 / −0)
+- **Tipo:** PR · **Autor:** cuenta compartida · **Creado:** 2026-10-08 · **Estado:** closed · **Cerrado:** 2026-10-08
+- **Rama:** `feat/e1-esquema-audit` → `develop` · **Mezclado:** 2026-10-08 por la cuenta compartida · 10 commits, 15 archivos (+1032 / −0)
 
 Esquema multi-inquilino con RLS, cadena de hash por (tenant_id, seq), inmutabilidad y pruebas en tests/sql/. Evidencia en docs/evidencia/.
 
@@ -133,8 +133,8 @@ Esquema multi-inquilino con RLS, cadena de hash por (tenant_id, seq), inmutabili
 
 ## #3 · docs(evidencia): pruebas del esquema de SOAR-AUDIT en el servidor
 
-- **Tipo:** PR · **Autor:** soarai2026 · **Creado:** 2026-10-08 · **Estado:** closed · **Cerrado:** 2026-10-08
-- **Rama:** `docs/evidencia-servidor` → `develop` · **Mezclado:** 2026-10-08 por soarai2026 · 1 commits, 1 archivos (+160 / −0)
+- **Tipo:** PR · **Autor:** cuenta compartida · **Creado:** 2026-10-08 · **Estado:** closed · **Cerrado:** 2026-10-08
+- **Rama:** `docs/evidencia-servidor` → `develop` · **Mezclado:** 2026-10-08 por la cuenta compartida · 1 commits, 1 archivos (+160 / −0)
 
 Salida de tests/sql/ejecutar.sh en SOAR-CORE-01. Base recreada y vacía después de las pruebas.
 
@@ -142,7 +142,7 @@ Salida de tests/sql/ejecutar.sh en SOAR-CORE-01. Base recreada y vacía después
 
 ## #4 · feat(decision): prompts en dos pasos y medición de la inferencia
 
-- **Tipo:** PR · **Autor:** soarai2026 · **Creado:** 2026-10-14 · **Estado:** closed · **Cerrado:** 2026-10-14
+- **Tipo:** PR · **Autor:** cuenta compartida · **Creado:** 2026-10-14 · **Estado:** closed · **Cerrado:** 2026-10-14
 - **Rama:** `feat/e1-medicion-inferencia` → `develop` · **Mezclado:** 2026-10-14 por PatricioDU · 5 commits, 6 archivos (+827 / −0)
 
 ## Qué incluye
@@ -178,7 +178,7 @@ El prompt más largo fue de unos 1560 tokens, lejos del límite de 4000.
 
 ## #5 · test(decision): casos de frontera y confianza en la medición
 
-- **Tipo:** PR · **Autor:** soarai2026 · **Creado:** 2026-10-14 · **Estado:** closed · **Cerrado:** 2026-10-14
+- **Tipo:** PR · **Autor:** cuenta compartida · **Creado:** 2026-10-14 · **Estado:** closed · **Cerrado:** 2026-10-14
 - **Rama:** `feat/e1-casos-frontera` → `develop` · **Mezclado:** 2026-10-14 por PatricioDU · 2 commits, 2 archivos (+102 / −11)
 
 ## Qué incluye
@@ -208,7 +208,7 @@ El commit de `--casos` también está en `feat/e2-validate-contrato`, con el mis
 
 ## #6 · feat(validacion): núcleo de SOAR-VALIDATE, KRO-CAT-01 0.1 y casos ESC-04
 
-- **Tipo:** PR · **Autor:** soarai2026 · **Creado:** 2026-10-14 · **Estado:** closed · **Cerrado:** 2026-10-14
+- **Tipo:** PR · **Autor:** cuenta compartida · **Creado:** 2026-10-14 · **Estado:** closed · **Cerrado:** 2026-10-14
 - **Rama:** `feat/e2-validate-contrato` → `develop` · **Mezclado:** 2026-10-14 por PatricioDU · 7 commits, 18 archivos (+2229 / −11)
 
 ## Qué incluye
@@ -303,7 +303,7 @@ Pendiente de revisión por otro integrante.
 - Niveles propuestos; se ajustan con el mapa de severidad de VALIDATE.
 - F4 cubierta solo por la regla 92104; falta una lista de destinos no autorizados.
 
-**Comentario de soarai2026** (2026-10-15):
+**Comentario de la cuenta compartida** (2026-10-15):
 
 Revisión de las reglas de sobre (Patricio). Las dos quedan para @Nicolás, en su rama y en el servidor:
 
@@ -321,7 +321,7 @@ Recordatorio de otra observación del chat: F4 quedó débil, porque solo la cub
 
 ## #9 · docs: documentos de la entrega del 16-10-2026
 
-- **Tipo:** PR · **Autor:** soarai2026 · **Creado:** 2026-10-14 · **Estado:** closed · **Cerrado:** 2026-10-14
+- **Tipo:** PR · **Autor:** cuenta compartida · **Creado:** 2026-10-14 · **Estado:** closed · **Cerrado:** 2026-10-14
 - **Rama:** `feat/e1-documentacion` → `develop` · **Mezclado:** 2026-10-14 por PatricioDU · 7 commits, 62 archivos (+1564 / −0)
 
 ## Qué incluye
@@ -359,7 +359,7 @@ Quedan pendientes los documentos 10, 12, 16, 18, 21 y 22, y lo que depende de la
 
 ## #10 · feat(validacion): mapa de severidad, exclusiones y contadores (propuesta)
 
-- **Tipo:** PR · **Autor:** soarai2026 · **Creado:** 2026-10-15 · **Estado:** closed · **Cerrado:** 2026-10-15
+- **Tipo:** PR · **Autor:** cuenta compartida · **Creado:** 2026-10-15 · **Estado:** closed · **Cerrado:** 2026-10-15
 - **Rama:** `feat/e2-config-validate` → `develop` · **Mezclado:** 2026-10-15 por PatricioDU · 1 commits, 3 archivos (+324 / −0)
 
 ## Qué incluye
@@ -406,7 +406,7 @@ Quedan pendientes los documentos 10, 12, 16, 18, 21 y 22, y lo que depende de la
 
 ## #11 · feat(validacion): lectura de alerts.json y coincidencia con la regla de sobre
 
-- **Tipo:** PR · **Autor:** soarai2026 · **Creado:** 2026-10-15 · **Estado:** closed · **Cerrado:** 2026-10-15
+- **Tipo:** PR · **Autor:** cuenta compartida · **Creado:** 2026-10-15 · **Estado:** closed · **Cerrado:** 2026-10-15
 - **Rama:** `feat/e2-lector-alertas` → `develop` · **Mezclado:** 2026-10-15 por PatricioDU · 3 commits, 7 archivos (+565 / −7)
 
 ## Qué incluye
@@ -441,7 +441,7 @@ Para que sean independientes, **el modelo no ve la etiqueta**: el texto que reci
 
 100 pruebas pasan (`python -m unittest discover -s tests/unit`). Entre ellas: rotación sin pérdida, línea a medio escribir, truncado, archivo todavía no creado, alerta con campo enorme y alerta que intenta simular secciones del prompt. `ruff check .` y `python tools/check_r1.py` pasan.
 
-**Comentario de soarai2026** (2026-10-15):
+**Comentario de la cuenta compartida** (2026-10-15):
 
 **Dato para el compose de VALIDATE:** dentro del manager, el grupo `wazuh` tiene el **GID 999** (`uid=999(wazuh) gid=999(wazuh)`).
 
@@ -456,7 +456,7 @@ group_add:
 
 ## #12 · test(decision): mediciones del 14-10 en el servidor y elección del 7B
 
-- **Tipo:** PR · **Autor:** soarai2026 · **Creado:** 2026-10-15 · **Estado:** closed · **Cerrado:** 2026-10-15
+- **Tipo:** PR · **Autor:** cuenta compartida · **Creado:** 2026-10-15 · **Estado:** closed · **Cerrado:** 2026-10-15
 - **Rama:** `feat/e2-mediciones-14-10` → `develop` · **Mezclado:** 2026-10-15 por PatricioDU · 4 commits, 15 archivos (+383 / −3)
 
 ## Qué incluye
@@ -498,7 +498,7 @@ group_add:
 
 ## #13 · feat(infra): Ollama versionado, keep_alive y parte 06 de la guía
 
-- **Tipo:** PR · **Autor:** soarai2026 · **Creado:** 2026-10-15 · **Estado:** closed · **Cerrado:** 2026-10-15
+- **Tipo:** PR · **Autor:** cuenta compartida · **Creado:** 2026-10-15 · **Estado:** closed · **Cerrado:** 2026-10-15
 - **Rama:** `feat/e2-ollama-guia` → `develop` · **Mezclado:** 2026-10-15 por PatricioDU · 3 commits, 4 archivos (+209 / −1)
 
 ## Qué incluye
@@ -529,7 +529,7 @@ group_add:
 
 ## #14 · test(decision): medición con alertas en formato real de alerts.json
 
-- **Tipo:** PR · **Autor:** soarai2026 · **Creado:** 2026-10-15 · **Estado:** closed · **Cerrado:** 2026-10-15
+- **Tipo:** PR · **Autor:** cuenta compartida · **Creado:** 2026-10-15 · **Estado:** closed · **Cerrado:** 2026-10-15
 - **Rama:** `feat/e2-casos-formato-wazuh` → `develop` · **Mezclado:** 2026-10-15 por PatricioDU · 4 commits, 8 archivos (+933 / −5)
 
 ## Qué incluye
@@ -557,7 +557,7 @@ La descripción de la regla de sobre ya sugiere la familia, y estas alertas son 
 
 ## #15 · test(decision): conjunto de 150 casos etiquetados (familia y regla)
 
-- **Tipo:** PR · **Autor:** soarai2026 · **Creado:** 2026-10-15 · **Estado:** closed · **Cerrado:** 2026-10-15
+- **Tipo:** PR · **Autor:** cuenta compartida · **Creado:** 2026-10-15 · **Estado:** closed · **Cerrado:** 2026-10-15
 - **Rama:** `feat/e2-casos-150` → `develop` · **Mezclado:** 2026-10-15 por PatricioDU · 1 commits, 6 archivos (+6955 / −0)
 
 ## Qué incluye
@@ -602,7 +602,7 @@ F1 26, F2 26, F3 24, F4 16, F5 30, F6 28 (F4 y F6 tienen menos reglas de sobre).
 
 ## #16 · feat(persistencia): motivos nuevos y alerta única por inquilino
 
-- **Tipo:** PR · **Autor:** soarai2026 · **Creado:** 2026-10-15 · **Estado:** closed · **Cerrado:** 2026-10-15
+- **Tipo:** PR · **Autor:** cuenta compartida · **Creado:** 2026-10-15 · **Estado:** closed · **Cerrado:** 2026-10-15
 - **Rama:** `feat/e2-esquema-motivos` → `develop` · **Mezclado:** 2026-10-15 por nicozdevp · 1 commits, 2 archivos (+46 / −2)
 
 ## Qué cambia
@@ -628,7 +628,7 @@ Aprobado
 
 ## #17 · feat(persistencia): capa de acceso a SOAR-AUDIT para VALIDATE
 
-- **Tipo:** PR · **Autor:** soarai2026 · **Creado:** 2026-10-15 · **Estado:** closed · **Cerrado:** 2026-10-15
+- **Tipo:** PR · **Autor:** cuenta compartida · **Creado:** 2026-10-15 · **Estado:** closed · **Cerrado:** 2026-10-15
 - **Rama:** `feat/e2-persistencia-validate` → `develop` · **Mezclado:** 2026-10-15 por nicozdevp · 1 commits, 6 archivos (+554 / −1)
 
 ## Qué cambia
@@ -655,7 +655,7 @@ Revisado por Nicolás.
 
 ## #18 · ci: pruebas unitarias en cada PR
 
-- **Tipo:** PR · **Autor:** soarai2026 · **Creado:** 2026-10-15 · **Estado:** closed · **Cerrado:** 2026-10-15
+- **Tipo:** PR · **Autor:** cuenta compartida · **Creado:** 2026-10-15 · **Estado:** closed · **Cerrado:** 2026-10-15
 - **Rama:** `ci/e2-tests-unitarios` → `develop` · **Mezclado:** 2026-10-15 por nicozdevp · 1 commits, 1 archivos (+13 / −0)
 
 Agrega el job 'pruebas unitarias' (python -m unittest discover -s tests/unit). Solo biblioteca estándar; las de integración quedan fuera porque necesitan KRONOS_DSN.
@@ -668,7 +668,7 @@ Revisado por Nicolás.
 
 ## #19 · feat(respaldo): respaldo cifrado de PostgreSQL (SOAR-AUDIT)
 
-- **Tipo:** PR · **Autor:** soarai2026 · **Creado:** 2026-10-15 · **Estado:** closed · **Cerrado:** 2026-10-15
+- **Tipo:** PR · **Autor:** cuenta compartida · **Creado:** 2026-10-15 · **Estado:** closed · **Cerrado:** 2026-10-15
 - **Rama:** `feat/e2-respaldo-postgres` → `develop` · **Mezclado:** 2026-10-15 por nicozdevp · 1 commits, 5 archivos (+209 / −0)
 
 pg_dump -Fc y globales cifrados con age, 14 copias en /var/backups/kronos, timer diario a las 04:15 UTC (Wazuh corre a las 04:00). Incluye probar_restauracion.sh: restaura en una base de prueba, compara filas, verifica la cadena de hash de cada inquilino y que auditoria siga rechazando DELETE. Probado en PostgreSQL 17.11 local: 2822/2822 eventos, 12 inquilinos, 0 cadenas rotas, rotación correcta.
@@ -681,7 +681,7 @@ Revisado por Nicolás.
 
 ## #20 · feat(ejecucion): núcleo de SOAR-EXECUTE
 
-- **Tipo:** PR · **Autor:** soarai2026 · **Creado:** 2026-10-15 · **Estado:** closed · **Cerrado:** 2026-10-15
+- **Tipo:** PR · **Autor:** cuenta compartida · **Creado:** 2026-10-15 · **Estado:** closed · **Cerrado:** 2026-10-15
 - **Rama:** `feat/e2-execute-nucleo` → `develop` · **Mezclado:** 2026-10-15 por nicozdevp · 4 commits, 20 archivos (+2552 / −4)
 
 Depende del PR #17 (mezclar ese primero; este PR incluye sus commits hasta entonces).
@@ -701,7 +701,7 @@ Revisado por Nicolás.
 
 ## #21 · feat(notificacion): SOAR-NOTIFY por Telegram
 
-- **Tipo:** PR · **Autor:** soarai2026 · **Creado:** 2026-10-15 · **Estado:** closed · **Cerrado:** 2026-10-15
+- **Tipo:** PR · **Autor:** cuenta compartida · **Creado:** 2026-10-15 · **Estado:** closed · **Cerrado:** 2026-10-15
 - **Rama:** `feat/e2-notify` → `develop` · **Mezclado:** 2026-10-15 por nicozdevp · 5 commits, 29 archivos (+3607 / −4)
 
 Depende de los PR #17 y #20 (mezclarlos primero).
@@ -721,7 +721,7 @@ Revisado por Nicolás.
 
 ## #22 · feat(infra): despliegue de SOAR-EXECUTE y SOAR-NOTIFY
 
-- **Tipo:** PR · **Autor:** soarai2026 · **Creado:** 2026-10-15 · **Estado:** closed · **Cerrado:** 2026-10-15
+- **Tipo:** PR · **Autor:** cuenta compartida · **Creado:** 2026-10-15 · **Estado:** closed · **Cerrado:** 2026-10-15
 - **Rama:** `feat/e2-despliegue` → `develop` · **Mezclado:** 2026-10-15 por nicozdevp · 6 commits, 34 archivos (+3848 / −6)
 
 Depende de los PR #17, #20 y #21.
@@ -742,7 +742,7 @@ Revisado por Nicolás.
 
 ## #23 · feat(persistencia): rol kronos_console y esquema consola
 
-- **Tipo:** PR · **Autor:** soarai2026 · **Creado:** 2026-10-15 · **Estado:** closed · **Cerrado:** 2026-10-15
+- **Tipo:** PR · **Autor:** cuenta compartida · **Creado:** 2026-10-15 · **Estado:** closed · **Cerrado:** 2026-10-15
 - **Rama:** `feat/e2-consola-base` → `develop` · **Mezclado:** 2026-10-15 por nicozdevp · 7 commits, 37 archivos (+4155 / −6)
 
 Depende de los PR #17, #20, #21 y #22. Cierra las preguntas abiertas #28 (rol propio mínimo) y prepara la #38.
@@ -762,7 +762,7 @@ Revisado por Nicolás.
 
 ## #24 · feat(consola): SOAR-CONSOLE
 
-- **Tipo:** PR · **Autor:** soarai2026 · **Creado:** 2026-10-15 · **Estado:** closed · **Cerrado:** 2026-10-15
+- **Tipo:** PR · **Autor:** cuenta compartida · **Creado:** 2026-10-15 · **Estado:** closed · **Cerrado:** 2026-10-15
 - **Rama:** `feat/e2-consola-app` → `develop` · **Mezclado:** 2026-10-15 por nicozdevp · 8 commits, 52 archivos (+5522 / −6)
 
 Depende del PR #23 (y de los anteriores de la cadena). Cierra la pregunta abierta #38: sólo por NetBird, TLS, contraseña (scrypt) y TOTP (RFC 6238).
@@ -782,7 +782,7 @@ Revisado por Nicolás.
 
 ## #25 · feat(validacion): VALIDATE guarda la alerta completa en ALERTA_RECIBIDA
 
-- **Tipo:** PR · **Autor:** soarai2026 · **Creado:** 2026-10-15 · **Estado:** closed · **Cerrado:** 2026-10-16
+- **Tipo:** PR · **Autor:** cuenta compartida · **Creado:** 2026-10-15 · **Estado:** closed · **Cerrado:** 2026-10-16
 - **Rama:** `feat/e2-validate-alerta-completa` → `develop` · **Mezclado:** 2026-10-16 por PatricioDU · 3 commits, 7 archivos (+618 / −5)
 
 ## Qué resuelve
@@ -825,7 +825,7 @@ Este PR es solo el registro, que era lo que bloqueaba a EXECUTE. El resto del ci
 
 ## #26 · test: omitir en Windows tres pruebas que fallan sólo ahí
 
-- **Tipo:** PR · **Autor:** soarai2026 · **Creado:** 2026-10-15 · **Estado:** closed · **Cerrado:** 2026-10-16
+- **Tipo:** PR · **Autor:** cuenta compartida · **Creado:** 2026-10-15 · **Estado:** closed · **Cerrado:** 2026-10-16
 - **Rama:** `fix/pruebas-solo-linux` → `develop` · **Mezclado:** 2026-10-16 por PatricioDU · 1 commits, 2 archivos (+14 / −0)
 
 Agrega `@unittest.skipIf(sys.platform == "win32", ...)` a las tres pruebas unitarias que fallan solo en Windows:
@@ -844,7 +844,7 @@ Nota: omitir `test_servidor_apagado` oculta una diferencia de comportamiento que
 
 ## #27 · feat(decision): plazos de reversión del nivel 1 en KRO-CAT-01 0.2 (propuesta)
 
-- **Tipo:** PR · **Autor:** soarai2026 · **Creado:** 2026-10-15 · **Estado:** closed · **Cerrado:** 2026-10-16
+- **Tipo:** PR · **Autor:** cuenta compartida · **Creado:** 2026-10-15 · **Estado:** closed · **Cerrado:** 2026-10-16
 - **Rama:** `feat/e2-plazos-reversion` → `develop` · **Mezclado:** 2026-10-16 por PatricioDU · 1 commits, 2 archivos (+28 / −18)
 
 ## Qué cambia
@@ -881,7 +881,7 @@ Revisando esto conté que **9 de los 25 playbooks no se pueden ejecutar hoy** (`
 
 ## #28 · feat(validacion): ciclo de VALIDATE y python -m validacion
 
-- **Tipo:** PR · **Autor:** soarai2026 · **Creado:** 2026-10-15 · **Estado:** closed · **Cerrado:** 2026-10-16
+- **Tipo:** PR · **Autor:** cuenta compartida · **Creado:** 2026-10-15 · **Estado:** closed · **Cerrado:** 2026-10-16
 - **Rama:** `feat/e2-validate-ciclo` → `develop` · **Mezclado:** 2026-10-16 por PatricioDU · 9 commits, 25 archivos (+1639 / −47)
 
 ## Qué incluye
@@ -947,7 +947,7 @@ Las IP de `casos_150` son del rango de documentación 192.0.2.0/24, que cuenta c
 
 ## #29 · feat(infra): SOAR-VALIDATE en servicios.yml
 
-- **Tipo:** PR · **Autor:** soarai2026 · **Creado:** 2026-10-16 · **Estado:** closed · **Cerrado:** 2026-10-16
+- **Tipo:** PR · **Autor:** cuenta compartida · **Creado:** 2026-10-16 · **Estado:** closed · **Cerrado:** 2026-10-16
 - **Rama:** `feat/e2-validate-servicio` → `develop` · **Mezclado:** 2026-10-16 por PatricioDU · 1 commits, 5 archivos (+115 / −8)
 
 ## Qué incluye
@@ -992,7 +992,7 @@ El compose de los servicios tenía `execute`, `notify` y `consola`, pero no `val
 
 ## #30 · docs(infra): permiso del secreto de la base antes de levantar VALIDATE
 
-- **Tipo:** PR · **Autor:** soarai2026 · **Creado:** 2026-10-16 · **Estado:** closed · **Cerrado:** 2026-10-16
+- **Tipo:** PR · **Autor:** cuenta compartida · **Creado:** 2026-10-16 · **Estado:** closed · **Cerrado:** 2026-10-16
 - **Rama:** `docs/validate-permiso-secreto` → `develop` · **Mezclado:** 2026-10-16 por PatricioDU · 1 commits, 1 archivos (+10 / −1)
 
 ## Qué cambia
@@ -1012,7 +1012,7 @@ Solo documentación. El arreglo se verificó en el servidor.
 ## #31 · feat(infra): script kronos-bloquear-ip (Linux) y guía 08 de Active Response
 
 - **Tipo:** PR · **Autor:** nicozdevp · **Creado:** 2026-10-21 · **Estado:** closed · **Cerrado:** 2026-10-21
-- **Rama:** `feat/e1-ar-bloquear-ip` → `develop` · **Mezclado:** 2026-10-21 por soarai2026 · 2 commits, 2 archivos (+250 / −0)
+- **Rama:** `feat/e1-ar-bloquear-ip` → `develop` · **Mezclado:** 2026-10-21 por la cuenta compartida · 2 commits, 2 archivos (+250 / −0)
 
 ## Qué cambia
 - Agrega `infra/wazuh/active-response/linux/kronos-bloquear-ip` (sin cambios respecto del instalado en EP-SRV-01; huella 089a23e5533dd17f).
@@ -1029,8 +1029,8 @@ Solo documentación. El arreglo se verificó en el servidor.
 
 ## #32 · feat(ejecucion): Active Response kronos-bloquear-ip para Windows
 
-- **Tipo:** PR · **Autor:** soarai2026 · **Creado:** 2026-10-21 · **Estado:** closed · **Cerrado:** 2026-10-21
-- **Rama:** `feat/e3-ar-windows-bloquear-ip` → `develop` · **Mezclado:** 2026-10-21 por soarai2026 · 1 commits, 4 archivos (+198 / −0)
+- **Tipo:** PR · **Autor:** cuenta compartida · **Creado:** 2026-10-21 · **Estado:** closed · **Cerrado:** 2026-10-21
+- **Rama:** `feat/e3-ar-windows-bloquear-ip` → `develop` · **Mezclado:** 2026-10-21 por la cuenta compartida · 1 commits, 4 archivos (+198 / −0)
 
 ## Qué agrega
 
@@ -1068,7 +1068,7 @@ Revisor: Patricio (revisión cruzada del plan del 20-10).
 ## #33 · docs(lab): EP-WKS-01 pasa al PC de escritorio y estado del laboratorio al 21-10
 
 - **Tipo:** PR · **Autor:** nicozdevp · **Creado:** 2026-10-21 · **Estado:** closed · **Cerrado:** 2026-10-21
-- **Rama:** `docs/lab-ep-wks-01-escritorio` → `develop` · **Mezclado:** 2026-10-21 por soarai2026 · 1 commits, 1 archivos (+9 / −5)
+- **Rama:** `docs/lab-ep-wks-01-escritorio` → `develop` · **Mezclado:** 2026-10-21 por la cuenta compartida · 1 commits, 1 archivos (+9 / −5)
 
 ## Qué cambia
 En `docs/00-indice/KRONOS_CONTEXTO_MAESTRO.md`:
@@ -1087,8 +1087,8 @@ En `docs/00-indice/KRONOS_CONTEXTO_MAESTRO.md`:
 
 ## #34 · feat(persistencia): tope y retención de las alertas guardadas (R-09)
 
-- **Tipo:** PR · **Autor:** soarai2026 · **Creado:** 2026-10-21 · **Estado:** closed · **Cerrado:** 2026-10-21
-- **Rama:** `feat/e3-retencion-alertas` → `develop` · **Mezclado:** 2026-10-21 por soarai2026 · 1 commits, 13 archivos (+841 / −10)
+- **Tipo:** PR · **Autor:** cuenta compartida · **Creado:** 2026-10-21 · **Estado:** closed · **Cerrado:** 2026-10-21
+- **Rama:** `feat/e3-retencion-alertas` → `develop` · **Mezclado:** 2026-10-21 por la cuenta compartida · 1 commits, 13 archivos (+841 / −10)
 
 ## Por qué
 
@@ -1135,7 +1135,7 @@ Revisor: Patricio (revisión cruzada).
 
 ## #35 · feat(ejecucion): recuperador de tickets huérfanos
 
-- **Tipo:** PR · **Autor:** soarai2026 · **Creado:** 2026-10-21 · **Estado:** closed · **Cerrado:** 2026-10-21
+- **Tipo:** PR · **Autor:** cuenta compartida · **Creado:** 2026-10-21 · **Estado:** closed · **Cerrado:** 2026-10-21
 - **Rama:** `feat/e3-tickets-huerfanos` → `develop` · **Mezclado:** 2026-10-21 por PatricioDU · 1 commits, 12 archivos (+282 / −4)
 
 ## Por qué
@@ -1180,7 +1180,7 @@ ejecutar.sh y el comentario de 120 s) van en el #36, que se integra después de 
 
 ## #36 · feat(validate): mejoras de la prueba del 20-10, pruebas aparte y doc 02 §8.1
 
-- **Tipo:** PR · **Autor:** soarai2026 · **Creado:** 2026-10-21 · **Estado:** closed · **Cerrado:** 2026-10-21
+- **Tipo:** PR · **Autor:** cuenta compartida · **Creado:** 2026-10-21 · **Estado:** closed · **Cerrado:** 2026-10-21
 - **Rama:** `feat/validate-mejoras-prueba-20-10` → `develop` · **Mezclado:** 2026-10-21 por PatricioDU · 3 commits, 43 archivos (+1308 / −68)
 
 Bloque A de Patricio (registro: KRO-LOG-PG-2026-10-20). **Revisor: @nicozdevp. No integrar sin su aprobación**: VALIDATE y EXECUTE están encendidos en SOAR-CORE-01 y actúan sobre EP-SRV-01.
@@ -1244,7 +1244,7 @@ Despliegue juntos después del merge: solo validate; verificar ollama ps («Fore
 
 ## #37 · docs: regla de merge (D-54), roles y excepciones R-04 en CONTRIBUTING.md
 
-- **Tipo:** PR · **Autor:** soarai2026 · **Creado:** 2026-10-21 · **Estado:** closed · **Cerrado:** 2026-10-21
+- **Tipo:** PR · **Autor:** cuenta compartida · **Creado:** 2026-10-21 · **Estado:** closed · **Cerrado:** 2026-10-21
 - **Rama:** `docs/e3-regla-de-merge` → `develop` · **Mezclado:** 2026-10-21 por PatricioDU · 1 commits, 2 archivos (+82 / −0)
 
 ## Qué cambia
@@ -1276,7 +1276,7 @@ activar la protección de develop (1 aprobación y checks del CI).
 
 ## #38 · docs(02): estados del ticket y del cortacircuito al día con #35 y #36
 
-- **Tipo:** PR · **Autor:** soarai2026 · **Creado:** 2026-10-21 · **Estado:** closed · **Cerrado:** 2026-10-21
+- **Tipo:** PR · **Autor:** cuenta compartida · **Creado:** 2026-10-21 · **Estado:** closed · **Cerrado:** 2026-10-21
 - **Rama:** `docs/e3-doc02-estados` → `develop` · **Mezclado:** 2026-10-21 por nicozdevp · 1 commits, 6 archivos (+4 / −4)
 
 Autor: Patricio. **Revisor: @nicozdevp** (D-54: aprueba y mezcla él, desde su cuenta personal). Solo documentación; no cambia código.
@@ -1315,7 +1315,7 @@ Revisado contra develop: apertura automática del cortacircuito (ciclo.py), cier
 
 ## #39 · Arranque: aprobar las decisiones D-57 a D-65
 
-- **Tipo:** issue · **Autor:** soarai2026 · **Creado:** 2026-10-26 · **Estado:** open
+- **Tipo:** issue · **Autor:** cuenta compartida · **Creado:** 2026-10-26 · **Estado:** open
 - **Etiquetas:** proceso
 - **Hito:** v1.0: cierre
 
@@ -1339,7 +1339,7 @@ Decisiones propuestas en el plan de la semana (sección 2.6 de `KRO-PLAN-2026-10
 
 ## #40 · Prueba integral: escenarios E1 a E7 con evidencias (punto de encuentro 2)
 
-- **Tipo:** issue · **Autor:** soarai2026 · **Creado:** 2026-10-26 · **Estado:** open
+- **Tipo:** issue · **Autor:** cuenta compartida · **Creado:** 2026-10-26 · **Estado:** open
 - **Etiquetas:** laboratorio, pruebas
 - **Hito:** v1.0: cierre
 
@@ -1361,7 +1361,7 @@ Métricas de cada escenario: alerta → decisión, decisión → ejecución, tie
 
 ## #41 · Guía de instalación en 15 partes
 
-- **Tipo:** issue · **Autor:** soarai2026 · **Creado:** 2026-10-26 · **Estado:** open
+- **Tipo:** issue · **Autor:** cuenta compartida · **Creado:** 2026-10-26 · **Estado:** open
 - **Etiquetas:** documentation
 - **Hito:** v1.0: cierre
 
@@ -1391,7 +1391,7 @@ Las partes nuevas parten como borrador. Cada responsable revisa la suya contra l
 
 ## #42 · Diagramas al día (fuente .mmd e imagen)
 
-- **Tipo:** issue · **Autor:** soarai2026 · **Creado:** 2026-10-26 · **Estado:** open
+- **Tipo:** issue · **Autor:** cuenta compartida · **Creado:** 2026-10-26 · **Estado:** open
 - **Etiquetas:** documentation
 - **Hito:** v1.0: cierre
 
@@ -1412,7 +1412,7 @@ Las partes nuevas parten como borrador. Cada responsable revisa la suya contra l
 
 ## #43 · Probar kronos-bloquear-ip de Windows en EP-WKS-01
 
-- **Tipo:** issue · **Autor:** soarai2026 · **Creado:** 2026-10-26 · **Estado:** closed · **Cerrado:** 2026-10-26
+- **Tipo:** issue · **Autor:** cuenta compartida · **Creado:** 2026-10-26 · **Estado:** closed · **Cerrado:** 2026-10-26
 - **Etiquetas:** laboratorio, pruebas
 - **Hito:** v1.0: cierre
 
@@ -1427,7 +1427,7 @@ Las partes nuevas parten como borrador. Cada responsable revisa la suya contra l
 
 Sigue en #56: EXECUTE debe enviar el nombre con `.cmd` a los agentes Windows y el `.ps1` debe escribir su registro.
 
-**Comentario de soarai2026** (2026-10-26):
+**Comentario de la cuenta compartida** (2026-10-26):
 
 Cerrada: la prueba se hizo el 21-10 en EP-WKS-01 (resultado en la descripción). Lo que sigue queda en #56 (EXECUTE con `.cmd` y registro del `.ps1`) y en #48 (prueba de los scripts nuevos).
 
@@ -1435,7 +1435,7 @@ Cerrada: la prueba se hizo el 21-10 en EP-WKS-01 (resultado en la descripción).
 
 ## #44 · Preparar EP-WKS-01 para los escenarios E3 y E4
 
-- **Tipo:** issue · **Autor:** soarai2026 · **Creado:** 2026-10-26 · **Estado:** open
+- **Tipo:** issue · **Autor:** cuenta compartida · **Creado:** 2026-10-26 · **Estado:** open
 - **Etiquetas:** laboratorio
 - **Hito:** v1.0: cierre
 
@@ -1446,7 +1446,7 @@ Cerrada: la prueba se hizo el 21-10 en EP-WKS-01 (resultado en la descripción).
 - [ ] Cuenta local de prueba (por ejemplo `usuario.demo`). Nunca la cuenta de administración de la VM ni `Administrator`.
 - [ ] Snapshot `listo-demo`.
 
-**Comentario de soarai2026** (2026-10-26):
+**Comentario de la cuenta compartida** (2026-10-26):
 
 **Ojo con el primer punto.** En un Windows en español la subcategoría no se llama «Logon» sino «Inicio de sesión», así que `auditpol /get /subcategory:"Logon"` falla con un error de parámetro. Con su GUID funciona en cualquier idioma (como administrador):
 
@@ -1461,7 +1461,7 @@ Debe mostrar «Error» (o «Failure») activado. Así quedó en la parte 10 de l
 
 ## #45 · Confirmar el nuevo alcance con el profesor guía
 
-- **Tipo:** issue · **Autor:** soarai2026 · **Creado:** 2026-10-26 · **Estado:** open
+- **Tipo:** issue · **Autor:** cuenta compartida · **Creado:** 2026-10-26 · **Estado:** open
 - **Etiquetas:** proceso
 - **Hito:** v1.0: cierre
 
@@ -1477,7 +1477,7 @@ Avisar a los dos lo que diga.
 
 ## #46 · README completo, con resumen en inglés
 
-- **Tipo:** issue · **Autor:** soarai2026 · **Creado:** 2026-10-26 · **Estado:** open
+- **Tipo:** issue · **Autor:** cuenta compartida · **Creado:** 2026-10-26 · **Estado:** open
 - **Etiquetas:** documentation
 - **Hito:** v1.0: cierre
 
@@ -1491,7 +1491,7 @@ Secciones: problema (PyME sin especialista en ciberseguridad), solución, usuari
 
 ## #47 · Correcciones al script Linux kronos-bloquear-ip (revisión del #31)
 
-- **Tipo:** issue · **Autor:** soarai2026 · **Creado:** 2026-10-26 · **Estado:** open
+- **Tipo:** issue · **Autor:** cuenta compartida · **Creado:** 2026-10-26 · **Estado:** open
 - **Etiquetas:** enhancement, laboratorio
 - **Hito:** v1.0: cierre
 
@@ -1507,7 +1507,7 @@ Secciones: problema (PyME sin especialista en ciberseguridad), solución, usuari
 
 ## #48 · Probar kronos-deshabilitar-cuenta y kronos-aislar-equipo en EP-WKS-01
 
-- **Tipo:** issue · **Autor:** soarai2026 · **Creado:** 2026-10-26 · **Estado:** open
+- **Tipo:** issue · **Autor:** cuenta compartida · **Creado:** 2026-10-26 · **Estado:** open
 - **Etiquetas:** laboratorio, pruebas
 - **Hito:** v1.0: cierre
 
@@ -1522,7 +1522,7 @@ Secciones: problema (PyME sin especialista en ciberseguridad), solución, usuari
 
 ## #49 · Video de respaldo de la demostración
 
-- **Tipo:** issue · **Autor:** soarai2026 · **Creado:** 2026-10-26 · **Estado:** open
+- **Tipo:** issue · **Autor:** cuenta compartida · **Creado:** 2026-10-26 · **Estado:** open
 - **Etiquetas:** defensa
 - **Hito:** v1.0: cierre
 
@@ -1534,7 +1534,7 @@ Video de 3 a 5 minutos con E1, E2, E3 y E4, por si el servidor o la red fallan e
 
 ## #50 · Presentación para la comisión (borrador)
 
-- **Tipo:** issue · **Autor:** soarai2026 · **Creado:** 2026-10-26 · **Estado:** open
+- **Tipo:** issue · **Autor:** cuenta compartida · **Creado:** 2026-10-26 · **Estado:** open
 - **Etiquetas:** defensa
 - **Hito:** v1.0: cierre
 
@@ -1546,7 +1546,7 @@ Problema de la PyME, solución, demostración, arquitectura, resultados (métric
 
 ## #51 · Documentos de Nicolás sin la farmacia (1.1, 1.2, 2.1, 2.7, 3.2, 5.1, 5.2, 5.6 y 6.2)
 
-- **Tipo:** issue · **Autor:** soarai2026 · **Creado:** 2026-10-26 · **Estado:** open
+- **Tipo:** issue · **Autor:** cuenta compartida · **Creado:** 2026-10-26 · **Estado:** open
 - **Etiquetas:** documentation
 - **Hito:** v1.0: cierre
 
@@ -1568,7 +1568,7 @@ En cada uno: la PyME simulada en lugar de la farmacia y las marcas resueltas o d
 
 ## #52 · Acta del replanteamiento (D-57 a D-65)
 
-- **Tipo:** issue · **Autor:** soarai2026 · **Creado:** 2026-10-26 · **Estado:** open
+- **Tipo:** issue · **Autor:** cuenta compartida · **Creado:** 2026-10-26 · **Estado:** open
 - **Etiquetas:** documentation, proceso
 - **Hito:** v1.0: cierre
 
@@ -1580,7 +1580,7 @@ Decisiones de #39 con fecha, justificación (retroalimentación del profesor gu�
 
 ## #53 · Respaldo del laboratorio: exportar EP-SRV-01 y EP-WKS-01
 
-- **Tipo:** issue · **Autor:** soarai2026 · **Creado:** 2026-10-26 · **Estado:** open
+- **Tipo:** issue · **Autor:** cuenta compartida · **Creado:** 2026-10-26 · **Estado:** open
 - **Etiquetas:** laboratorio
 - **Hito:** v1.0: cierre
 
@@ -1592,7 +1592,7 @@ Exportar las dos máquinas virtuales (OVA) a un disco externo y entregar una cop
 
 ## #54 · Servidor como clon de git con etiquetas (D-55)
 
-- **Tipo:** issue · **Autor:** soarai2026 · **Creado:** 2026-10-26 · **Estado:** open
+- **Tipo:** issue · **Autor:** cuenta compartida · **Creado:** 2026-10-26 · **Estado:** open
 - **Etiquetas:** servidor
 - **Hito:** v1.0: cierre
 
@@ -1608,7 +1608,7 @@ Exportar las dos máquinas virtuales (OVA) a un disco externo y entregar una cop
 
 ## #55 · kronos-deshabilitar-cuenta para Windows
 
-- **Tipo:** issue · **Autor:** soarai2026 · **Creado:** 2026-10-26 · **Estado:** open
+- **Tipo:** issue · **Autor:** cuenta compartida · **Creado:** 2026-10-26 · **Estado:** open
 - **Etiquetas:** enhancement
 - **Hito:** v1.0: cierre
 
@@ -1627,7 +1627,7 @@ EXECUTE ya saca la cuenta de `targetUserName`.
 
 ## #56 · EXECUTE con .cmd para agentes Windows y registro del .ps1
 
-- **Tipo:** issue · **Autor:** soarai2026 · **Creado:** 2026-10-26 · **Estado:** open
+- **Tipo:** issue · **Autor:** cuenta compartida · **Creado:** 2026-10-26 · **Estado:** open
 - **Etiquetas:** bug
 - **Hito:** v1.0: cierre
 
@@ -1640,7 +1640,7 @@ Resultado de #43: sin la extensión, el agente Windows no encuentra el script.
 - [ ] Pruebas unitarias.
 - [ ] Nicolás lo prueba de nuevo en EP-WKS-01.
 
-**Comentario de soarai2026** (2026-10-26):
+**Comentario de la cuenta compartida** (2026-10-26):
 
 Hallazgo relacionado, para resolverlo en el mismo cambio. La API de Wazuh responde `affected_items` cuando la orden llega al agente, y `actuador_wazuh.py` lo toma como éxito. No sabe si el script existe ni si funcionó.
 
@@ -1653,7 +1653,7 @@ Hallazgo relacionado, para resolverlo en el mismo cambio. La API de Wazuh respon
 
 ## #57 · kronos-aislar-equipo para Windows
 
-- **Tipo:** issue · **Autor:** soarai2026 · **Creado:** 2026-10-26 · **Estado:** open
+- **Tipo:** issue · **Autor:** cuenta compartida · **Creado:** 2026-10-26 · **Estado:** open
 - **Etiquetas:** enhancement
 - **Hito:** v1.0: cierre
 
@@ -1669,7 +1669,7 @@ Lo primero que hay que probar: que el agente no pierda el canal con el manager, 
 
 ## #58 · Avisos de Telegram en lenguaje claro y D-50
 
-- **Tipo:** issue · **Autor:** soarai2026 · **Creado:** 2026-10-26 · **Estado:** open
+- **Tipo:** issue · **Autor:** cuenta compartida · **Creado:** 2026-10-26 · **Estado:** open
 - **Etiquetas:** enhancement
 - **Hito:** v1.0: cierre
 
@@ -1686,7 +1686,7 @@ El usuario es el encargado de TI de una PyME, no un especialista.
 
 ## #59 · Desplegar la versión candidata v1.0.0-rc1
 
-- **Tipo:** issue · **Autor:** soarai2026 · **Creado:** 2026-10-26 · **Estado:** open
+- **Tipo:** issue · **Autor:** cuenta compartida · **Creado:** 2026-10-26 · **Estado:** open
 - **Etiquetas:** servidor
 - **Hito:** v1.0: cierre
 
@@ -1700,7 +1700,7 @@ El usuario es el encargado de TI de una PyME, no un especialista.
 
 ## #60 · Manual del encargado de TI
 
-- **Tipo:** issue · **Autor:** soarai2026 · **Creado:** 2026-10-26 · **Estado:** open
+- **Tipo:** issue · **Autor:** cuenta compartida · **Creado:** 2026-10-26 · **Estado:** open
 - **Etiquetas:** documentation, defensa
 - **Hito:** v1.0: cierre
 
@@ -1721,7 +1721,7 @@ Va a `docs/informe/`.
 
 ## #61 · Documentos de Rodrigo sin la farmacia (1.5, 1.6, 1.8, 1.9, 2.5, 3.1, 4.2, 5.3, 5.4, 5.5 y 6.3)
 
-- **Tipo:** issue · **Autor:** soarai2026 · **Creado:** 2026-10-26 · **Estado:** open
+- **Tipo:** issue · **Autor:** cuenta compartida · **Creado:** 2026-10-26 · **Estado:** open
 - **Etiquetas:** documentation
 - **Hito:** v1.0: cierre
 
@@ -1745,7 +1745,7 @@ En cada uno: la PyME simulada en lugar de la farmacia y las marcas resueltas o d
 
 ## #62 · Versión 1.0.0: PR develop → main, etiqueta y notas
 
-- **Tipo:** issue · **Autor:** soarai2026 · **Creado:** 2026-10-26 · **Estado:** open
+- **Tipo:** issue · **Autor:** cuenta compartida · **Creado:** 2026-10-26 · **Estado:** open
 - **Etiquetas:** proceso
 - **Hito:** v1.0: cierre
 
@@ -1761,7 +1761,7 @@ En cada uno: la PyME simulada en lugar de la farmacia y las marcas resueltas o d
 
 ## #63 · Orden del repositorio
 
-- **Tipo:** issue · **Autor:** soarai2026 · **Creado:** 2026-10-26 · **Estado:** open
+- **Tipo:** issue · **Autor:** cuenta compartida · **Creado:** 2026-10-26 · **Estado:** open
 - **Etiquetas:** proceso
 - **Hito:** v1.0: cierre
 
@@ -1777,7 +1777,7 @@ En cada uno: la PyME simulada en lugar de la farmacia y las marcas resueltas o d
 - [ ] Los 31 documentos en PDF en `docs/entregables/` (viernes 30 en la noche).
 - [ ] Registros de cierre (KRO-LOG del 01-11) en `docs/registro/`.
 
-**Comentario de soarai2026** (2026-10-26):
+**Comentario de la cuenta compartida** (2026-10-26):
 
 **Ramas ya mezcladas en `develop`, para borrar** (punto B1 de la lista de corrección). **Corrección:** este comentario decía que se habían borrado el 26-10, pero el borrado no se pudo hacer desde la sesión de trabajo que lo escribió (no tenía permiso para borrar ramas): siguen en GitHub. Las borra Rodrigo, desde la página de ramas o con `git push origin --delete <rama>`. Todas sus puntas están contenidas en `develop` (`git branch -r --merged origin/develop`), así que no se pierde ningún commit; los SHA quedan aquí por si hay que recuperar una: `git push origin <sha>:refs/heads/<rama>`.
 
@@ -1823,9 +1823,9 @@ En cada uno: la PyME simulada en lugar de la farmacia y las marcas resueltas o d
 
 Las 4 ramas de experimentos no se borran: quedan para #74.
 
-**Comentario de soarai2026** (2026-10-26):
+**Comentario de la cuenta compartida** (2026-10-26):
 
-**Estado al 26-10.** Lo que se puede hacer por PR ya está abierto. El resto necesita permisos que la sesión de trabajo que abrió los PR no tenía: se hace desde la cuenta `soarai2026` o desde un clon con permiso de escritura.
+**Estado al 26-10.** Lo que se puede hacer por PR ya está abierto. El resto necesita permisos que la sesión de trabajo que abrió los PR no tenía: se hace desde la cuenta compartida anterior o desde un clon con permiso de escritura.
 
 | Punto | Estado |
 | :--- | :--- |
@@ -1862,7 +1862,7 @@ xargs -n 10 git push origin --delete < ramas.txt
 
 ## #64 · Coherencia: .env.example, una sola construcción de la imagen y textos «pendiente»
 
-- **Tipo:** issue · **Autor:** soarai2026 · **Creado:** 2026-10-26 · **Estado:** open
+- **Tipo:** issue · **Autor:** cuenta compartida · **Creado:** 2026-10-26 · **Estado:** open
 - **Etiquetas:** documentation
 - **Hito:** v1.0: cierre
 
@@ -1878,7 +1878,7 @@ xargs -n 10 git push origin --delete < ramas.txt
 
 ## #65 · CI: pruebas de la consola y verificación de la entrega
 
-- **Tipo:** issue · **Autor:** soarai2026 · **Creado:** 2026-10-26 · **Estado:** open
+- **Tipo:** issue · **Autor:** cuenta compartida · **Creado:** 2026-10-26 · **Estado:** open
 - **Etiquetas:** enhancement, pruebas
 - **Hito:** v1.0: cierre
 
@@ -1892,7 +1892,7 @@ xargs -n 10 git push origin --delete < ramas.txt
 
 ## #66 · Cortacircuito por alertas recibidas
 
-- **Tipo:** issue · **Autor:** soarai2026 · **Creado:** 2026-10-26 · **Estado:** open
+- **Tipo:** issue · **Autor:** cuenta compartida · **Creado:** 2026-10-26 · **Estado:** open
 - **Etiquetas:** enhancement
 - **Hito:** v1.0: cierre
 
@@ -1908,7 +1908,7 @@ Hoy cuenta los tickets procesados (hallazgo de la revisión del #28): con el mod
 
 ## #67 · Qué medida elige la IA en los escenarios E1 a E4
 
-- **Tipo:** issue · **Autor:** soarai2026 · **Creado:** 2026-10-26 · **Estado:** open
+- **Tipo:** issue · **Autor:** cuenta compartida · **Creado:** 2026-10-26 · **Estado:** open
 - **Etiquetas:** pruebas
 - **Hito:** v1.0: cierre
 
@@ -1920,7 +1920,7 @@ Con alertas con la forma real de cada escenario (fuerza bruta externa e interna,
 
 ## #68 · Precisión de punta a punta con al menos 50 casos etiquetados
 
-- **Tipo:** issue · **Autor:** soarai2026 · **Creado:** 2026-10-26 · **Estado:** open
+- **Tipo:** issue · **Autor:** cuenta compartida · **Creado:** 2026-10-26 · **Estado:** open
 - **Etiquetas:** pruebas
 - **Hito:** v1.0: cierre
 
@@ -1936,7 +1936,7 @@ No ajustar el prompt sobre los mismos casos medidos.
 
 ## #69 · Prueba de estrés (E6) y prueba de la ráfaga
 
-- **Tipo:** issue · **Autor:** soarai2026 · **Creado:** 2026-10-26 · **Estado:** open
+- **Tipo:** issue · **Autor:** cuenta compartida · **Creado:** 2026-10-26 · **Estado:** open
 - **Etiquetas:** servidor, pruebas
 - **Hito:** v1.0: cierre
 
@@ -1950,7 +1950,7 @@ No ajustar el prompt sobre los mismos casos medidos.
 
 ## #70 · Documentos de Patricio sin la farmacia (1.3, 1.4, 1.7, 2.2, 2.3, 2.4, 2.6, 4.1, 6.1, 6.4 y 6.5)
 
-- **Tipo:** issue · **Autor:** soarai2026 · **Creado:** 2026-10-26 · **Estado:** open
+- **Tipo:** issue · **Autor:** cuenta compartida · **Creado:** 2026-10-26 · **Estado:** open
 - **Etiquetas:** documentation
 - **Hito:** v1.0: cierre
 
@@ -1974,7 +1974,7 @@ En 2.6, 4.1 y 6.5: PB-F6-04 y PB-F6-05 no se alcanzan por la severidad de las re
 
 ## #71 · Informe final integrado, con resumen en inglés
 
-- **Tipo:** issue · **Autor:** soarai2026 · **Creado:** 2026-10-26 · **Estado:** open
+- **Tipo:** issue · **Autor:** cuenta compartida · **Creado:** 2026-10-26 · **Estado:** open
 - **Etiquetas:** documentation, defensa
 - **Hito:** v1.0: cierre
 
@@ -1986,7 +1986,7 @@ Relevancia, objetivos, metodología, desarrollo, evidencias, intereses y proyecc
 
 ## #72 · Catálogo KRO-CAT-01 v1.0
 
-- **Tipo:** issue · **Autor:** soarai2026 · **Creado:** 2026-10-26 · **Estado:** open
+- **Tipo:** issue · **Autor:** cuenta compartida · **Creado:** 2026-10-26 · **Estado:** open
 - **Etiquetas:** enhancement
 - **Hito:** v1.0: cierre
 
@@ -2001,7 +2001,7 @@ Relevancia, objetivos, metodología, desarrollo, evidencias, intereses y proyecc
 
 ## #73 · validate.json v1.0 (D-65)
 
-- **Tipo:** issue · **Autor:** soarai2026 · **Creado:** 2026-10-26 · **Estado:** open
+- **Tipo:** issue · **Autor:** cuenta compartida · **Creado:** 2026-10-26 · **Estado:** open
 - **Etiquetas:** enhancement
 - **Hito:** v1.0: cierre
 
@@ -2013,7 +2013,7 @@ Estado `aprobado`, versión `1.0` y la nota corregida: mapa de severidad, exclus
 
 ## #74 · Ramas de experimentos: archivar como etiquetas
 
-- **Tipo:** issue · **Autor:** soarai2026 · **Creado:** 2026-10-26 · **Estado:** open
+- **Tipo:** issue · **Autor:** cuenta compartida · **Creado:** 2026-10-26 · **Estado:** open
 - **Etiquetas:** proceso
 - **Hito:** v1.0: cierre
 
@@ -2029,8 +2029,8 @@ Estado `aprobado`, versión `1.0` y la nota corregida: mapa de severidad, exclus
 
 ## #75 · docs: portada del repositorio (README, CHANGELOG, SECURITY, plantilla de PR y CONTRIBUTING)
 
-- **Tipo:** PR · **Autor:** soarai2026 · **Creado:** 2026-10-26 · **Estado:** closed · **Cerrado:** 2026-10-26
-- **Rama:** `docs/e4-portada` → `develop` · **Mezclado:** 2026-10-26 por soarai2026 · 8 commits, 9 archivos (+487 / −12)
+- **Tipo:** PR · **Autor:** cuenta compartida · **Creado:** 2026-10-26 · **Estado:** closed · **Cerrado:** 2026-10-26
+- **Rama:** `docs/e4-portada` → `develop` · **Mezclado:** 2026-10-26 por la cuenta compartida · 8 commits, 9 archivos (+487 / −12)
 - **Etiquetas:** documentation
 - **Hito:** v1.0: cierre
 
@@ -2081,15 +2081,15 @@ Nada: sólo documentación.
 
 ## Revisión (D-54)
 
-- **Autor:** Nicolás. Lo pidió en el chat principal y se abrió desde `soarai2026`.
+- **Autor:** Nicolás. Lo pidió en el chat principal y se abrió desde la cuenta compartida.
 - **Aprueba:** Rodrigo, desde su cuenta personal. Lo mezcla un integrante distinto del autor, con commit de merge.
 
 ---
 
 ## #76 · fix: coherencia de la configuración (.env.example, una sola construcción) y textos «pendiente» ya resueltos
 
-- **Tipo:** PR · **Autor:** soarai2026 · **Creado:** 2026-10-26 · **Estado:** closed · **Cerrado:** 2026-10-26
-- **Rama:** `fix/e4-coherencia` → `develop` · **Mezclado:** 2026-10-26 por soarai2026 · 3 commits, 12 archivos (+89 / −53)
+- **Tipo:** PR · **Autor:** cuenta compartida · **Creado:** 2026-10-26 · **Estado:** closed · **Cerrado:** 2026-10-26
+- **Rama:** `fix/e4-coherencia` → `develop` · **Mezclado:** 2026-10-26 por la cuenta compartida · 3 commits, 12 archivos (+89 / −53)
 - **Etiquetas:** documentation, servidor
 - **Hito:** v1.0: cierre
 
@@ -2134,15 +2134,15 @@ La API de Wazuh confirma que la orden **llegó** al agente, no que el script exi
 
 ## Revisión (D-54)
 
-- **Autor:** Nicolás. Lo pidió en el chat principal y se abrió desde `soarai2026`.
+- **Autor:** Nicolás. Lo pidió en el chat principal y se abrió desde la cuenta compartida.
 - **Aprueba:** Rodrigo, que es el dueño de estos archivos (#64), desde su cuenta personal. Lo mezcla un integrante distinto del autor, con commit de merge.
 
 ---
 
 ## #77 · ci: pruebas de la consola e integración en el CI, y verificación de la entrega
 
-- **Tipo:** PR · **Autor:** soarai2026 · **Creado:** 2026-10-26 · **Estado:** closed · **Cerrado:** 2026-10-26
-- **Rama:** `ci/e4-consola-y-verificacion` → `develop` · **Mezclado:** 2026-10-26 por soarai2026 · 5 commits, 4 archivos (+405 / −3)
+- **Tipo:** PR · **Autor:** cuenta compartida · **Creado:** 2026-10-26 · **Estado:** closed · **Cerrado:** 2026-10-26
+- **Rama:** `ci/e4-consola-y-verificacion` → `develop` · **Mezclado:** 2026-10-26 por la cuenta compartida · 5 commits, 4 archivos (+405 / −3)
 - **Etiquetas:** enhancement, pruebas
 - **Hito:** v1.0: cierre
 
@@ -2186,15 +2186,15 @@ Nada: no toca el servidor.
 
 ## Revisión (D-54)
 
-- **Autor:** Nicolás. Lo pidió en el chat principal y se abrió desde `soarai2026`.
+- **Autor:** Nicolás. Lo pidió en el chat principal y se abrió desde la cuenta compartida.
 - **Aprueba:** Rodrigo, dueño del CI (#65), desde su cuenta personal. Lo mezcla un integrante distinto del autor, con commit de merge.
 
 ---
 
 ## #78 · feat(notificacion): avisos de Telegram en lenguaje claro para el encargado de TI, y D-50
 
-- **Tipo:** PR · **Autor:** soarai2026 · **Creado:** 2026-10-26 · **Estado:** closed · **Cerrado:** 2026-10-26
-- **Rama:** `feat/e4-avisos-claros` → `develop` · **Mezclado:** 2026-10-26 por soarai2026 · 2 commits, 9 archivos (+436 / −69)
+- **Tipo:** PR · **Autor:** cuenta compartida · **Creado:** 2026-10-26 · **Estado:** closed · **Cerrado:** 2026-10-26
+- **Rama:** `feat/e4-avisos-claros` → `develop` · **Mezclado:** 2026-10-26 por la cuenta compartida · 2 commits, 9 archivos (+436 / −69)
 - **Etiquetas:** enhancement
 - **Hito:** v1.0: cierre
 
@@ -2254,15 +2254,15 @@ Parte de #58. Punto D9 de la lista de corrección.
 
 ## Revisión (D-54)
 
-- **Autor:** Nicolás. Lo pidió en el chat principal y se abrió desde `soarai2026`.
+- **Autor:** Nicolás. Lo pidió en el chat principal y se abrió desde la cuenta compartida.
 - **Aprueba:** Rodrigo, dueño de NOTIFY (#58), desde su cuenta personal; o Patricio, si Rodrigo prefiere no aprobar código de su propio componente. Lo mezcla un integrante distinto del autor, con commit de merge.
 
 ---
 
 ## #79 · docs(diagramas): 14 diagramas al día con la v1.0 y el replanteamiento PyME
 
-- **Tipo:** PR · **Autor:** soarai2026 · **Creado:** 2026-10-26 · **Estado:** closed · **Cerrado:** 2026-10-26
-- **Rama:** `docs/e4-diagramas` → `develop` · **Mezclado:** 2026-10-26 por soarai2026 · 2 commits, 29 archivos (+123 / −96)
+- **Tipo:** PR · **Autor:** cuenta compartida · **Creado:** 2026-10-26 · **Estado:** closed · **Cerrado:** 2026-10-26
+- **Rama:** `docs/e4-diagramas` → `develop` · **Mezclado:** 2026-10-26 por la cuenta compartida · 2 commits, 29 archivos (+123 / −96)
 - **Etiquetas:** documentation
 - **Hito:** v1.0: cierre
 
@@ -2302,15 +2302,15 @@ Nada: sólo documentación.
 
 ## Revisión (D-54)
 
-- **Autor:** Nicolás. Lo pidió en el chat principal y se abrió desde `soarai2026`.
+- **Autor:** Nicolás. Lo pidió en el chat principal y se abrió desde la cuenta compartida.
 - **Aprueba:** Rodrigo, que tenía la mayoría de estos diagramas, desde su cuenta personal. Lo mezcla un integrante distinto del autor, con commit de merge.
 
 ---
 
 ## #80 · docs(instalacion): guía de instalación en 15 partes
 
-- **Tipo:** PR · **Autor:** soarai2026 · **Creado:** 2026-10-26 · **Estado:** closed · **Cerrado:** 2026-10-26
-- **Rama:** `docs/e4-guia-instalacion` → `develop` · **Mezclado:** 2026-10-26 por soarai2026 · 4 commits, 16 archivos (+1720 / −18)
+- **Tipo:** PR · **Autor:** cuenta compartida · **Creado:** 2026-10-26 · **Estado:** closed · **Cerrado:** 2026-10-26
+- **Rama:** `docs/e4-guia-instalacion` → `develop` · **Mezclado:** 2026-10-26 por la cuenta compartida · 4 commits, 16 archivos (+1720 / −18)
 - **Etiquetas:** documentation
 - **Hito:** v1.0: cierre
 
@@ -2370,15 +2370,15 @@ Las partes 07, 11, 13 y 14 nombran `KRONOS_NOMBRES_INQUILINOS`, que llega con #7
 
 ## Revisión (D-54)
 
-- **Autor:** Nicolás. Lo pidió en el chat principal y se abrió desde `soarai2026`.
+- **Autor:** Nicolás. Lo pidió en el chat principal y se abrió desde la cuenta compartida.
 - **Aprueba:** Rodrigo, desde su cuenta personal, después de que cada responsable revise su parte. Lo mezcla un integrante distinto del autor, con commit de merge.
 
 ---
 
 ## #81 · docs: estructura de docs/, registro de trabajo y archivo
 
-- **Tipo:** PR · **Autor:** soarai2026 · **Creado:** 2026-10-26 · **Estado:** closed · **Cerrado:** 2026-10-26
-- **Rama:** `docs/e4-orden-docs` → `develop` · **Mezclado:** 2026-10-26 por soarai2026 · 5 commits, 49 archivos (+2885 / −21)
+- **Tipo:** PR · **Autor:** cuenta compartida · **Creado:** 2026-10-26 · **Estado:** closed · **Cerrado:** 2026-10-26
+- **Rama:** `docs/e4-orden-docs` → `develop` · **Mezclado:** 2026-10-26 por la cuenta compartida · 5 commits, 49 archivos (+2885 / −21)
 - **Etiquetas:** documentation
 - **Hito:** v1.0: cierre
 
@@ -2442,15 +2442,15 @@ Después, en esta misma estructura:
 
 ## Revisión (D-54)
 
-- **Autor:** Nicolás. Lo pidió en el chat principal y se abrió desde `soarai2026`.
+- **Autor:** Nicolás. Lo pidió en el chat principal y se abrió desde la cuenta compartida.
 - **Aprueba:** Rodrigo, responsable de C1, C3 y C6, desde su cuenta personal. Lo mezcla un integrante distinto del autor, con commit de merge.
 
 ---
 
 ## #82 · docs(mediciones): ramas de experimentos archivadas como etiquetas
 
-- **Tipo:** PR · **Autor:** soarai2026 · **Creado:** 2026-10-26 · **Estado:** closed · **Cerrado:** 2026-10-26
-- **Rama:** `docs/e4-experimentos-archivados` → `develop` · **Mezclado:** 2026-10-26 por soarai2026 · 1 commits, 1 archivos (+16 / −2)
+- **Tipo:** PR · **Autor:** cuenta compartida · **Creado:** 2026-10-26 · **Estado:** closed · **Cerrado:** 2026-10-26
+- **Rama:** `docs/e4-experimentos-archivados` → `develop` · **Mezclado:** 2026-10-26 por la cuenta compartida · 1 commits, 1 archivos (+16 / −2)
 - **Etiquetas:** documentation
 - **Hito:** v1.0: cierre
 
@@ -2501,15 +2501,15 @@ Nada: sólo documentación.
 
 ## Revisión (D-54)
 
-- **Autor:** Nicolás. Lo pidió en el chat principal y se abrió desde `soarai2026`.
+- **Autor:** Nicolás. Lo pidió en el chat principal y se abrió desde la cuenta compartida.
 - **Aprueba:** Patricio, dueño de las mediciones, desde su cuenta personal. Lo mezcla un integrante distinto del autor, con commit de merge, después de crear las etiquetas.
 
 ---
 
 ## #83 · feat(catalogo): KRO-CAT-01 1.0 con los actuadores de la v1.0
 
-- **Tipo:** PR · **Autor:** soarai2026 · **Creado:** 2026-10-26 · **Estado:** closed · **Cerrado:** 2026-10-26
-- **Rama:** `feat/e4-catalogo-v1` → `develop` · **Mezclado:** 2026-10-26 por soarai2026 · 1 commits, 6 archivos (+45 / −22)
+- **Tipo:** PR · **Autor:** cuenta compartida · **Creado:** 2026-10-26 · **Estado:** closed · **Cerrado:** 2026-10-26
+- **Rama:** `feat/e4-catalogo-v1` → `develop` · **Mezclado:** 2026-10-26 por la cuenta compartida · 1 commits, 6 archivos (+45 / −22)
 - **Etiquetas:** enhancement
 - **Hito:** v1.0: cierre
 
@@ -2558,15 +2558,15 @@ VALIDATE, EXECUTE y NOTIFY leen el catálogo al arrancar, así que hay que recre
 
 ## Revisión (D-54)
 
-- **Autor:** Nicolás. Lo pidió en el chat principal y se abrió desde `soarai2026`.
+- **Autor:** Nicolás. Lo pidió en el chat principal y se abrió desde la cuenta compartida.
 - **Quién aprueba:** #72 pide la aprobación de Nicolás, así que conviene que Patricio lo haga suyo: lo revisa, lo ajusta y queda como autor. Después aprueba Nicolás desde su cuenta personal, y lo mezcla Rodrigo con commit de merge.
 
 ---
 
 ## #84 · feat(validacion): validate.json 1.0, aprobada (D-65)
 
-- **Tipo:** PR · **Autor:** soarai2026 · **Creado:** 2026-10-26 · **Estado:** closed · **Cerrado:** 2026-10-26
-- **Rama:** `feat/e4-validate-v1` → `develop` · **Mezclado:** 2026-10-26 por soarai2026 · 1 commits, 2 archivos (+6 / −6)
+- **Tipo:** PR · **Autor:** cuenta compartida · **Creado:** 2026-10-26 · **Estado:** closed · **Cerrado:** 2026-10-26
+- **Rama:** `feat/e4-validate-v1` → `develop` · **Mezclado:** 2026-10-26 por la cuenta compartida · 1 commits, 2 archivos (+6 / −6)
 - **Etiquetas:** enhancement
 - **Hito:** v1.0: cierre
 
@@ -2597,5 +2597,5 @@ VALIDATE lee `validate.json` al arrancar, así que hay que recrearlo. Se hace al
 
 ## Revisión (D-54)
 
-- **Autor:** Nicolás. Lo pidió en el chat principal y se abrió desde `soarai2026`.
+- **Autor:** Nicolás. Lo pidió en el chat principal y se abrió desde la cuenta compartida.
 - **Quién aprueba:** #73 pide la aprobación de Nicolás. Patricio lo hace suyo, aprueba Nicolás desde su cuenta personal y lo mezcla Rodrigo, con commit de merge.

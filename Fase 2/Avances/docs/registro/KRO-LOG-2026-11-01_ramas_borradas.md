@@ -8,7 +8,7 @@ Para recuperar una rama, con su punta de la tabla:
 git push origin <punta>:refs/heads/<rama>
 ```
 
-Total: 51 ramas. Las puntas de `KRO-LOG-2026-10-26_ramas_mezcladas.md` son del repositorio anterior (`soarai2026/kronos-ai`) y no sirven para recuperar ramas en este; las de esta tabla sí.
+Total: 51 ramas. Las puntas de `KRO-LOG-2026-10-26_ramas_mezcladas.md` son del repositorio anterior y no sirven para recuperar ramas en este; las de esta tabla sí.
 
 | Rama | Punta | Autor del último commit | Fecha |
 | :--- | :--- | :--- | :--- |
@@ -33,7 +33,7 @@ Total: 51 ramas. Las puntas de `KRO-LOG-2026-10-26_ramas_mezcladas.md` son del r
 | `feat/e1-documentacion` | `a03e69bc450089c4320d8ce97854b5513cb63a90` | Rodrigo Riveros | 2026-10-14 |
 | `feat/e1-medicion-inferencia` | `0ec56f358c5fe7985a537807079db687b48ded05` | Patricio González | 2026-10-06 |
 | `feat/e1-reglas-sobre` | `bdb5a4a288d667100aa1786ed92ba8ee50278775` | Nicolás Zamora | 2026-10-14 |
-| `feat/e1-test-r1` | `ae85df7a7eed88b0b07d44cd266a431a2ddc6066` | soarai2026 | 2026-10-06 |
+| `feat/e1-test-r1` | `ae85df7a7eed88b0b07d44cd266a431a2ddc6066` | cuenta compartida | 2026-10-06 |
 | `feat/e1-wazuh-compose` | `c870d96116c3c584cfed44b5ec43ee6bafd7d87d` | Nicolás Zamora | 2026-10-14 |
 | `feat/e2-casos-150` | `4fcb0fed49c236daafd31634e4ca92c6b9289532` | Patricio Gonzalez | 2026-10-15 |
 | `feat/e2-casos-formato-wazuh` | `155fc42104aa3b90f09049f2f1d63abf9f432812` | Patricio Gonzalez | 2026-10-15 |
