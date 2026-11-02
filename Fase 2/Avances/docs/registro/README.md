@@ -32,6 +32,8 @@ repositorio, la guía de instalación y los 31 documentos.
 | 26-10 | [KRO-LOG-2026-10-26](KRO-LOG-2026-10-26_ramas_mezcladas.md) | Registro | Equipo | Las 37 ramas ya mezcladas en `develop`, con su punta, para borrarlas sin perder nada (B1) |
 | 26-10 | [KRO-CHECKLIST-2026-10-26](KRO-CHECKLIST-2026-10-26_github_100.md) | Revisión | Equipo | Lista de corrección del repositorio para la v1.0 (milestone «v1.0: cierre») |
 | 26-10 | KRO-TAREAS-2026-10-26: [Nicolás](KRO-TAREAS-2026-10-26_nicolas.md), [Patricio](KRO-TAREAS-2026-10-26_patricio.md), [Rodrigo](KRO-TAREAS-2026-10-26_rodrigo.md) | Tareas | Equipo | Tareas de la semana de cierre |
+| 27-10 | [Historial de GitHub](historial-github/README.md) | Registro | Equipo | Issues y PR #1 a #84 del repositorio anterior, exportados antes de la mudanza a `soaria186` (#34) |
+| 01-11 | [KRO-LOG-2026-11-01](KRO-LOG-2026-11-01_ramas_borradas.md) | Registro | Rodrigo | Las ramas ya mezcladas que se borraron, con su punta en este repositorio para recuperarlas |
 
 ## Cómo se agrega un registro
 
