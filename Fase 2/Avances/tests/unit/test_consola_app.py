@@ -42,10 +42,20 @@ class DatosFalsos:
                     "id": 8,
                     "titulo": "Fuerza bruta",
                     "playbook": "PB-F1-03",
+                    "nivel": 2,
                     "ejecutada_en": hora,
                     "revisar_antes_de": hora - timedelta(days=1),
                     "reversion_pedida": False,
-                }
+                },
+                {
+                    "id": 9,
+                    "titulo": "Registro de auditoría borrado",
+                    "playbook": "PB-F3-03",
+                    "nivel": 3,
+                    "ejecutada_en": hora,
+                    "revisar_antes_de": None,
+                    "reversion_pedida": False,
+                },
             ],
             "fallidas": [],
             "triage": [],
@@ -164,6 +174,18 @@ class Consola(unittest.TestCase):
         self.assertIn("&lt;script&gt;", html)
         self.assertIn("Cortacircuito abierto", html)
         self.assertIn('class="vencida"', html)
+
+    def test_panel_permite_revertir_el_nivel_3(self):
+        # Un puesto aislado (nivel 3) se tiene que poder liberar desde la consola.
+        self.entrar()
+        html = self.cliente.get("/").text
+        self.assertIn('action="/tickets/9/revertir"', html)
+        self.assertIn("Nivel 3 · medida PB-F3-03", html)
+        # El nivel 3 no tiene plazo de revisión ni aviso por correo (D-35 es del nivel 2).
+        articulo = html.split("#9 · ")[1].split("</article>")[0]
+        self.assertNotIn("revisar antes de", articulo)
+        self.assertNotIn("D-35", articulo)
+        self.assertIn('action="/tickets/8/revertir"', html)
 
     def test_aprobar_con_su_nombre(self):
         self.entrar()
