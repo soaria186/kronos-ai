@@ -32,12 +32,12 @@ son consecutivas: la de Wazuh tiene las partes 04, 05 y 08, y la parte 08 se hac
 | [04](04-Wazuh/04-wazuh.md) | Wazuh 4.14.8: compose, puertos y certificados | `04-Wazuh` | Nicolás | Rodrigo | Borrador |
 | [05](04-Wazuh/05-reglas-de-sobre.md) | Reglas de sobre | `04-Wazuh` | Nicolás | Patricio | Borrador |
 | [06](05-IA-Ollama/06-ollama.md) | Ollama y el modelo | `05-IA-Ollama` | Patricio | Nicolás | Vigente |
-| [07](06-PostgreSQL-y-Servicios/07-base-y-servicios.md) | Base SOAR-AUDIT y servicios | `06-PostgreSQL-y-Servicios` | Rodrigo | Patricio | Borrador |
+| [07](06-PostgreSQL-y-Servicios/07-base-y-servicios.md) | Base SOAR-AUDIT y servicios | `06-PostgreSQL-y-Servicios` | Rodrigo | Patricio | Vigente |
 | [08](04-Wazuh/08-active-response.md) | Active Response y usuario de API | `04-Wazuh` | Nicolás | Rodrigo | Vigente |
 | [09](07-Agentes/09-agente-linux.md) | Agente Linux | `07-Agentes` | Nicolás | Rodrigo | Borrador |
 | [10](07-Agentes/10-agente-windows.md) | Agente Windows | `07-Agentes` | Nicolás | Rodrigo | Borrador |
-| [11](08-Telegram/11-telegram.md) | Telegram | `08-Telegram` | Rodrigo | Patricio | Borrador |
-| [12](09-Respaldo-y-Retencion/12-respaldo-y-retencion.md) | Respaldo, restauración y retención | `09-Respaldo-y-Retencion` | Rodrigo | Patricio | Borrador |
+| [11](08-Telegram/11-telegram.md) | Telegram | `08-Telegram` | Rodrigo | Patricio | Vigente |
+| [12](09-Respaldo-y-Retencion/12-respaldo-y-retencion.md) | Respaldo, restauración y retención | `09-Respaldo-y-Retencion` | Rodrigo | Patricio | Vigente |
 | [13](10-Operacion-y-Verificacion/13-alta-de-una-pyme.md) | Alta de una PyME | `10-Operacion-y-Verificacion` | Patricio y Nicolás | Rodrigo | Borrador |
 | [14](10-Operacion-y-Verificacion/14-retiro-y-desinstalacion.md) | Retiro de una PyME y desinstalación | `10-Operacion-y-Verificacion` | Nicolás | Rodrigo | Borrador |
 | [15](10-Operacion-y-Verificacion/15-verificacion-de-punta-a-punta.md) | Verificación de punta a punta (escenarios E1 a E7) | `10-Operacion-y-Verificacion` | Patricio | Nicolás | Borrador |

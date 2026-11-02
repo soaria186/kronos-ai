@@ -4,8 +4,8 @@
 | :--- | :--- |
 | Parte | 11 de 15 |
 | Responsable | Rodrigo Riveros (revisa: Patricio González) |
-| Versión | 0.9, 26-10-2026 |
-| Estado | Borrador para revisión: sale de la puesta en marcha de SOAR-NOTIFY del 21-10-2026 y de `infra/docker/servicios/README.md` |
+| Versión | 1.0, 01-11-2026 |
+| Estado | Vigente: comprobada contra la puesta en marcha del 21-10-2026 y el despliegue de `v1.0.0-rc1` del 01-11-2026 (token `root:10001`, 640, 46 bytes; NOTIFY en marcha con sus 3 cuentas). Los botones se comprueban en el escenario E4 de la prueba integral |
 | Requisitos | Parte 07 |
 
 SOAR-NOTIFY avisa por Telegram al grupo de la PyME (el encargado de TI y el equipo Kronos) y recibe ahí la
