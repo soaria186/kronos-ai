@@ -18,11 +18,11 @@ Sede Padre Alonso de Ovalle, Santiago</p>
 
 ## Integrantes
 
-| Alumnos | Responsabilidades en el proyecto |
-| :--- | :--- |
-| Nicolás Zamora | Servidor y red, detección con Wazuh, agentes y laboratorio de la PyME simulada | Github: nicozdevp
-| Rodrigo Riveros | Base de datos y auditoría, ejecución, notificaciones, consola web, respaldos y despliegue | Github: TuTooH
-| Patricio González | Inteligencia artificial, validación de decisiones, catálogo de respuestas y mediciones | Github: PatricioDU
+| Alumnos | Responsabilidades en el proyecto | Perfil del Github | 
+| :--- | :--- | :--- |
+| Nicolás Zamora | Servidor y red, detección con Wazuh, agentes y laboratorio de la PyME simulada | Github: nicozdevp |
+| Rodrigo Riveros | Base de datos y auditoría, ejecución, notificaciones, consola web, respaldos y despliegue | Github: TuTooH |
+| Patricio González | Inteligencia artificial, validación de decisiones, catálogo de respuestas y mediciones | Github: PatricioDU |
 
 ## Descripción del proyecto
 
