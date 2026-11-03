@@ -34,6 +34,7 @@ repositorio, la guía de instalación y los 31 documentos.
 | 26-10 | KRO-TAREAS-2026-10-26: [Nicolás](KRO-TAREAS-2026-10-26_nicolas.md), [Patricio](KRO-TAREAS-2026-10-26_patricio.md), [Rodrigo](KRO-TAREAS-2026-10-26_rodrigo.md) | Tareas | Equipo | Tareas de la semana de cierre |
 | 27-10 | [Historial de GitHub](historial-github/README.md) | Registro | Equipo | Issues y PR #1 a #84 del repositorio anterior, exportados antes de la mudanza a `soaria186` (#34) |
 | 01-11 | [KRO-LOG-2026-11-01](KRO-LOG-2026-11-01_ramas_borradas.md) | Registro | Rodrigo | Las ramas ya mezcladas que se borraron, con su punta en este repositorio para recuperarlas |
+| 02-11 | [KRO-ACTA-2026-11-02](KRO-ACTA-2026-11-02_decisiones_del_po.md) | Acta | Nicolás | Decisiones del Product Owner: aprobación de D-57 a D-65, D-66 a D-68 y fechas de la prueba integral, el cierre y la defensa |
 
 ## Cómo se agrega un registro
 

@@ -175,7 +175,9 @@ Cómo trabajamos (ramas `develop` y `main`, revisión cruzada, regla de merge y 
 
 ## Licencia
 
-Proyecto académico.
+Copyright (c) 2026 Duoc UC. **Todos los derechos reservados** (D-63). El código y la documentación se publican
+sólo para su revisión académica; no se concede licencia para usarlos, copiarlos, modificarlos ni distribuirlos
+sin autorización escrita. Texto completo en [`LICENSE`](LICENSE).
 
 ## English summary
 

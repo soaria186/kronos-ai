@@ -5,8 +5,8 @@ citan por ese código; aquí está qué dice cada una y de dónde sale.
 
 | Campo | Valor |
 | :--- | :--- |
-| Actualizado | 26-10-2026 |
-| Fuentes | Contexto maestro 3.1 (15-10) para D-01 a D-46a, y 2.1 (14-10, en [`docs/archivo/`](../archivo/)) para D-07, D-21, D-29 y D-30, que la 3.1 no trae; [acta del 21-10](KRO-ACTA-2026-10-21_punto_de_encuentro_1.md) para D-44 a D-56; [plan del 26-10](KRO-PLAN-2026-10-26_replanteamiento_pyme_y_cierre.md) para D-57 a D-65 |
+| Actualizado | 02-11-2026 |
+| Fuentes | Contexto maestro 3.1 (15-10) para D-01 a D-46a, y 2.1 (14-10, en [`docs/archivo/`](../archivo/)) para D-07, D-21, D-29 y D-30, que la 3.1 no trae; [acta del 21-10](KRO-ACTA-2026-10-21_punto_de_encuentro_1.md) para D-44 a D-56; [plan del 26-10](KRO-PLAN-2026-10-26_replanteamiento_pyme_y_cierre.md) para las propuestas D-57 a D-65; [acta del 02-11](KRO-ACTA-2026-11-02_decisiones_del_po.md) para su aprobación y para D-66 a D-68; prueba integral del 03-11 para D-69 a D-73 |
 | Cómo se agrega una | Se toma en una reunión y queda en su acta. Después se agrega aquí, por PR |
 | Cómo cambia una | No se borra ni se reescribe: la decisión nueva dice a cuál reemplaza o anula, y la antigua lo anota en «Después» |
 
@@ -23,7 +23,7 @@ Estados: ✅ vigente · 🟡 vigente con condiciones, recomendada o en curso · 
 | D-01 | Nube: Cloud VDS XL de Contabo del profesor | Replanteamiento (25-09) | ✅ | |
 | D-02 | SOAR-CLASSIFY en SOAR-CORE-01, modelo local, sin API de pago | Replanteamiento (25-09) | ✅ | |
 | D-03 | Python (FastAPI) en vez de n8n | Replanteamiento (25-09) | ✅ | |
-| D-04 | Dos vías de equipos: máquinas virtuales propias y equipos de la farmacia | Replanteamiento (25-09) | ✅ | Sin cliente real, queda sólo la vía de las máquinas virtuales: D-57 (📝) |
+| D-04 | Dos vías de equipos: máquinas virtuales propias y equipos de la farmacia | Replanteamiento (25-09) | ✅ | Sin cliente real, queda sólo la vía de las máquinas virtuales: D-57 (02-11) |
 | D-05 | Contención real, sin modo observación en producción | Replanteamiento (25-09) | ✅ | |
 | D-06 | LAB-01 como contingencia | Replanteamiento (25-09) | 🟡 | |
 | D-07 | Acordar con el profesor por escrito el alcance y los límites | Replanteamiento (25-09) | 🟡 | |
@@ -34,8 +34,8 @@ Estados: ✅ vigente · 🟡 vigente con condiciones, recomendada o en curso · 
 | D-12 | Red privada del equipo: NetBird | Tareas por integrante (14-10) | ✅ | |
 | D-13 | Servidor en UTC | Equipo | ✅ | |
 | D-14 | 2FA en Contabo descartado por el momento | Nicolás | ✅ riesgo aceptado | |
-| D-15 | Primero la nube y el laboratorio; la farmacia al final | Equipo | ✅ | D-61 propone anularla (📝) |
-| D-16 | Laboratorio en máquinas virtuales del notebook de Nicolás, sin NetBird | Equipo | ✅ | EP-WKS-01 pasó al PC de escritorio de Nicolás el 21-10 (#33) |
+| D-15 | Primero la nube y el laboratorio; la farmacia al final | Equipo | ✅ | Anulada por D-61 (02-11) |
+| D-16 | Laboratorio en máquinas virtuales del notebook de Nicolás, sin NetBird | Equipo | ✅ | EP-WKS-01 pasó al PC de escritorio de Nicolás el 21-10 (#33). En la defensa, las dos VM van en el notebook de Rodrigo: D-68 (02-11) |
 | D-17 | Agentes registrados desde el servidor; 1514 público; 55000, 9200 y 5601 sólo por NetBird | Tareas por integrante (14-10) | ✅ por implementar | |
 | D-18 | Guía de instalación en `docs/instalacion/`, 15 partes | Tareas por integrante (14-10) | ✅ | |
 | D-19 | Sin prueba de regresión del hash por zona horaria | Rodrigo | ✅ | |
@@ -47,10 +47,10 @@ Estados: ✅ vigente · 🟡 vigente con condiciones, recomendada o en curso · 
 | D-25 | Servidor en Francia | Equipo (14 y 15-10) | ✅ | |
 | D-26 | Copia de respaldo en el PC de escritorio de Nicolás | Equipo (14 y 15-10) | ✅ con condiciones | |
 | D-27 | Retención de 2 años, fundada en la Ley 21.663 (decisión interna; la ley no fija ese plazo) | Equipo (14 y 15-10) | ✅ | Para las alertas guardadas, D-46 la baja a 90 días; la bitácora sigue en 2 años |
-| D-28 | Lo que necesita datos de la farmacia se completa después de instalar ahí | Equipo (14 y 15-10) | ✅ | D-61 propone anularla (📝) |
+| D-28 | Lo que necesita datos de la farmacia se completa después de instalar ahí | Equipo (14 y 15-10) | ✅ | Anulada por D-61 (02-11) |
 | D-29 | Gestor de contraseñas: el equipo respondió «MFA». Falta saber qué gestor guarda los secretos | Equipo (14-10) | ❓ | El equipo guarda los secretos en un gestor común (registro del 21-10) |
 | D-30 | Numeración de etapas | Equipo (14-10) | ⏳ | |
-| D-31 | Sólo el equipo aprueba el nivel 3 y recibe avisos | Nicolás | ✅ | D-59 propone reemplazarla: aprueba el encargado de TI de la PyME (📝) |
+| D-31 | Sólo el equipo aprueba el nivel 3 y recibe avisos | Nicolás | ✅ | Reemplazada por D-59 (02-11): aprueba el encargado de TI de la PyME |
 | D-32 | Plazo de 2 días para aprobar el nivel 3 | Nicolás | ✅ | |
 | D-33 | Plazo de revisión de 2 días para el nivel 2, con recordatorio diario y sin reversión automática | Nicolás | ✅ | |
 | D-34 | Nivel 3 sin respuesta en 2 días: `APROBACION_VENCIDA`, sin ejecutar | Patricio y Rodrigo | ✅ | |
@@ -64,7 +64,7 @@ Estados: ✅ vigente · 🟡 vigente con condiciones, recomendada o en curso · 
 | D-42 | Contraseñas de los servicios como secretos de Docker | Rodrigo | 🟡 propuesta | Integrada (#22, 15-10) |
 | D-43 | Kick-off el 10-08-2026 con el equipo y el profesor guía | Equipo (15-10) | 🟡 asumido | |
 | D-44a | No se envía el mensaje al profesor sobre el contrato del servidor | Nicolás (14-10) | ✅ | |
-| D-45a | Los 31 documentos (Parte B del contexto maestro 3.1) reemplazan a la lista de 17 basada en la bibliografía | Equipo (15-10) | ✅ | D-62 propone publicarlos en PDF y archivar los 17 Word (📝) |
+| D-45a | Los 31 documentos (Parte B del contexto maestro 3.1) reemplazan a la lista de 17 basada en la bibliografía | Equipo (15-10) | ✅ | D-62 (02-11): se publican en PDF y los 17 Word se archivan |
 | D-46a | Configuración de VALIDATE (mapa de severidad, exclusiones, contadores, cortacircuito) | Patricio | 🟡 propuesta 0.1 sin aprobar | D-65 aprueba la versión 1.0 (26-10) |
 
 ## 2. Punto de encuentro 1 (21-10-2026)
@@ -76,32 +76,55 @@ Con los tres integrantes. Detalle y consecuencias en el [acta](KRO-ACTA-2026-10-
 | D-44 | Playbooks | De un solo paso | |
 | D-45 | Reversión del nivel 1 | 60 minutos, confirmados | Comprobada el 21-10: la regla se quitó a los 60 minutos y 3 segundos |
 | D-46 | Retención de las alertas guardadas | 90 días. La bitácora se mantiene 2 años | Integrada (#34); purga diaria a las 04:45 UTC desde el 21-10 |
-| D-47 | Medidas en la farmacia | Las 25 del catálogo KRO-CAT-01. Se agregarán más en el futuro | D-61 propone anularla en lo que toca a la farmacia, (📝), y D-60 fija las medidas de la v1.0 (26-10) |
-| D-48 | Inicio en la farmacia | Modo observación durante 1 semana | D-61 propone anularla (📝) |
-| D-49 | Inquilino de cada alerta | Por grupo de agentes de Wazuh | D-61 propone dejarla como deseable (📝). En la v1.0 hay una PyME por servidor |
-| D-50 | Nivel 0 sin comando (por ejemplo, 100115 → PB-F6-01) | Se desactiva y no se avisa | El «no se avisa» llega con #78 |
+| D-47 | Medidas en la farmacia | Las 25 del catálogo KRO-CAT-01. Se agregarán más en el futuro | Anulada por D-61 en lo que toca a la farmacia (02-11). D-60 fija las medidas de la v1.0 (26-10) |
+| D-48 | Inicio en la farmacia | Modo observación durante 1 semana | Anulada por D-61 (02-11) |
+| D-49 | Inquilino de cada alerta | Por grupo de agentes de Wazuh | D-61 la deja como deseable (02-11). En la v1.0 hay una PyME por servidor |
+| D-50 | Nivel 0 sin comando (por ejemplo, 100115 → PB-F6-01) | Se desactiva y no se avisa | El «no se avisa» llega con #78. D-72 (03-11): la consulta de nivel 0 se ejecuta del lado del servidor |
 | D-51 | Reversión con el agente apagado | Aviso manual, sin reintento automático | |
-| D-52 | Reglas que se pierden al reiniciar el equipo | Se corrige: deben volver a aplicarse | D-61 propone dejarla como limitación documentada (📝) |
+| D-52 | Reglas que se pierden al reiniciar el equipo | Se corrige: deben volver a aplicarse | D-61 la deja como limitación documentada (02-11) |
 | D-53 | Tickets de prueba #1, #2 y #5 | Se dejan como evidencia | |
-| D-54 | Regla de merge | Nadie mezcla desde `soaria186`; nunca mezcla el autor; siempre hay una aprobación previa desde la cuenta personal. Los PR #7 al #34 quedan como excepción R-04 | Las excepciones están en `CONTRIBUTING.md` |
+| D-54 | Regla de merge | Nadie mezcla desde `soaria186`; nunca mezcla el autor; siempre hay una aprobación previa desde la cuenta personal. Los PR #7 al #34 quedan como excepción R-04 | Las excepciones están en `CONTRIBUTING.md`. Desde el PR #46, el CI corre en cada PR: D-66 (02-11) |
 | D-55 | Despliegue en SOAR-CORE-01 | Rodrigo pasa `/opt/kronos/audit` a un `git clone` con etiquetas de versión. Nadie despliega sin avisar en el grupo de Telegram | Se hace en la semana de cierre (#54) |
 | D-56 | Roles de Scrum | Product Owner: Nicolás. Scrum Master: Rodrigo. Equipo de desarrollo: los tres, con Patricio a cargo de la calidad de la decisión (IA y mediciones) | |
 
 ## 3. Arranque de la semana de cierre (26-10-2026)
 
 Propuestas del [plan del 26-10](KRO-PLAN-2026-10-26_replanteamiento_pyme_y_cierre.md) (sección 2.6), por la
-retroalimentación del profesor guía. Al aprobarlas, su estado cambia a ✅ y se completa la columna «Después» de
-las que reemplazan o anulan. D-60 y D-65 se dieron por aprobadas el 26-10, al integrar el catálogo 1.0 (#83) y
-`validate.json` 1.0 (#84); las demás esperan el acta del arranque.
+retroalimentación del profesor guía. D-60 y D-65 se dieron por aprobadas el 26-10, al integrar el catálogo 1.0
+(#83) y `validate.json` 1.0 (#84). Nicolás, como Product Owner, aprobó las demás el 02-11
+([acta](KRO-ACTA-2026-11-02_decisiones_del_po.md)), y se completó la columna «Después» de las que reemplazan o
+anulan.
 
-| Código | Propuesta | Estado |
-| :---: | :--- | :---: |
-| D-57 | Registrar la decisión del profesor: sin cliente real; validación en una PyME simulada | 📝 |
-| D-58 | Nombre y perfil de la PyME simulada (empresa ficticia, sin nombre de una empresa real) | 📝 |
-| D-59 | Quién aprueba el nivel 3: el encargado de TI de la PyME, con el equipo Kronos como respaldo. Reemplaza a D-31 | 📝 |
-| D-60 | Alcance congelado de la v1.0 (sección 5 del plan): bloquear IP (niveles 1 y 2), deshabilitar cuenta (nivel 2) y aislar un puesto (nivel 3). Las demás medidas siguen en el catálogo y, si se eligen, terminan en falla segura con aviso | ✅ 26-10 |
-| D-61 | Se anulan D-15, D-28, D-47 (en lo que toca a la farmacia) y D-48 (modo observación). D-49 (inquilino por grupo) pasa a deseable. D-52 (volver a aplicar reglas tras un reinicio) pasa a limitación documentada | 📝 |
-| D-62 | Documentación oficial: los 31 documentos más el informe final de Duoc. Se publican en PDF en `docs/entregables/` y los 17 Word v0.1 se archivan. Desde la reestructuración del 26-10, los PDF van en `Fase 2/Documentación Grupal` | 📝 |
-| D-63 | Acceso de la comisión al repositorio: invitar al profesor guía o hacerlo público al publicar la v1.0. También licencia | 📝 |
-| D-64 | Versión 1.0.0 el sábado 31-10: `main` pasa a ser la versión entregable | 📝 |
-| D-65 | Aprobar la configuración de VALIDATE v1.0 (mapa de severidad, exclusiones, contadores, agrupación y disparo del cortacircuito) | ✅ 26-10 |
+| Código | Propuesta | Estado | Lo decidido | Después |
+| :---: | :--- | :---: | :--- | :--- |
+| D-57 | Registrar la decisión del profesor: sin cliente real; validación en una PyME simulada | ✅ 02-11 | Sin cliente real. Kronos se valida en la PyME simulada de D-58, con los escenarios E1 a E7. Fecha: antes del 26-10-2026, en reunión con el profesor guía; el plan del 26-10 la registra | |
+| D-58 | Nombre y perfil de la PyME simulada (empresa ficticia, sin nombre de una empresa real) | ✅ 02-11 | **Sin nombre propio**: en todos los documentos se dice «la PyME simulada». Es un comercio ficticio de unos 15 trabajadores en Santiago, con un servidor Linux (EP-SRV-01) y puestos Windows (EP-WKS-01 representa uno), sin especialista en ciberseguridad. Tiene un encargado de TI que hace «de todo» y aprueba las medidas de nivel 3 | |
+| D-59 | Quién aprueba el nivel 3: el encargado de TI de la PyME, con el equipo Kronos como respaldo. Reemplaza a D-31 | ✅ 02-11 | Como se propuso. El encargado de TI aprueba y revierte; el equipo Kronos es el respaldo | |
+| D-60 | Alcance congelado de la v1.0 (sección 5 del plan): bloquear IP (niveles 1 y 2), deshabilitar cuenta (nivel 2) y aislar un puesto (nivel 3). Las demás medidas siguen en el catálogo y, si se eligen, terminan en falla segura con aviso | ✅ 26-10 | Con script en la v1.0: bloquear la IP (Linux y Windows), deshabilitar la cuenta y aislar el equipo (Windows) | Reemplazada por D-69 (03-11) |
+| D-61 | Se anulan D-15, D-28, D-47 (en lo que toca a la farmacia) y D-48 (modo observación). D-49 (inquilino por grupo) pasa a deseable. D-52 (volver a aplicar reglas tras un reinicio) pasa a limitación documentada | ✅ 02-11 | Como se propuso | |
+| D-62 | Documentación oficial: los 31 documentos más el informe final de Duoc. Se publican en PDF en `docs/entregables/` y los 17 Word v0.1 se archivan. Desde la reestructuración del 26-10, los PDF van en `Fase 2/Documentación Grupal` | ✅ 02-11 | Como se propuso, con los PDF en `Fase 2/Documentación Grupal` | |
+| D-63 | Acceso de la comisión al repositorio: invitar al profesor guía o hacerlo público al publicar la v1.0. También licencia | ✅ 02-11 | El repositorio es **público**. **Todos los derechos reservados, Duoc UC** ([`LICENSE`](../../../../LICENSE)); no se usa licencia libre | |
+| D-64 | Versión 1.0.0 el sábado 31-10: `main` pasa a ser la versión entregable | ✅ 02-11 | `main` pasa a ser la versión entregable, con la v1.0.0 **hasta el 07-11** y no el sábado 31-10, por el retraso de los scripts de Windows. El servidor queda en `v1.0.0-rc2` hasta entonces | |
+| D-65 | Aprobar la configuración de VALIDATE v1.0 (mapa de severidad, exclusiones, contadores, agrupación y disparo del cortacircuito) | ✅ 26-10 | `validate.json` 1.0 (#84). El cortacircuito se abre con 30 alertas recibidas en 10 minutos | |
+
+## 4. Decisiones del Product Owner (02-11-2026)
+
+Detalle y justificación en el [acta del 02-11](KRO-ACTA-2026-11-02_decisiones_del_po.md).
+
+| Código | Tema | Decisión | Estado | Después |
+| :---: | :--- | :--- | :---: | :--- |
+| D-66 | CI en GitHub Actions | Al mudar el repositorio a `soaria186`, GitHub tardó en habilitar Actions (el 02-11 mostró «Unable to enable Actions»); se habilitaron ese mismo día y desde el PR #46 el CI corre en cada PR | ✅ 02-11 | |
+| D-67 | E3 y E4 en la prueba integral | **Opción A**: se muestran tal como salen. E3 termina en consulta; E4 pide aprobación y termina en falla segura («[NO SE APLICÓ]»). Los scripts de Windows se demuestran aparte, por la API. No se ajusta el prompt para la demostración | ✅ 02-11 | Con D-69 (03-11), las medidas que elija la IA en E3 y E4 tendrán actuador |
+| D-68 | Laboratorio en la defensa | Nicolás entrega EP-SRV-01 y EP-WKS-01 en OVA, listas para la demostración, y Rodrigo las lleva en su notebook. Nunca se encienden dos copias de la misma VM a la vez | ✅ 02-11 | Fecha de exportación: D-73 (03-11) |
+
+## 5. Decisiones de los tres (03-11-2026)
+
+Tomadas en la prueba integral, con Nicolás, Rodrigo y Patricio presentes.
+
+| Código | Tema | Decisión | Estado | Después |
+| :---: | :--- | :--- | :---: | :--- |
+| D-69 | Medidas con actuador en la v1.0 | Se implementan las 25 medidas del catálogo KRO-CAT-01 con actuador real, en Linux y Windows. Reemplaza a D-60 | ✅ 03-11 | |
+| D-70 | Corte de la v1.0 | Lo que el viernes 06-11 a las 18:00 no esté probado en el laboratorio (aplicar y revertir) queda en falla segura (ACCION_NO_IMPLEMENTADA) y se declara como limitación. La v1.0.0 se mantiene el 07-11 | ✅ 03-11 | |
+| D-71 | Limitar conexiones en Windows | El firewall de Windows no limita conexiones por origen; el equivalente es un bloqueo temporal del origen por 10 minutos | ✅ 03-11 | |
+| D-72 | Consulta de nivel 0 | Sin script en el agente: EXECUTE obtiene el inventario del agente por la API de Wazuh (syscollector) y lo guarda en el ticket como SUCCESS. Requiere el permiso syscollector:read para el usuario kronos-execute. Cumple D-50 | ✅ 03-11 | |
+| D-73 | Exportación del laboratorio | Las OVA de D-68 se exportan el viernes 06-11 en la noche, después de la prueba integral 2, porque los scripts nuevos cambian las VM | ✅ 03-11 | |
