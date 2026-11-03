@@ -29,6 +29,7 @@ Milestone [«v1.0: cierre»](https://github.com/soaria186/kronos-ai/milestone/1)
 - Diagramas al día con el estado real y la numeración de los 31 documentos (#79).
 - Guía de instalación completa, en 15 partes (#80).
 - Decisiones D-57 a D-65 aprobadas y D-66 a D-68 nuevas (CI en GitHub Actions desde el PR #46, E3 y E4 en la prueba integral y laboratorio en la defensa), con el acta del 02-11. `LICENSE`: todos los derechos reservados, Duoc UC (D-63).
+- Decisiones D-69 a D-73 de la prueba integral del 03-11: las 25 medidas del catálogo con actuador en Linux y Windows (reemplaza a D-60), corte de la v1.0 el 06-11 a las 18:00, bloqueo temporal en vez de limitar conexiones en Windows, consulta de nivel 0 por la API de Wazuh y exportación de las OVA el 06-11.
 - Estructura de `docs/`: índice de los 31 documentos, registro de trabajo del 15 al 26-10, registro de decisiones y archivo de los documentos v0.1 (#81).
 - Las ramas de experimentos del 14-10 quedan en el registro de mediciones, y el prompt v2 como parche en `decision/mediciones/experimentos/` (#82).
 

@@ -6,7 +6,7 @@ citan por ese código; aquí está qué dice cada una y de dónde sale.
 | Campo | Valor |
 | :--- | :--- |
 | Actualizado | 02-11-2026 |
-| Fuentes | Contexto maestro 3.1 (15-10) para D-01 a D-46a, y 2.1 (14-10, en [`docs/archivo/`](../archivo/)) para D-07, D-21, D-29 y D-30, que la 3.1 no trae; [acta del 21-10](KRO-ACTA-2026-10-21_punto_de_encuentro_1.md) para D-44 a D-56; [plan del 26-10](KRO-PLAN-2026-10-26_replanteamiento_pyme_y_cierre.md) para las propuestas D-57 a D-65; [acta del 02-11](KRO-ACTA-2026-11-02_decisiones_del_po.md) para su aprobación y para D-66 a D-68 |
+| Fuentes | Contexto maestro 3.1 (15-10) para D-01 a D-46a, y 2.1 (14-10, en [`docs/archivo/`](../archivo/)) para D-07, D-21, D-29 y D-30, que la 3.1 no trae; [acta del 21-10](KRO-ACTA-2026-10-21_punto_de_encuentro_1.md) para D-44 a D-56; [plan del 26-10](KRO-PLAN-2026-10-26_replanteamiento_pyme_y_cierre.md) para las propuestas D-57 a D-65; [acta del 02-11](KRO-ACTA-2026-11-02_decisiones_del_po.md) para su aprobación y para D-66 a D-68; prueba integral del 03-11 para D-69 a D-73 |
 | Cómo se agrega una | Se toma en una reunión y queda en su acta. Después se agrega aquí, por PR |
 | Cómo cambia una | No se borra ni se reescribe: la decisión nueva dice a cuál reemplaza o anula, y la antigua lo anota en «Después» |
 
@@ -79,7 +79,7 @@ Con los tres integrantes. Detalle y consecuencias en el [acta](KRO-ACTA-2026-10-
 | D-47 | Medidas en la farmacia | Las 25 del catálogo KRO-CAT-01. Se agregarán más en el futuro | Anulada por D-61 en lo que toca a la farmacia (02-11). D-60 fija las medidas de la v1.0 (26-10) |
 | D-48 | Inicio en la farmacia | Modo observación durante 1 semana | Anulada por D-61 (02-11) |
 | D-49 | Inquilino de cada alerta | Por grupo de agentes de Wazuh | D-61 la deja como deseable (02-11). En la v1.0 hay una PyME por servidor |
-| D-50 | Nivel 0 sin comando (por ejemplo, 100115 → PB-F6-01) | Se desactiva y no se avisa | El «no se avisa» llega con #78 |
+| D-50 | Nivel 0 sin comando (por ejemplo, 100115 → PB-F6-01) | Se desactiva y no se avisa | El «no se avisa» llega con #78. D-72 (03-11): la consulta de nivel 0 se ejecuta del lado del servidor |
 | D-51 | Reversión con el agente apagado | Aviso manual, sin reintento automático | |
 | D-52 | Reglas que se pierden al reiniciar el equipo | Se corrige: deben volver a aplicarse | D-61 la deja como limitación documentada (02-11) |
 | D-53 | Tickets de prueba #1, #2 y #5 | Se dejan como evidencia | |
@@ -95,17 +95,17 @@ retroalimentación del profesor guía. D-60 y D-65 se dieron por aprobadas el 26
 ([acta](KRO-ACTA-2026-11-02_decisiones_del_po.md)), y se completó la columna «Después» de las que reemplazan o
 anulan.
 
-| Código | Propuesta | Estado | Lo decidido |
-| :---: | :--- | :---: | :--- |
-| D-57 | Registrar la decisión del profesor: sin cliente real; validación en una PyME simulada | ✅ 02-11 | Sin cliente real. Kronos se valida en la PyME simulada de D-58, con los escenarios E1 a E7. Fecha: antes del 26-10-2026, en reunión con el profesor guía; el plan del 26-10 la registra |
-| D-58 | Nombre y perfil de la PyME simulada (empresa ficticia, sin nombre de una empresa real) | ✅ 02-11 | **Sin nombre propio**: en todos los documentos se dice «la PyME simulada». Es un comercio ficticio de unos 15 trabajadores en Santiago, con un servidor Linux (EP-SRV-01) y puestos Windows (EP-WKS-01 representa uno), sin especialista en ciberseguridad. Tiene un encargado de TI que hace «de todo» y aprueba las medidas de nivel 3 |
-| D-59 | Quién aprueba el nivel 3: el encargado de TI de la PyME, con el equipo Kronos como respaldo. Reemplaza a D-31 | ✅ 02-11 | Como se propuso. El encargado de TI aprueba y revierte; el equipo Kronos es el respaldo |
-| D-60 | Alcance congelado de la v1.0 (sección 5 del plan): bloquear IP (niveles 1 y 2), deshabilitar cuenta (nivel 2) y aislar un puesto (nivel 3). Las demás medidas siguen en el catálogo y, si se eligen, terminan en falla segura con aviso | ✅ 26-10 | Con script en la v1.0: bloquear la IP (Linux y Windows), deshabilitar la cuenta y aislar el equipo (Windows) |
-| D-61 | Se anulan D-15, D-28, D-47 (en lo que toca a la farmacia) y D-48 (modo observación). D-49 (inquilino por grupo) pasa a deseable. D-52 (volver a aplicar reglas tras un reinicio) pasa a limitación documentada | ✅ 02-11 | Como se propuso |
-| D-62 | Documentación oficial: los 31 documentos más el informe final de Duoc. Se publican en PDF en `docs/entregables/` y los 17 Word v0.1 se archivan. Desde la reestructuración del 26-10, los PDF van en `Fase 2/Documentación Grupal` | ✅ 02-11 | Como se propuso, con los PDF en `Fase 2/Documentación Grupal` |
-| D-63 | Acceso de la comisión al repositorio: invitar al profesor guía o hacerlo público al publicar la v1.0. También licencia | ✅ 02-11 | El repositorio es **público**. **Todos los derechos reservados, Duoc UC** ([`LICENSE`](../../../../LICENSE)); no se usa licencia libre |
-| D-64 | Versión 1.0.0 el sábado 31-10: `main` pasa a ser la versión entregable | ✅ 02-11 | `main` pasa a ser la versión entregable, con la v1.0.0 **hasta el 07-11** y no el sábado 31-10, por el retraso de los scripts de Windows. El servidor queda en `v1.0.0-rc2` hasta entonces |
-| D-65 | Aprobar la configuración de VALIDATE v1.0 (mapa de severidad, exclusiones, contadores, agrupación y disparo del cortacircuito) | ✅ 26-10 | `validate.json` 1.0 (#84). El cortacircuito se abre con 30 alertas recibidas en 10 minutos |
+| Código | Propuesta | Estado | Lo decidido | Después |
+| :---: | :--- | :---: | :--- | :--- |
+| D-57 | Registrar la decisión del profesor: sin cliente real; validación en una PyME simulada | ✅ 02-11 | Sin cliente real. Kronos se valida en la PyME simulada de D-58, con los escenarios E1 a E7. Fecha: antes del 26-10-2026, en reunión con el profesor guía; el plan del 26-10 la registra | |
+| D-58 | Nombre y perfil de la PyME simulada (empresa ficticia, sin nombre de una empresa real) | ✅ 02-11 | **Sin nombre propio**: en todos los documentos se dice «la PyME simulada». Es un comercio ficticio de unos 15 trabajadores en Santiago, con un servidor Linux (EP-SRV-01) y puestos Windows (EP-WKS-01 representa uno), sin especialista en ciberseguridad. Tiene un encargado de TI que hace «de todo» y aprueba las medidas de nivel 3 | |
+| D-59 | Quién aprueba el nivel 3: el encargado de TI de la PyME, con el equipo Kronos como respaldo. Reemplaza a D-31 | ✅ 02-11 | Como se propuso. El encargado de TI aprueba y revierte; el equipo Kronos es el respaldo | |
+| D-60 | Alcance congelado de la v1.0 (sección 5 del plan): bloquear IP (niveles 1 y 2), deshabilitar cuenta (nivel 2) y aislar un puesto (nivel 3). Las demás medidas siguen en el catálogo y, si se eligen, terminan en falla segura con aviso | ✅ 26-10 | Con script en la v1.0: bloquear la IP (Linux y Windows), deshabilitar la cuenta y aislar el equipo (Windows) | Reemplazada por D-69 (03-11) |
+| D-61 | Se anulan D-15, D-28, D-47 (en lo que toca a la farmacia) y D-48 (modo observación). D-49 (inquilino por grupo) pasa a deseable. D-52 (volver a aplicar reglas tras un reinicio) pasa a limitación documentada | ✅ 02-11 | Como se propuso | |
+| D-62 | Documentación oficial: los 31 documentos más el informe final de Duoc. Se publican en PDF en `docs/entregables/` y los 17 Word v0.1 se archivan. Desde la reestructuración del 26-10, los PDF van en `Fase 2/Documentación Grupal` | ✅ 02-11 | Como se propuso, con los PDF en `Fase 2/Documentación Grupal` | |
+| D-63 | Acceso de la comisión al repositorio: invitar al profesor guía o hacerlo público al publicar la v1.0. También licencia | ✅ 02-11 | El repositorio es **público**. **Todos los derechos reservados, Duoc UC** ([`LICENSE`](../../../../LICENSE)); no se usa licencia libre | |
+| D-64 | Versión 1.0.0 el sábado 31-10: `main` pasa a ser la versión entregable | ✅ 02-11 | `main` pasa a ser la versión entregable, con la v1.0.0 **hasta el 07-11** y no el sábado 31-10, por el retraso de los scripts de Windows. El servidor queda en `v1.0.0-rc2` hasta entonces | |
+| D-65 | Aprobar la configuración de VALIDATE v1.0 (mapa de severidad, exclusiones, contadores, agrupación y disparo del cortacircuito) | ✅ 26-10 | `validate.json` 1.0 (#84). El cortacircuito se abre con 30 alertas recibidas en 10 minutos | |
 
 ## 4. Decisiones del Product Owner (02-11-2026)
 
@@ -114,5 +114,17 @@ Detalle y justificación en el [acta del 02-11](KRO-ACTA-2026-11-02_decisiones_d
 | Código | Tema | Decisión | Estado | Después |
 | :---: | :--- | :--- | :---: | :--- |
 | D-66 | CI en GitHub Actions | Al mudar el repositorio a `soaria186`, GitHub tardó en habilitar Actions (el 02-11 mostró «Unable to enable Actions»); se habilitaron ese mismo día y desde el PR #46 el CI corre en cada PR | ✅ 02-11 | |
-| D-67 | E3 y E4 en la prueba integral | **Opción A**: se muestran tal como salen. E3 termina en consulta; E4 pide aprobación y termina en falla segura («[NO SE APLICÓ]»). Los scripts de Windows se demuestran aparte, por la API. No se ajusta el prompt para la demostración | ✅ 02-11 | |
-| D-68 | Laboratorio en la defensa | Nicolás entrega EP-SRV-01 y EP-WKS-01 en OVA, listas para la demostración, y Rodrigo las lleva en su notebook. Nunca se encienden dos copias de la misma VM a la vez | ✅ 02-11 | |
+| D-67 | E3 y E4 en la prueba integral | **Opción A**: se muestran tal como salen. E3 termina en consulta; E4 pide aprobación y termina en falla segura («[NO SE APLICÓ]»). Los scripts de Windows se demuestran aparte, por la API. No se ajusta el prompt para la demostración | ✅ 02-11 | Con D-69 (03-11), las medidas que elija la IA en E3 y E4 tendrán actuador |
+| D-68 | Laboratorio en la defensa | Nicolás entrega EP-SRV-01 y EP-WKS-01 en OVA, listas para la demostración, y Rodrigo las lleva en su notebook. Nunca se encienden dos copias de la misma VM a la vez | ✅ 02-11 | Fecha de exportación: D-73 (03-11) |
+
+## 5. Decisiones de los tres (03-11-2026)
+
+Tomadas en la prueba integral, con Nicolás, Rodrigo y Patricio presentes.
+
+| Código | Tema | Decisión | Estado | Después |
+| :---: | :--- | :--- | :---: | :--- |
+| D-69 | Medidas con actuador en la v1.0 | Se implementan las 25 medidas del catálogo KRO-CAT-01 con actuador real, en Linux y Windows. Reemplaza a D-60 | ✅ 03-11 | |
+| D-70 | Corte de la v1.0 | Lo que el viernes 06-11 a las 18:00 no esté probado en el laboratorio (aplicar y revertir) queda en falla segura (ACCION_NO_IMPLEMENTADA) y se declara como limitación. La v1.0.0 se mantiene el 07-11 | ✅ 03-11 | |
+| D-71 | Limitar conexiones en Windows | El firewall de Windows no limita conexiones por origen; el equivalente es un bloqueo temporal del origen por 10 minutos | ✅ 03-11 | |
+| D-72 | Consulta de nivel 0 | Sin script en el agente: EXECUTE obtiene el inventario del agente por la API de Wazuh (syscollector) y lo guarda en el ticket como SUCCESS. Requiere el permiso syscollector:read para el usuario kronos-execute. Cumple D-50 | ✅ 03-11 | |
+| D-73 | Exportación del laboratorio | Las OVA de D-68 se exportan el viernes 06-11 en la noche, después de la prueba integral 2, porque los scripts nuevos cambian las VM | ✅ 03-11 | |
