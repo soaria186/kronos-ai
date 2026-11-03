@@ -115,6 +115,12 @@ icacls "$bin\kronos-*"   # deben heredar sólo Administradores y SYSTEM
 En una consola de PowerShell **como administrador**, en la carpeta de los scripts.
 Usar sólo IP de documentación (`203.0.113.0/24`); nunca la puerta de enlace.
 
+> **La consola debe ser de administrador.** Sin elevación, `aplicar` sale con 1 porque
+> `netsh` no puede crear la regla, y el script avisa por la salida de error que no pudo
+> escribir en el registro («Acceso denegado»); pasó en la prueba del 02-11-2026. En
+> producción no ocurre: el agente corre como SYSTEM. Los scripts de prueba están en
+> [`../pruebas/`](../pruebas/README.md).
+
 ```powershell
 $e = '{"version":1,"command":"add","parameters":{"extra_args":["aplicar","203.0.113.50"]}}'
 $e | cmd /c kronos-bloquear-ip.cmd; "salida: $LASTEXITCODE"          # 0
@@ -125,7 +131,8 @@ netsh advfirewall firewall show rule name=Kronos-bloqueo-203.0.113.50   # «No h
 ```
 
 Casos que deben salir con 1 sin crear reglas: `127.0.0.1`, la IP propia, la puerta de
-enlace, `1`, `203.0.113.50 & calc`, tres argumentos, operación `borrar`, entrada vacía.
+enlace, `1`, `203.0.113.50 & calc`, tres argumentos, operación `borrar`, entrada vacía y
+JSON roto.
 
 ### `kronos-deshabilitar-cuenta`
 
@@ -196,25 +203,27 @@ argumentos), `[]`, operación `borrar`, entrada vacía y JSON roto.
 
 ## Prueba de `kronos-deshabilitar-cuenta` en EP-WKS-01
 
-Agente 002, con la cuenta `usuario.demo`. Se completa con la prueba de Nicolás:
+Agente 002, con la cuenta `usuario.demo`. Salidas en
+[`docs/evidencia/2026-11-02_ar-windows/`](../../../../docs/evidencia/2026-11-02_ar-windows/README.md):
 
 | Prueba | Fecha | Resultado |
 | :--- | :--- | :--- |
-| A mano: aplicar, aplicar de nuevo, habilitar y habilitar de nuevo | | |
-| A mano: cuenta deshabilitada por otra persona; habilitar no la toca | | |
-| A mano: casos de rechazo | | |
-| Por la API (`!kronos-deshabilitar-cuenta.cmd`), aplicar y habilitar | | |
-| Registro en `active-responses.log` | | |
+| A mano: aplicar, aplicar de nuevo, habilitar y habilitar de nuevo | 02-11-2026 | Salida 0 en las cuatro; `Enabled` pasa a False y vuelve a True. Las dos órdenes son idempotentes |
+| A mano: cuenta deshabilitada por otra persona; habilitar no la toca | 02-11-2026 | Aplicar sale con 0 («ya estaba deshabilitada»), habilitar sale con 0 («no la deshabilitó Kronos») y la cuenta sigue deshabilitada |
+| A mano: casos de rechazo | 02-11-2026 | Salida 1 en los 8: `Administrador`, `labadmin` (miembro de Administradores), `usuario.demo & calc`, `noexiste01`, tres argumentos, `borrar`, entrada vacía y JSON roto. `labadmin` y `usuario.demo` siguen habilitadas |
+| Por la API (`!kronos-deshabilitar-cuenta.cmd`), aplicar y habilitar | 02-11-2026 | `Enabled` pasa a False (18:35:53 UTC) y después a True (18:36:22 UTC) |
+| Registro en `active-responses.log` | 02-11-2026 | Una línea por orden. Hallazgo: el rechazo por nombre protegido sale como `Administrador: ERROR cuenta protegida: Administrador`, porque la variable local `$nombre` tapa a `$NOMBRE`; no cambia lo que hace el script |
 
 ## Prueba de `kronos-aislar-equipo` en EP-WKS-01
 
-Agente 002, desde el snapshot `listo-demo`. Se completa con la prueba de Nicolás:
+Agente 002, desde el snapshot `listo-demo`. Salidas en
+[`docs/evidencia/2026-11-02_ar-windows/`](../../../../docs/evidencia/2026-11-02_ar-windows/README.md):
 
 | Prueba | Fecha | Resultado |
 | :--- | :--- | :--- |
-| A mano: aplicar; `Test-NetConnection 1.1.1.1 -Port 443` falla | | |
-| El agente 002 sigue `Active` en el manager durante al menos 5 minutos | | |
-| Quitar **por la API** durante el aislamiento | | |
-| Después: mismas reglas, mismos perfiles, navegación normal | | |
-| Aplicar dos veces y quitar dos veces (idempotente) | | |
-| Casos de rechazo | | |
+| A mano: aplicar; `Test-NetConnection 1.1.1.1 -Port 443` falla | 02-11-2026 | Aísla a las 18:23:12 UTC: `1.1.1.1:443` falla y quedan 3 excepciones (canal al manager TCP/1514, DHCP de salida y DHCP de entrada) |
+| El agente 002 sigue `Active` en el manager durante al menos 5 minutos | 02-11-2026 | `Active` a las 18:24:55 y a las 18:25:55 UTC, con el keep-alive subiendo. Estuvo aislado 3 min 39 s hasta que se envió `quitar` (3 min 43 s hasta que el agente lo aplicó), no 5 minutos; se repite en E4 de la prueba integral |
+| Quitar **por la API** durante el aislamiento | 02-11-2026 | Enviada a las 18:26:51 UTC; llegó (`affected_items ["002"]`) y el agente la aplicó a las 18:26:55: «quitar OK; politica restaurada» |
+| Después: mismas reglas, mismos perfiles, navegación normal | 02-11-2026 | Las mismas 494 reglas, 240 activas y los mismos perfiles; no quedan reglas `Kronos-aislamiento-*` y `1.1.1.1:443` responde |
+| Aplicar dos veces y quitar dos veces (idempotente) | 02-11-2026 | Aplicar de nuevo sale con 0 sin cambiar nada («ya estaba aislado»); quitar de nuevo sale con 0 («no estaba aislado») |
+| Casos de rechazo | 02-11-2026 | Salida 1 en los 5 (dos argumentos, sin argumentos, `borrar`, entrada vacía y JSON roto), sin tocar el firewall |
