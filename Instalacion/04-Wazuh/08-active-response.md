@@ -27,11 +27,11 @@ Script: `infra/wazuh/active-response/linux/kronos-bloquear-ip` (Python 3, sin de
 
 ### 2.1 Qué hace
 
-- Recibe `aplicar <ip>` o `quitar <ip>`; cualquier otra operación se rechaza.
+- Recibe exactamente dos argumentos, `aplicar <ip>` o `quitar <ip>`; cualquier otra cosa se rechaza.
 - Valida la IP con el módulo `ipaddress` (IPv4 o IPv6).
-- **Rechaza** direcciones de loopback, la no especificada (`0.0.0.0`) y las IP del propio equipo.
+- **Rechaza** direcciones de loopback, la no especificada (`0.0.0.0`), las IP del propio equipo y **su puerta de enlace** (la lee con `ip -j route show default`; si no puede leerla, no actúa).
 - Inserta o borra la regla `INPUT -s <ip> -m comment --comment kronos -j DROP` con `iptables` (o `ip6tables`).
-- Es **idempotente**: comprueba con `-C` antes de insertar o borrar y responde «sin cambios» si no hay nada que hacer.
+- Es **idempotente**: comprueba con `-C` antes de insertar o borrar y responde «sin cambios (ya estaba)» o «sin cambios (no estaba)» si no hay nada que hacer.
 - Registra cada intento con hora UTC.
 
 ### 2.2 Instalación
@@ -51,7 +51,7 @@ ls -l /var/ossec/active-response/bin/kronos-bloquear-ip
 sha256sum /var/ossec/active-response/bin/kronos-bloquear-ip | cut -c1-16
 ```
 
-La huella corta de esta versión es `089a23e5533dd17f`. Si cambia el script, se actualiza aquí en el mismo PR.
+La huella corta de esta versión es `f6ed73769449e130`. Si cambia el script, se actualiza aquí en el mismo PR.
 
 No hace falta reiniciar el agente.
 
@@ -81,8 +81,9 @@ Debe quedar sin regla (`codigo: 1`) y una línea `quitar 203.0.113.50: OK`.
 | Situación | Resultado |
 | :--- | :--- |
 | `aplicar` de una regla que ya existe | `sin cambios (ya estaba)`, código 0 |
-| `quitar` de una regla que no existe | `sin cambios (ya estaba)`, código 0 (el texto dice «ya estaba» aunque la regla no existía) |
-| IP inválida u operación desconocida | `entrada invalida` u `operacion invalida`, código 1 |
+| `quitar` de una regla que no existe | `sin cambios (no estaba)`, código 0 |
+| IP inválida, operación desconocida o una cantidad de argumentos distinta de 2 | `entrada invalida` u `operacion invalida`, código 1 |
+| La puerta de enlace del equipo, o no se puede leer la puerta de enlace | `rechazada`, código 1 |
 | IP del propio equipo o loopback | `rechazada`, código 1 |
 | Reinicio del agente o del equipo | **Las reglas se pierden**: `iptables` guarda las reglas en memoria y este script no las hace persistentes |
 | Agente apagado cuando vence la reversión | SOAR-EXECUTE registra `REVERSION_FALLIDA` («agent is not active») y **no reintenta** |
@@ -193,7 +194,7 @@ El rol debe tener únicamente la política `agents_commands_agents`. La prueba d
 
 ## 4. Lista de comprobación
 
-- [ ] Script instalado con `root:wazuh 750` y huella `089a23e5533dd17f`.
+- [ ] Script instalado con `root:wazuh 750` y huella `f6ed73769449e130`.
 - [ ] Prueba manual: `aplicar` y `quitar` correctos.
 - [ ] Rol `kronos-execute` unido a la política `agents_commands_agents`.
 - [ ] Usuario `kronos-execute` creado, unido al rol y autenticando.
