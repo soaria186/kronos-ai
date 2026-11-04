@@ -1,0 +1,150 @@
+#!/usr/bin/python3
+"""Kronos: bloquea o desbloquea la SALIDA hacia una IP con iptables. Uso por Active
+Response: extra_args = ["aplicar" | "quitar", "<ip>"] (exactamente dos argumentos).
+
+Lo usa el playbook que corta la comunicacion de un equipo con un servidor externo (por
+ejemplo, el de comando y control de un malware). La regla va en OUTPUT, con el comentario
+kronos: `iptables -I OUTPUT -d <ip> -m comment --comment kronos -j DROP`.
+
+Nunca bloquea (segunda barrera despues de ejecucion/ordenes.py):
+- loopback, la direccion no especificada, multicast, enlace local ni una IP del equipo;
+- la puerta de enlace, los servidores DNS (/etc/resolv.conf y, si existe, el de
+  systemd-resolved) ni la red de NetBird (100.64.0.0/10): dejarian al equipo sin red o
+  sin acceso remoto;
+- el manager de Wazuh (la direccion de <server> en ossec.conf): cortaria el canal por el
+  que llega la orden de quitar.
+Si no puede leer la puerta de enlace o el manager, no actua."""
+import datetime, ipaddress, json, re, socket, subprocess, sys
+
+LOG = "/var/ossec/logs/active-responses.log"
+OSSEC_CONF = "/var/ossec/etc/ossec.conf"
+RESOLV = ("/etc/resolv.conf", "/run/systemd/resolve/resolv.conf")
+NETBIRD = ipaddress.ip_network("100.64.0.0/10")
+
+
+def log(msg):
+    hora = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    with open(LOG, "a") as f:
+        f.write(f"{hora} kronos-bloquear-destino: {msg}\n")
+
+
+def terminar(codigo, msg):
+    log(msg)
+    sys.exit(codigo)
+
+
+def puertas_de_enlace():
+    """IP de las puertas de enlace por omision. None si no se puede leer la de IPv4."""
+    puertas = set()
+    for familia in ("-4", "-6"):
+        r = subprocess.run(["ip", "-j", familia, "route", "show", "default"],
+                           capture_output=True, text=True)
+        if r.returncode != 0:
+            if familia == "-4":
+                return None
+            continue
+        try:
+            rutas = json.loads(r.stdout or "[]")
+        except ValueError:
+            if familia == "-4":
+                return None
+            continue
+        for ruta in rutas:
+            if isinstance(ruta, dict) and ruta.get("gateway"):
+                puertas.add(str(ruta["gateway"]).split("%")[0])
+    return puertas
+
+
+def servidores_dns():
+    """IP de los servidores DNS configurados. Un archivo que no existe no impide actuar."""
+    dns = set()
+    for ruta in RESOLV:
+        try:
+            with open(ruta) as f:
+                for linea in f:
+                    partes = linea.split()
+                    if len(partes) >= 2 and partes[0] == "nameserver":
+                        dns.add(partes[1].split("%")[0])
+        except OSError:
+            continue
+    return dns
+
+
+def manager():
+    """IP del manager segun ossec.conf. None si no se puede leer o resolver."""
+    try:
+        with open(OSSEC_CONF) as f:
+            texto = f.read()
+    except OSError:
+        return None
+    direcciones = re.findall(r"<server>.*?<address>\s*([^<\s]+)\s*</address>", texto, re.S)
+    if not direcciones:
+        return None
+    ips = set()
+    for direccion in direcciones:
+        try:
+            ips.add(str(ipaddress.ip_address(direccion)))
+            continue
+        except ValueError:
+            pass
+        try:
+            for info in socket.getaddrinfo(direccion, None):
+                ips.add(info[4][0].split("%")[0])
+        except OSError:
+            return None
+    return ips
+
+
+try:
+    args = json.loads(sys.stdin.readline())["parameters"]["extra_args"]
+except Exception as e:
+    terminar(1, f"entrada invalida: {e}")
+
+if not isinstance(args, list) or len(args) != 2 or not all(isinstance(a, str) for a in args):
+    cantidad = len(args) if isinstance(args, list) else "?"
+    terminar(1, f"entrada invalida: se esperaban 2 argumentos y llegaron {cantidad}")
+
+op = args[0]
+try:
+    ip = ipaddress.ip_address(args[1])
+except ValueError as e:
+    terminar(1, f"entrada invalida: {e}")
+if str(ip) != args[1]:
+    terminar(1, f"entrada invalida: IP no canonica: {args[1]}")
+
+if op not in ("aplicar", "quitar"):
+    terminar(1, f"operacion invalida: {op}")
+
+if ip.is_loopback or ip.is_unspecified or ip.is_multicast or ip.is_link_local:
+    terminar(1, f"rechazada: {ip} no es un destino externo")
+propias = subprocess.run(["hostname", "-I"], capture_output=True, text=True).stdout.split()
+if str(ip) in propias:
+    terminar(1, f"rechazada: {ip} es del propio equipo")
+if ip.version == 4 and ip in NETBIRD:
+    terminar(1, f"rechazada: {ip} es de la red de NetBird")
+
+puertas = puertas_de_enlace()
+if puertas is None:
+    terminar(1, f"rechazada: no se pudo leer la puerta de enlace; no se actua sobre {ip}")
+if str(ip) in puertas:
+    terminar(1, f"rechazada: {ip} es la puerta de enlace del equipo")
+if str(ip) in servidores_dns():
+    terminar(1, f"rechazada: {ip} es un servidor DNS del equipo")
+ips_manager = manager()
+if ips_manager is None:
+    terminar(1, f"rechazada: no se pudo leer la direccion del manager; no se actua sobre {ip}")
+if str(ip) in ips_manager:
+    terminar(1, f"rechazada: {ip} es el manager de Wazuh")
+
+cmd = "iptables" if ip.version == 4 else "ip6tables"
+regla = ["OUTPUT", "-d", str(ip), "-m", "comment", "--comment", "kronos", "-j", "DROP"]
+existe = subprocess.run([cmd, "-C", *regla], capture_output=True).returncode == 0
+
+if op == "aplicar" and not existe:
+    r = subprocess.run([cmd, "-I", *regla], capture_output=True, text=True)
+elif op == "quitar" and existe:
+    r = subprocess.run([cmd, "-D", *regla], capture_output=True, text=True)
+else:
+    terminar(0, f"{op} {ip}: sin cambios ({'ya estaba' if existe else 'no estaba'})")
+
+terminar(r.returncode, f"{op} {ip}: {'OK' if r.returncode == 0 else 'ERROR ' + r.stderr.strip()}")

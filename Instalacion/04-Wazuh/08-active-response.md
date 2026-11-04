@@ -267,6 +267,27 @@ sudo install -o root -g wazuh -m 750 kronos-cuarentena /var/ossec/active-respons
 > **Limitación:** en Linux las alertas de integridad de archivos (F5) suelen ser de `/etc` o `/usr`, que están protegidas: esas medidas terminan en falla segura (`ORDEN_INVALIDA`) y se avisan, en vez de dejar el sistema sin un archivo que necesita. Y el borrado del registro de seguridad de Windows (E4) no trae archivo: termina en `ARGUMENTO_FALTANTE`.
 
 
+### 2.14 `kronos-bloquear-destino` (D-69)
+
+Corta la comunicación del equipo con una IP externa (PB-F4-01, por ejemplo el servidor de comando y control de un malware). Scripts: `linux/kronos-bloquear-destino` (Python 3) y `windows/kronos-bloquear-destino.cmd` + `.ps1`. Órdenes: `aplicar <ip>` y `quitar <ip>`. EXECUTE manda la IP de destino de la alerta (`dstip`, o `destinationIp` de Sysmon); si no viene, `ARGUMENTO_FALTANTE`.
+
+- **Linux:** `iptables -I OUTPUT -d <ip> -m comment --comment kronos -j DROP` (`ip6tables` para IPv6). **Windows:** regla de salida `Kronos-destino-<ip>` con `netsh advfirewall`.
+- **Nunca bloquea:** loopback, la dirección no especificada, multicast, enlace local, una IP del propio equipo, su puerta de enlace, sus servidores DNS, la red de NetBird (`100.64.0.0/10`) ni **el manager de Wazuh** (la dirección de `<server>` en `ossec.conf`): sin el manager no llegaría la orden de quitar. Si no puede leer la puerta de enlace o el manager, no actúa.
+- Aplicar y quitar son idempotentes («sin cambios»).
+
+**[EP-SRV-01]** instalación, después de copiarlo con `scp -P 2222`:
+
+```bash
+sudo install -o root -g wazuh -m 750 kronos-bloquear-destino /var/ossec/active-response/bin/kronos-bloquear-destino
+sha256sum /var/ossec/active-response/bin/kronos-bloquear-destino | cut -c1-16
+```
+
+Huella corta de esta versión: `2cf839e8bd69ba98`.
+
+**[servidor]** prueba por la API: `AGENTE=001 bash probar-ar-api.sh orden kronos-bloquear-destino aplicar 198.51.100.66`. **[EP-SRV-01]** comprobar con `sudo iptables -S OUTPUT | grep kronos` y que `curl -m 5 http://198.51.100.66` no sale; después `quitar` y comprobar que la regla ya no está. Un rechazo: la IP del manager. En EP-WKS-01, con `kronos-bloquear-destino.cmd` y `Get-NetFirewallRule -DisplayName 'Kronos-destino-*'`.
+
+Todavía **no está activo** en `actuadores_v1` del catálogo: se activa después de probarlo en EP-SRV-01 y EP-WKS-01.
+
 ## 3. Crear el usuario de API `kronos-execute`
 
 Objetivo: que SOAR-EXECUTE tenga una identidad propia en la API de Wazuh con **un solo permiso**: `active-response:command` sobre los agentes.

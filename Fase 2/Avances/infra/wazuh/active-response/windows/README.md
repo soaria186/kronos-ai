@@ -12,6 +12,7 @@ el script `.ps1` que hace el trabajo. Compatibles con Windows PowerShell 5.1.
 | `kronos-revertir-tarea` | `kronos-revertir-tarea.cmd` + `.ps1` | `aplicar <\carpeta\tarea>`: deshabilita la tarea programada (`Disable-ScheduledTask`, como `schtasks /DISABLE`) | `habilitar <\carpeta\tarea>`: la vuelve a habilitar, **sólo si la deshabilitó Kronos** |
 | `kronos-aislar-equipo` | `kronos-aislar-equipo.cmd` + `.ps1` | `aplicar`: corta todo el tráfico del equipo **salvo el canal del agente con el manager** | `quitar`: deja el firewall exactamente como estaba |
 | `kronos-cerrar-sesion` | `kronos-cerrar-sesion.cmd` + `.ps1` | `aplicar <cuenta>`: cierra todas las sesiones de la cuenta **local** (`quser` + `logoff`) | No se revierte: la persona puede volver a entrar |
+| `kronos-bloquear-destino` | `kronos-bloquear-destino.cmd` + `.ps1` | `aplicar <ip>`: regla de **salida** `Kronos-destino-<ip>` con `netsh advfirewall` | `quitar <ip>`: borra esa regla |
 | `kronos-detener-servicio` | `kronos-detener-servicio.cmd` + `.ps1` | `aplicar <servicio>`: detiene el servicio (`Stop-Service`, sin `-Force`) | `iniciar <servicio>`: lo vuelve a poner en marcha, **sólo si lo detuvo Kronos** |
 | `kronos-cuarentena` | `kronos-cuarentena.cmd` + `.ps1` | `aplicar <ruta>`: mueve el archivo a `C:\ProgramData\Kronos\cuarentena\` (sólo Administradores y SYSTEM), con su huella y sus permisos | `restaurar <ruta>`: lo devuelve, si la huella sigue igual y la ruta está libre |
 
@@ -46,6 +47,14 @@ Son una segunda línea de defensa: EXECUTE (`ejecucion/ordenes.py`) ya valida lo
 - Aplicar y quitar son idempotentes.
 - Si el firewall está apagado en algún perfil, deja una ADVERTENCIA en el registro (la
   regla existe, pero no bloquea en ese perfil).
+
+### `kronos-bloquear-destino`
+
+- Las mismas barreras de `kronos-bloquear-ip`, pero la regla es de **salida** (`dir=out`):
+  el equipo deja de comunicarse con esa IP (PB-F4-01).
+- Además nunca bloquea sus **servidores DNS**, la red de **NetBird** (`100.64.0.0/10`) ni
+  el **manager de Wazuh** (la dirección de `<server>` en `ossec.conf`, que se resuelve si
+  es un nombre). Si no puede leer esa dirección, sale con 1 sin tocar el firewall.
 
 ### `kronos-terminar-proceso`
 
