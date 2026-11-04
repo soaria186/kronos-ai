@@ -192,6 +192,27 @@ api "https://localhost:55000/security/roles/$ROL"; echo
 
 El rol debe tener únicamente la política `agents_commands_agents`. La prueba de punta a punta es una orden real de EXECUTE sobre el agente de laboratorio (ver sección 2.3 y el ticket de ejemplo).
 
+## 3b. `kronos-revertir-tarea` (D-69)
+
+Deshabilita la tarea programada de la alerta (PB-F5-02) y la vuelve a habilitar desde la consola. Scripts: `linux/kronos-revertir-tarea` (Python 3) y `windows/kronos-revertir-tarea.cmd` + `.ps1`. Órdenes: `aplicar <tarea>` y `habilitar <tarea>`.
+
+| Sistema | Qué es la tarea (lo manda EXECUTE) | `aplicar` | `habilitar` |
+| :--- | :--- | :--- | :--- |
+| Windows | `data.win.eventdata.taskName` del evento 4698, por ejemplo `\Actualizador0` | `Disable-ScheduledTask` (como `schtasks /Change /TN … /DISABLE`) | `Enable-ScheduledTask`, sólo si la deshabilitó Kronos |
+| Linux, cron | `syscheck.path`: `/etc/crontab`, `/etc/cron.d/<archivo>` o `/var/spool/cron/…` | Comenta las líneas de tareas con la marca `#kronos# `. No toca las variables (`PATH=`, `MAILTO=`) ni, en `/etc/crontab`, las líneas `run-parts` del sistema | Quita sólo la marca `#kronos# ` |
+| Linux, run-parts | `/etc/cron.hourly|daily|weekly|monthly/<script>` | Le quita el permiso de ejecución (`run-parts` lo salta) | Le devuelve sus permisos |
+| Linux, systemd | `/etc/systemd/system/<nombre>.timer` | `systemctl disable --now` | Lo deja como estaba: habilitado y/o en marcha |
+
+Barreras: argumentos exactos; lista blanca de caracteres, sin `.` ni `..`; sólo esas carpetas y archivos regulares (nunca enlaces); nunca las tareas del agente de Wazuh, de Kronos, de NetBird, de systemd ni de Windows Defender; sólo revierte lo que hizo Kronos (la marca en las líneas, `kronos-tareas.json` en Linux o `kronos-estado\tarea-*.txt` en Windows); idempotente. Deshabilitar no detiene una ejecución en curso (eso es `kronos-terminar-proceso`).
+
+**[EP-SRV-01]** instalación, después de copiarlo con `scp -P 2222`:
+
+```bash
+sudo install -o root -g wazuh -m 750 kronos-revertir-tarea /var/ossec/active-response/bin/kronos-revertir-tarea
+```
+
+**[EP-SRV-01]** tarea de prueba (el nombre no puede llevar «kronos» ni «wazuh», que están protegidos): `echo '*/5 * * * * root /bin/true' | sudo tee /etc/cron.d/prueba-tarea`. **[servidor]** `AGENTE=001 bash probar-ar-api.sh orden kronos-revertir-tarea aplicar /etc/cron.d/prueba-tarea`; con `cat` la línea queda con `#kronos# `; `habilitar` y vuelve como estaba. **[EP-WKS-01]** `schtasks /Create /TN PruebaTarea /TR notepad.exe /SC DAILY /ST 03:00` y probar con `\PruebaTarea` (`Get-ScheduledTask PruebaTarea` pasa a `Disabled` y vuelve a `Ready`).
+
 ## 4. Lista de comprobación
 
 - [ ] Script instalado con `root:wazuh 750` y huella `f6ed73769449e130`.
