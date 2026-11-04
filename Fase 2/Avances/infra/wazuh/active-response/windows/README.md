@@ -9,6 +9,7 @@ el script `.ps1` que hace el trabajo. Compatibles con Windows PowerShell 5.1.
 | `kronos-bloquear-ip` | `kronos-bloquear-ip.cmd` + `.ps1` | `aplicar <ip>`: regla de entrada `Kronos-bloqueo-<ip>` con `netsh advfirewall` | `quitar <ip>`: borra esa regla |
 | `kronos-deshabilitar-cuenta` | `kronos-deshabilitar-cuenta.cmd` + `.ps1` | `aplicar <cuenta>`: deshabilita la cuenta **local** (`Disable-LocalUser`) | `habilitar <cuenta>`: la vuelve a habilitar, **sólo si la deshabilitó Kronos** |
 | `kronos-aislar-equipo` | `kronos-aislar-equipo.cmd` + `.ps1` | `aplicar`: corta todo el tráfico del equipo **salvo el canal del agente con el manager** | `quitar`: deja el firewall exactamente como estaba |
+| `kronos-cuarentena` | `kronos-cuarentena.cmd` + `.ps1` | `aplicar <ruta>`: mueve el archivo a `C:\ProgramData\Kronos\cuarentena\` (sólo Administradores y SYSTEM), con su huella y sus permisos | `restaurar <ruta>`: lo devuelve, si la huella sigue igual y la ruta está libre |
 
 El agente es de 32 bits: el `.cmd` lanza la PowerShell de 64 bits por `Sysnative`. Para
 `kronos-deshabilitar-cuenta` es indispensable, porque el módulo `LocalAccounts`
@@ -91,6 +92,23 @@ Son una segunda línea de defensa: EXECUTE (`ejecucion/ordenes.py`) ya valida lo
   estaba aislado (por ejemplo, un bloqueo de IP de Kronos en ese lapso) se pierde.
 - Si el manager se alcanza por IPv6, el aislamiento no deja pasar el descubrimiento de
   vecinos (ICMPv6). En la PyME simulada el manager se alcanza por IPv4.
+
+### `kronos-cuarentena`
+
+- Sólo `aplicar` o `restaurar` (comparación exacta) y exactamente una ruta.
+- Ruta `C:\…` con la misma lista blanca que EXECUTE: sin comodines, sin `~` (los nombres
+  cortos como `PROGRA~2` esquivarían las carpetas protegidas), sin `:` fuera de la unidad
+  (flujos alternativos), sin `.` ni `..` y sin tramos que terminen en punto o espacio.
+- **Carpetas protegidas:** `C:\Windows`, `C:\Program Files (x86)\ossec-agent`,
+  `C:\Program Files\ossec-agent`, `C:\Program Files\NetBird` y `C:\ProgramData\Kronos`.
+- Nunca a través de un enlace o una unión (reparse point) en ningún tramo de la ruta.
+- Sólo archivos. Si está en uso, sale con 1: primero hay que terminar el proceso.
+- **Nunca se pierde el archivo:** copia, comprueba el SHA-256 y recién entonces borra el
+  original. El registro (`<huella de la ruta>.json`, con la ruta, la huella y el SDDL) se
+  escribe antes de mover.
+- `restaurar` no sobrescribe un archivo que ocupe la ruta, comprueba la huella y devuelve
+  los permisos originales (si no puede, deja una ADVERTENCIA).
+- Aplicar y restaurar son idempotentes («sin cambios»).
 
 ### Registro
 
@@ -212,7 +230,7 @@ Agente 002, con la cuenta `usuario.demo`. Salidas en
 | A mano: cuenta deshabilitada por otra persona; habilitar no la toca | 02-11-2026 | Aplicar sale con 0 («ya estaba deshabilitada»), habilitar sale con 0 («no la deshabilitó Kronos») y la cuenta sigue deshabilitada |
 | A mano: casos de rechazo | 02-11-2026 | Salida 1 en los 8: `Administrador`, `labadmin` (miembro de Administradores), `usuario.demo & calc`, `noexiste01`, tres argumentos, `borrar`, entrada vacía y JSON roto. `labadmin` y `usuario.demo` siguen habilitadas |
 | Por la API (`!kronos-deshabilitar-cuenta.cmd`), aplicar y habilitar | 02-11-2026 | `Enabled` pasa a False (18:35:53 UTC) y después a True (18:36:22 UTC) |
-| Registro en `active-responses.log` | 02-11-2026 | Una línea por orden. Hallazgo: el rechazo por nombre protegido sale como `Administrador: ERROR cuenta protegida: Administrador`, porque la variable local `$nombre` tapa a `$NOMBRE`; no cambia lo que hace el script |
+| Registro en `active-responses.log` | 02-11-2026 | Una línea por orden. Hallazgo: el rechazo por nombre protegido sale como `Administrador: ERROR cuenta protegida: Administrador`, porque la variable local `$nombre` tapa a `$NOMBRE`; no cambia lo que hace el script. **Corregido** (D-69): todos los scripts escriben con `$script:NOMBRE` y ninguna función usa una variable `$nombre` |
 
 ## Prueba de `kronos-aislar-equipo` en EP-WKS-01
 

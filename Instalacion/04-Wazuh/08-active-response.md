@@ -98,6 +98,27 @@ El script sólo protege al propio equipo. **No** conoce la lista de exclusión d
 
 El script equivalente (`.cmd` más PowerShell con `netsh advfirewall`) está en `infra/wazuh/active-response/windows/` (PR #32). Su instalación y prueba van en la parte 10. En Windows, el agente sólo encuentra el script si el comando lleva la extensión (`!kronos-bloquear-ip.cmd`): prueba del 21-10-2026 en EP-WKS-01 (#43).
 
+### 2.9 `kronos-cuarentena` (D-69)
+
+Pone en cuarentena el archivo de la alerta (playbooks PB-F2-02, PB-F5-01 y PB-F5-03) y lo restaura desde la consola. Scripts: `linux/kronos-cuarentena` (Python 3, como `kronos-bloquear-ip`) y `windows/kronos-cuarentena.cmd` + `.ps1`.
+
+| Orden | Qué hace |
+| :--- | :--- |
+| `aplicar <ruta>` | Copia el archivo a la carpeta de cuarentena, comprueba su SHA-256, borra el original y deja un registro con la ruta, la huella y los permisos. Linux: `/var/lib/kronos/cuarentena/` (700, root), el archivo queda sin permisos. Windows: `C:\ProgramData\Kronos\cuarentena\` (sólo Administradores y SYSTEM), sin permiso de ejecución |
+| `restaurar <ruta>` | Lo devuelve a su ruta con sus permisos, si la huella sigue igual y nadie ocupó la ruta |
+
+Barreras: sólo esas dos órdenes y una ruta; lista blanca de caracteres, sin `.`, `..` ni `~`; nunca carpetas del sistema, del agente, de NetBird ni de Kronos (`/etc`, `/usr`, `/var/ossec`, `C:\Windows`, `C:\Program Files (x86)\ossec-agent`, etc.), ni a través de un enlace; sólo archivos regulares; en Windows, un archivo en uso se rechaza (primero hay que terminar el proceso). Aplicar y restaurar son idempotentes («sin cambios»).
+
+**[EP-SRV-01]** instalación, después de copiarlo con `scp -P 2222`:
+
+```bash
+sudo install -o root -g wazuh -m 750 kronos-cuarentena /var/ossec/active-response/bin/kronos-cuarentena
+```
+
+**[servidor]** prueba por la API con `probar-ar-api.sh` (parte `pruebas/`): `aplicar` sobre un archivo de prueba en `/tmp` (o en `C:\Users\Public\` para EP-WKS-01), comprobar que desapareció y que está en la carpeta de cuarentena, `restaurar` y comprobar que volvió con la misma huella (`sha256sum` o `Get-FileHash`). Las dos líneas de `active-responses.log` van al PR.
+
+> **Limitación:** en Linux las alertas de integridad de archivos (F5) suelen ser de `/etc` o `/usr`, que están protegidas: esas medidas terminan en falla segura (`ORDEN_INVALIDA`) y se avisan, en vez de dejar el sistema sin un archivo que necesita. Y el borrado del registro de seguridad de Windows (E4) no trae archivo: termina en `ARGUMENTO_FALTANTE`.
+
 ## 3. Crear el usuario de API `kronos-execute`
 
 Objetivo: que SOAR-EXECUTE tenga una identidad propia en la API de Wazuh con **un solo permiso**: `active-response:command` sobre los agentes.

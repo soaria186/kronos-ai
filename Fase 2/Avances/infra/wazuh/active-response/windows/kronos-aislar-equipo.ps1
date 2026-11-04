@@ -48,14 +48,14 @@ $GRUPO = 'Kronos AI aislamiento'
 # El agente de Wazuh tiene abierto active-responses.log: se abre en modo compartido.
 # Si aun asi no se puede escribir, se dice por la salida de error en vez de esconderlo.
 function Escribir-Log([string]$texto) {
-    $linea = '{0} {1}: {2}' -f (Get-Date).ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ssZ'), $NOMBRE, $texto
+    $linea = '{0} {1}: {2}' -f (Get-Date).ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ssZ'), $script:NOMBRE, $texto
     try {
         $fs = [System.IO.File]::Open($LOG, [System.IO.FileMode]::Append, [System.IO.FileAccess]::Write,
             [System.IO.FileShare]'ReadWrite, Delete')
         $sw = New-Object System.IO.StreamWriter($fs, (New-Object System.Text.UTF8Encoding($false)))
         try { $sw.WriteLine($linea) } finally { $sw.Dispose() }
     } catch {
-        [Console]::Error.WriteLine("$NOMBRE no pudo escribir en el registro: $($_.Exception.Message)")
+        [Console]::Error.WriteLine("$($script:NOMBRE) no pudo escribir en el registro: $($_.Exception.Message)")
     }
 }
 
@@ -126,8 +126,9 @@ function Importar-Copia {
     return ($LASTEXITCODE -eq 0)
 }
 
-function Nueva-Regla([string]$nombre, [hashtable]$parametros) {
-    New-NetFirewallRule -DisplayName ($PREFIJO + $nombre) -Group $GRUPO -Action Allow -Profile Any `
+# El parametro no se llama $nombre: taparia a $NOMBRE en el registro (ver Escribir-Log).
+function Nueva-Regla([string]$sufijo, [hashtable]$parametros) {
+    New-NetFirewallRule -DisplayName ($PREFIJO + $sufijo) -Group $GRUPO -Action Allow -Profile Any `
         -Enabled True @parametros -ErrorAction Stop | Out-Null
 }
 
