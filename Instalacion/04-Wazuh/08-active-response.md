@@ -98,6 +98,40 @@ El script sólo protege al propio equipo. **No** conoce la lista de exclusión d
 
 El script equivalente (`.cmd` más PowerShell con `netsh advfirewall`) está en `infra/wazuh/active-response/windows/` (PR #32). Su instalación y prueba van en la parte 10. En Windows, el agente sólo encuentra el script si el comando lleva la extensión (`!kronos-bloquear-ip.cmd`): prueba del 21-10-2026 en EP-WKS-01 (#43).
 
+### 2.9 `kronos-detener-servicio` (Linux y Windows)
+
+Detiene un servicio (`aplicar <servicio>`) y lo vuelve a poner en marcha (`iniciar <servicio>`). Lo usan PB-F6-04 (servidor) y PB-F6-05 (puesto).
+
+- **Linux:** `infra/wazuh/active-response/linux/kronos-detener-servicio` (Python 3). Usa `systemctl stop` y `systemctl start`; acepta el nombre con o sin `.service` y comprueba que la unidad exista (`LoadState=loaded`).
+- **Windows:** `infra/wazuh/active-response/windows/kronos-detener-servicio.cmd` + `.ps1`. Usa `Stop-Service` (sin `-Force`) y `Start-Service`. No detiene un servicio con dependientes en marcha. Barreras completas en el README de `windows/`.
+- **Servicios protegidos, nunca se detienen:** el agente de Wazuh, SSH, NetBird, la red, el firewall, systemd y los servicios básicos de Windows, el registro del sistema, cron, la base de datos, Docker y Ollama.
+- **Sólo revierte lo que hizo Kronos:** antes de detener deja una marca (Linux: `/var/ossec/active-response/kronos-servicios.json`, `root:wazuh 640`, escritura atómica; Windows: `active-response\kronos-estado\servicio-<nombre>.txt`). `iniciar` sin marca responde «sin cambios: no lo detuvo Kronos».
+- Aplicar e iniciar son idempotentes, y después de actuar se comprueba el estado.
+
+**Instalación en Linux** (mismo procedimiento de la sección 2.2):
+
+```bash
+sudo install -o root -g wazuh -m 750 /tmp/kronos-detener-servicio /var/ossec/active-response/bin/kronos-detener-servicio
+sha256sum /var/ossec/active-response/bin/kronos-detener-servicio | cut -c1-16
+```
+
+Huella corta de esta versión: `cd3d6f3a47748a14`.
+
+**Prueba a mano en Linux**, con un servicio que no sea crítico (en EP-SRV-01, por ejemplo `cups` o uno instalado para la prueba). Antes, tomar un snapshot:
+
+```bash
+echo '{"parameters":{"extra_args":["aplicar","cups"]}}' | sudo /var/ossec/active-response/bin/kronos-detener-servicio
+systemctl is-active cups
+echo '{"parameters":{"extra_args":["iniciar","cups"]}}' | sudo /var/ossec/active-response/bin/kronos-detener-servicio
+systemctl is-active cups
+sudo tail -n 2 /var/ossec/logs/active-responses.log
+```
+
+Esperado: `inactive` y luego `active`, con las líneas `aplicar cups.service OK` e `iniciar cups.service OK`.
+
+**Limitación:** en Linux, `systemctl stop` también detiene los servicios que dependen del detenido. La lista de protegidos cubre los que mantienen al equipo conectado con Kronos.
+
+Todavía **no está activo** en `actuadores_v1` del catálogo: se activa después de probarlo en EP-SRV-01 y EP-WKS-01.
 ### 2.8 `kronos-aislar-equipo` en Linux
 
 Script: `infra/wazuh/active-response/linux/kronos-aislar-equipo` (Python 3, sin dependencias externas), con la misma lógica que el de Windows. Todavía no está activo en el catálogo (`actuadores_v1`): se activa después de probarlo en EP-SRV-01.
