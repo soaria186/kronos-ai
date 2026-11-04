@@ -9,6 +9,7 @@ el script `.ps1` que hace el trabajo. Compatibles con Windows PowerShell 5.1.
 | `kronos-bloquear-ip` | `kronos-bloquear-ip.cmd` + `.ps1` | `aplicar <ip>`: regla de entrada `Kronos-bloqueo-<ip>` con `netsh advfirewall` | `quitar <ip>`: borra esa regla |
 | `kronos-deshabilitar-cuenta` | `kronos-deshabilitar-cuenta.cmd` + `.ps1` | `aplicar <cuenta>`: deshabilita la cuenta **local** (`Disable-LocalUser`) | `habilitar <cuenta>`: la vuelve a habilitar, **sólo si la deshabilitó Kronos** |
 | `kronos-aislar-equipo` | `kronos-aislar-equipo.cmd` + `.ps1` | `aplicar`: corta todo el tráfico del equipo **salvo el canal del agente con el manager** | `quitar`: deja el firewall exactamente como estaba |
+| `kronos-detener-servicio` | `kronos-detener-servicio.cmd` + `.ps1` | `aplicar <servicio>`: detiene el servicio (`Stop-Service`, sin `-Force`) | `iniciar <servicio>`: lo vuelve a poner en marcha, **sólo si lo detuvo Kronos** |
 
 El agente es de 32 bits: el `.cmd` lanza la PowerShell de 64 bits por `Sysnative`. Para
 `kronos-deshabilitar-cuenta` es indispensable, porque el módulo `LocalAccounts`
@@ -91,6 +92,24 @@ Son una segunda línea de defensa: EXECUTE (`ejecucion/ordenes.py`) ya valida lo
   estaba aislado (por ejemplo, un bloqueo de IP de Kronos en ese lapso) se pierde.
 - Si el manager se alcanza por IPv6, el aislamiento no deja pasar el descubrimiento de
   vecinos (ICMPv6). En la PyME simulada el manager se alcanza por IPv4.
+
+### `kronos-detener-servicio`
+
+- Sólo `aplicar` o `iniciar` (comparación exacta) y exactamente un servicio.
+- Nombre con `^[A-Za-z0-9._@][A-Za-z0-9._@-]{0,127}$` (el mismo de `ejecucion/ordenes.py`, sin
+  guion inicial): sin `*`, `?` ni `[ ]`, así que `Get-Service -Name` no lo toma como comodín.
+- **Servicios protegidos, rechazados siempre** (por el nombre corto, sin distinguir
+  mayúsculas): el agente (`WazuhSvc`, `OssecSvc`), SSH, NetBird, el firewall (`mpssvc`,
+  `BFE`), Defender, la red (`Dhcp`, `Dnscache`, `nsi`, `NlaSvc`, `netprofm`,
+  `LanmanWorkstation`), el registro de eventos y los servicios básicos de Windows (`RpcSs`,
+  `DcomLaunch`, `LSM`, `SamSs`, `Winmgmt`, `Schedule`, `ProfSvc`, `Power`, `PlugPlay` y otros),
+  además de Escritorio remoto y las herramientas de VirtualBox.
+- **No detiene un servicio con dependientes en marcha**: `Stop-Service` los detendría
+  también y podría llevarse uno protegido. No usa `-Force`.
+- **Sólo revierte lo que hizo Kronos.** Al aplicar deja la marca
+  `active-response\kronos-estado\servicio-<nombre>.txt` antes de detener; si falla, la
+  borra. `iniciar` sólo actúa si existe la marca.
+- Después de actuar espera hasta 30 s el estado pedido y lo comprueba.
 
 ### Registro
 
