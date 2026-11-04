@@ -98,6 +98,36 @@ El script sólo protege al propio equipo. **No** conoce la lista de exclusión d
 
 El script equivalente (`.cmd` más PowerShell con `netsh advfirewall`) está en `infra/wazuh/active-response/windows/` (PR #32). Su instalación y prueba van en la parte 10. En Windows, el agente sólo encuentra el script si el comando lleva la extensión (`!kronos-bloquear-ip.cmd`): prueba del 21-10-2026 en EP-WKS-01 (#43).
 
+### 2.7 `kronos-deshabilitar-cuenta` en Linux
+
+Script: `infra/wazuh/active-response/linux/kronos-deshabilitar-cuenta` (Python 3, sin dependencias externas). Todavía no está activo en el catálogo (`actuadores_v1`): se activa después de probarlo en EP-SRV-01.
+
+- Recibe exactamente dos argumentos, `aplicar <cuenta>` o `habilitar <cuenta>`. La cuenta debe calzar con `^[A-Za-z0-9._-]{1,32}$` y existir como cuenta local.
+- **Aplicar** bloquea la contraseña (`usermod -L`) y vence la cuenta (`chage -E 0`), para que tampoco entre con llave SSH. **Habilitar** hace lo contrario (`usermod -U` y `chage -E -1`).
+- Sólo hace lo que falta, y responde «sin cambios» si la cuenta ya estaba deshabilitada o habilitada. El estado lo lee con `passwd -S` y con la fecha de vencimiento de `getent shadow`.
+- **Nunca toca** `root`, `labadmin`, `wazuh`, `kronos`, `nobody` ni las cuentas con UID menor que 1000: responde `cuenta protegida`, código 1.
+- Si un comando falla, registra `ERROR` con su código y sale con 1. Los comandos van siempre como lista, sin shell.
+
+**[agente Linux]** se instala igual que `kronos-bloquear-ip` (sección 2.2), con dueño `root`, grupo `wazuh` y permisos `750`:
+
+```bash
+sudo install -o root -g wazuh -m 750 /tmp/kronos-deshabilitar-cuenta /var/ossec/active-response/bin/kronos-deshabilitar-cuenta
+sudo rm /tmp/kronos-deshabilitar-cuenta
+ls -l /var/ossec/active-response/bin/kronos-deshabilitar-cuenta
+sha256sum /var/ossec/active-response/bin/kronos-deshabilitar-cuenta | cut -c1-16
+```
+
+La huella corta de esta versión es `96c6ace60924b895`. Para probarlo a mano, con una cuenta local de prueba que no sea de administración:
+
+```bash
+echo '{"parameters":{"extra_args":["aplicar","usuario.demo"]}}' | sudo /var/ossec/active-response/bin/kronos-deshabilitar-cuenta
+sudo passwd -S usuario.demo; sudo chage -l usuario.demo | grep -i expir
+echo '{"parameters":{"extra_args":["habilitar","usuario.demo"]}}' | sudo /var/ossec/active-response/bin/kronos-deshabilitar-cuenta
+sudo tail -n 2 /var/ossec/logs/active-responses.log
+```
+
+Después de aplicar, `passwd -S` muestra `L` y la cuenta vence el 01-01-1970. Después de habilitar, vuelve a `P` y `never`, y el registro tiene `aplicar usuario.demo OK` y `habilitar usuario.demo OK`.
+
 ## 3. Crear el usuario de API `kronos-execute`
 
 Objetivo: que SOAR-EXECUTE tenga una identidad propia en la API de Wazuh con **un solo permiso**: `active-response:command` sobre los agentes.

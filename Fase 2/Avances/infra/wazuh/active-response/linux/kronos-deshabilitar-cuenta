@@ -1,0 +1,97 @@
+#!/usr/bin/python3
+"""Kronos: deshabilita o habilita una cuenta local. Uso por Active Response:
+extra_args = ["aplicar" | "habilitar", "<cuenta>"] (exactamente dos argumentos).
+
+Deshabilitar es bloquear la contrasena (usermod -L) y vencer la cuenta (chage -E 0), para
+que tampoco entre con llave SSH. Habilitar deshace las dos cosas. Nunca toca root, las
+cuentas del sistema (UID menor que 1000), nobody ni las cuentas de administracion y de
+servicio del laboratorio. Solo hace lo que falta: aplicar o habilitar dos veces no cambia
+nada."""
+import datetime, json, pwd, re, subprocess, sys
+
+LOG = "/var/ossec/logs/active-responses.log"
+PROTEGIDAS = {"root", "labadmin", "wazuh", "kronos", "nobody"}
+
+
+def log(msg):
+    hora = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    with open(LOG, "a") as f:
+        f.write(f"{hora} kronos-deshabilitar-cuenta: {msg}\n")
+
+
+def correr(cmd):
+    """Corre el comando (siempre como lista, sin shell). Si falla, lo registra y sale con 1."""
+    r = subprocess.run(cmd, capture_output=True, text=True)
+    if r.returncode != 0:
+        log(f"ERROR {' '.join(cmd)} (codigo {r.returncode}): {r.stderr.strip()}")
+        sys.exit(1)
+    return r.stdout
+
+
+def estado(cuenta):
+    """(bloqueada, vencida). Bloqueada: `passwd -S` muestra L. Vencida: la fecha de
+    vencimiento de shadow (dias desde 1970) ya paso; chage -E 0 la deja en 0."""
+    campos = correr(["passwd", "-S", cuenta]).split()
+    bloqueada = len(campos) > 1 and campos[1].startswith("L")
+    sombra = correr(["getent", "shadow", cuenta]).strip().split(":")
+    vence = sombra[7] if len(sombra) > 7 else ""
+    hoy = (datetime.datetime.now(datetime.timezone.utc).date() - datetime.date(1970, 1, 1)).days
+    try:
+        vencida = vence != "" and int(vence) <= hoy
+    except ValueError:
+        log(f"ERROR vencimiento ilegible en shadow para {cuenta}: {vence}")
+        sys.exit(1)
+    return bloqueada, vencida
+
+
+try:
+    args = json.loads(sys.stdin.readline())["parameters"]["extra_args"]
+except Exception as e:
+    log(f"entrada invalida: {e}")
+    sys.exit(1)
+
+if not isinstance(args, list) or len(args) != 2 or not all(isinstance(a, str) for a in args):
+    cantidad = len(args) if isinstance(args, list) else "?"
+    log(f"entrada invalida: se esperaban 2 argumentos y llegaron {cantidad}")
+    sys.exit(1)
+
+op, cuenta = args
+if op not in ("aplicar", "habilitar"):
+    log(f"entrada invalida: operacion desconocida: {op}")
+    sys.exit(1)
+if not re.fullmatch(r"[A-Za-z0-9._-]{1,32}", cuenta):
+    log(f"entrada invalida: nombre de cuenta no permitido: {cuenta!r}")
+    sys.exit(1)
+if cuenta in PROTEGIDAS:
+    log(f"cuenta protegida: {cuenta}")
+    sys.exit(1)
+try:
+    uid = pwd.getpwnam(cuenta).pw_uid
+except KeyError:
+    log(f"ERROR no existe la cuenta local: {cuenta}")
+    sys.exit(1)
+if uid < 1000:
+    log(f"cuenta protegida: {cuenta}")
+    sys.exit(1)
+
+bloqueada, vencida = estado(cuenta)
+
+if op == "aplicar":
+    if bloqueada and vencida:
+        log(f"aplicar {cuenta} OK (sin cambios: ya estaba deshabilitada)")
+        sys.exit(0)
+    if not bloqueada:
+        correr(["usermod", "-L", cuenta])
+    if not vencida:
+        correr(["chage", "-E", "0", cuenta])
+    log(f"aplicar {cuenta} OK")
+else:
+    if not bloqueada and not vencida:
+        log(f"habilitar {cuenta} OK (sin cambios: ya estaba habilitada)")
+        sys.exit(0)
+    if bloqueada:
+        correr(["usermod", "-U", cuenta])
+    if vencida:
+        correr(["chage", "-E", "-1", cuenta])
+    log(f"habilitar {cuenta} OK")
+sys.exit(0)
