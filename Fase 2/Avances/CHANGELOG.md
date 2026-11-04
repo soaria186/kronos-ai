@@ -18,6 +18,7 @@ Milestone [«v1.0: cierre»](https://github.com/soaria186/kronos-ai/milestone/1)
 - CI: pruebas de la consola, pruebas de integración con PostgreSQL 17.11 y verificación de la entrega en los PR hacia `main` (#77). Desde la reestructuración, el CI corre también en cada cambio a `develop` y `main`.
 - Catálogo KRO-CAT-01 1.0, con las acciones que tienen script en cada sistema operativo (D-60) (#83).
 - `validate.json` 1.0, aprobada (D-65) (#84).
+- Active Response `kronos-cerrar-sesion` para Linux y Windows (D-69): cierra todas las sesiones de una cuenta local, sin tocar a los administradores ni a las cuentas protegidas.
 
 ### Corregido
 

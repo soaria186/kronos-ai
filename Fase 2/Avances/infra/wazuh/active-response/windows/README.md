@@ -9,6 +9,7 @@ el script `.ps1` que hace el trabajo. Compatibles con Windows PowerShell 5.1.
 | `kronos-bloquear-ip` | `kronos-bloquear-ip.cmd` + `.ps1` | `aplicar <ip>`: regla de entrada `Kronos-bloqueo-<ip>` con `netsh advfirewall` | `quitar <ip>`: borra esa regla |
 | `kronos-deshabilitar-cuenta` | `kronos-deshabilitar-cuenta.cmd` + `.ps1` | `aplicar <cuenta>`: deshabilita la cuenta **local** (`Disable-LocalUser`) | `habilitar <cuenta>`: la vuelve a habilitar, **sólo si la deshabilitó Kronos** |
 | `kronos-aislar-equipo` | `kronos-aislar-equipo.cmd` + `.ps1` | `aplicar`: corta todo el tráfico del equipo **salvo el canal del agente con el manager** | `quitar`: deja el firewall exactamente como estaba |
+| `kronos-cerrar-sesion` | `kronos-cerrar-sesion.cmd` + `.ps1` | `aplicar <cuenta>`: cierra todas las sesiones de la cuenta **local** (`quser` + `logoff`) | No se revierte: la persona puede volver a entrar |
 
 El agente es de 32 bits: el `.cmd` lanza la PowerShell de 64 bits por `Sysnative`. Para
 `kronos-deshabilitar-cuenta` es indispensable, porque el módulo `LocalAccounts`
@@ -91,6 +92,18 @@ Son una segunda línea de defensa: EXECUTE (`ejecucion/ordenes.py`) ya valida lo
   estaba aislado (por ejemplo, un bloqueo de IP de Kronos en ese lapso) se pierde.
 - Si el manager se alcanza por IPv6, el aislamiento no deja pasar el descubrimiento de
   vecinos (ICMPv6). En la PyME simulada el manager se alcanza por IPv4.
+
+### `kronos-cerrar-sesion`
+
+- Sólo `aplicar` y exactamente una cuenta: esta medida **no se revierte** (no hay nada que
+  deshacer; para impedir que vuelva a entrar está `kronos-deshabilitar-cuenta`).
+- Las mismas barreras de `kronos-deshabilitar-cuenta`: nombre con `^[A-Za-z0-9._-]{1,64}$`,
+  sólo cuentas locales, cuentas protegidas por nombre y por SID integrado, y **nunca un
+  miembro del grupo local Administradores** (podría ser quien está respondiendo al
+  incidente). Si no puede leer el grupo, no actúa.
+- Lee las sesiones con `quser` (por posición de columna, no por los títulos, que cambian con
+  el idioma) y cierra cada una con `logoff <id>`. Si la cuenta no tiene sesiones, no hace
+  nada. Después comprueba que no quede ninguna.
 
 ### Registro
 

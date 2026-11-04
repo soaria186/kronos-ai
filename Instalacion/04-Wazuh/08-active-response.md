@@ -98,6 +98,37 @@ El script sólo protege al propio equipo. **No** conoce la lista de exclusión d
 
 El script equivalente (`.cmd` más PowerShell con `netsh advfirewall`) está en `infra/wazuh/active-response/windows/` (PR #32). Su instalación y prueba van en la parte 10. En Windows, el agente sólo encuentra el script si el comando lleva la extensión (`!kronos-bloquear-ip.cmd`): prueba del 21-10-2026 en EP-WKS-01 (#43).
 
+### 2.10 `kronos-cerrar-sesion` (Linux y Windows)
+
+Cierra todas las sesiones de una cuenta local (`aplicar <cuenta>`). Lo usa PB-F1-04. **No se revierte**: la persona puede volver a entrar, y para impedirlo está `kronos-deshabilitar-cuenta`.
+
+- **Linux:** `infra/wazuh/active-response/linux/kronos-cerrar-sesion` (Python 3). Usa `loginctl terminate-user`, que cierra las sesiones de consola, SSH y escritorio y termina sus procesos.
+- **Windows:** `infra/wazuh/active-response/windows/kronos-cerrar-sesion.cmd` + `.ps1`. Usa `quser` y `logoff`. Barreras completas en el README de `windows/`.
+- **Cuentas protegidas, nunca se tocan:** root, las cuentas del sistema (UID menor que 1000 en Linux; cuentas integradas por SID en Windows), las cuentas de administración y de servicio del laboratorio, y **los administradores** (miembros de `sudo`, `wheel` o `admin` en Linux; del grupo local Administradores en Windows).
+- Si la cuenta no tiene sesiones abiertas, responde «sin cambios». Es idempotente.
+
+**Instalación en Linux** (mismo procedimiento de la sección 2.2):
+
+```bash
+sudo install -o root -g wazuh -m 750 /tmp/kronos-cerrar-sesion /var/ossec/active-response/bin/kronos-cerrar-sesion
+sha256sum /var/ossec/active-response/bin/kronos-cerrar-sesion | cut -c1-16
+```
+
+Huella corta de esta versión: `6b2b6cb6ea414c97`.
+
+**Prueba a mano en Linux**, con una cuenta de prueba que **no** sea administradora y que tenga una sesión abierta (por ejemplo, `ssh` con esa cuenta desde otra terminal):
+
+```bash
+loginctl list-sessions
+echo '{"parameters":{"extra_args":["aplicar","usuario.demo"]}}' | sudo /var/ossec/active-response/bin/kronos-cerrar-sesion
+loginctl list-sessions
+sudo tail -n 1 /var/ossec/logs/active-responses.log
+```
+
+Esperado: la sesión de `usuario.demo` desaparece de la lista y queda la línea `aplicar usuario.demo OK (1 sesion(es) cerrada(s))`.
+
+Todavía **no está activo** en `actuadores_v1` del catálogo: se activa después de probarlo en EP-SRV-01 y EP-WKS-01.
+
 ## 3. Crear el usuario de API `kronos-execute`
 
 Objetivo: que SOAR-EXECUTE tenga una identidad propia en la API de Wazuh con **un solo permiso**: `active-response:command` sobre los agentes.
