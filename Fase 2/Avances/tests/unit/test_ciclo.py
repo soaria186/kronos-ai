@@ -11,6 +11,7 @@ from decision.inferencia import MotorNoDisponible, TiempoExcedido
 from decision.plantillas import Plantillas
 from validacion import posicion
 from validacion.alerta import preparar
+from validacion.bucle import Bucle
 from validacion.catalogo import cargar_catalogo
 from validacion.chequeos import Catalogo, ListaExclusion, Playbook
 from validacion.ciclo import (
@@ -817,6 +818,60 @@ class PosicionDeLectura(unittest.TestCase):
         ):
             self.ruta.write_text(contenido)
             self.assertIsNone(posicion.cargar(self.ruta), contenido)
+
+
+class RafagaDelTresDeNoviembre(unittest.TestCase):
+    """H2: la ráfaga de E6 (40 alertas) llegó mientras el modelo decidía la primera.
+
+    La primera lectura vio 13; las otras 27 llegaron durante esa decisión. Con el bucle
+    que relee antes de cada alerta, la segunda ya ve las 40 y el cortacircuito se abre:
+    sólo una alerta pasa por el modelo (antes pasaban 13).
+    """
+
+    class Lector:
+        def __init__(self, *lotes):
+            self.lotes = list(lotes)
+
+        def leer(self):
+            return self.lotes.pop(0) if self.lotes else []
+
+        posicion = None
+
+    def lote(self, desde, cantidad):
+        lote = []
+        for i in range(desde, desde + cantidad):
+            a = alerta_ssh()
+            a["id"] = f"e6-{i}"
+            a["data"]["srcip"] = f"198.51.100.{i + 1}"
+            lote.append(a)
+        return lote
+
+    def test_se_abre_con_la_segunda_alerta(self):
+        almacen = AlmacenFalso(alertas=0)
+        respuestas = acierta().respuestas
+        modelo = ModeloFalso(*(respuestas * 40))
+        v = Validador(
+            almacen,
+            modelo,
+            PLANTILLAS,
+            catalogo_del_prompt(),
+            CONFIG,
+            DecisionFalsa,
+            reloj=Reloj(),
+        )
+        lector = self.Lector(self.lote(0, 13), self.lote(13, 27))
+        bucle = Bucle(lector, v, 1)
+
+        for _ in range(100):
+            if not bucle.vuelta():
+                break
+
+        self.assertEqual(len(almacen.registradas), 40)
+        self.assertEqual(modelo.llamadas, 2)  # los dos pasos de la primera alerta
+        self.assertEqual(len(almacen.aperturas), 1)
+        self.assertEqual(almacen.aperturas[0], "40 alertas recibidas en 10 min")
+        rechazadas = [d for _, _, d in almacen.decisiones if d.motivo == "CORTACIRCUITO_ABIERTO"]
+        self.assertEqual(len(rechazadas), 39)
 
 
 if __name__ == "__main__":

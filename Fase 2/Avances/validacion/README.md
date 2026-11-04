@@ -35,7 +35,9 @@ actúa sobre el manager (agente 000).
 que **llegan**, no las que VALIDATE alcanza a procesar. Antes de procesar un lote se anotan todas las que pasaron
 por una regla de sobre (`Validador.anotar_llegadas`), y el cortacircuito toma el mayor entre esas llegadas y lo
 registrado en la base (tickets más alertas agrupadas). Así, 30 alertas casi juntas lo abren con la primera, antes
-de llamar al modelo. Limitaciones conocidas: las llegadas viven en memoria, así que si VALIDATE se reinicia se
+de llamar al modelo. Para que lo que llega mientras el modelo decide también se cuente, el servicio vuelve a leer
+`alerts.json` antes de cada alerta (`validacion/bucle.py`): una ráfaga abre el cortacircuito con, a lo más, una
+decisión de retraso. Limitaciones conocidas: las llegadas viven en memoria, así que si VALIDATE se reinicia se
 pierden y sólo queda lo registrado en la base; y una alerta releída tras una rotación de `alerts.json` también
 cuenta como llegada.
 
