@@ -201,6 +201,23 @@ El rol debe tener únicamente la política `agents_commands_agents`. La prueba d
 - [ ] Contraseña en el gestor de contraseñas; ninguna en el chat, el historial ni el repositorio.
 - [ ] Prueba de reversión automática a los 60 minutos, con el agente encendido (en el laboratorio se confirmó el 21-10-2026; la del ticket n.º 20 había fallado porque el agente estaba apagado).
 
+## 5. `kronos-terminar-proceso` (D-69)
+
+Termina el proceso de la alerta (PB-F2-03). Scripts: `linux/kronos-terminar-proceso` (Python 3) y `windows/kronos-terminar-proceso.cmd` + `.ps1`. Orden: `aplicar <pid> <ejecutable>`; no tiene inversa (la persona vuelve a abrir el programa si corresponde). EXECUTE manda el PID y el ejecutable de la alerta (`processId` e `image` de Sysmon, o `pid` y `exe` de auditd); si falta alguno, `ARGUMENTO_FALTANTE`.
+
+- **El PID tiene que seguir siendo el mismo programa.** En Linux, `/proc/<pid>/exe` debe ser la ruta de la alerta (también si el archivo se borró, como hace el malware), y la señal va por un `pidfd` abierto antes de comprobar: el PID no puede pasar a otro proceso entre la comprobación y la señal. En Windows, `Win32_Process.ExecutablePath`, comprobado de nuevo con la misma hora de inicio justo antes de terminar.
+- **Nunca** PID menores que 5, el agente de Wazuh (todo lo que corre desde `/var/ossec/` o `C:\Program Files (x86)\ossec-agent\`), SSH, NetBird, systemd, la auditoría y el registro, la base, Ollama y los contenedores; en Windows, además, los procesos del sistema, Defender y Sysmon; ni el propio script ni su padre.
+- Linux: primero `SIGTERM` y, si a los 5 s sigue vivo, `SIGKILL`. Windows: `Kill()` y hasta 10 s de espera.
+- Si el proceso ya no existe: «sin cambios».
+
+**[EP-SRV-01]** instalación, después de copiarlo con `scp -P 2222`:
+
+```bash
+sudo install -o root -g wazuh -m 750 kronos-terminar-proceso /var/ossec/active-response/bin/kronos-terminar-proceso
+```
+
+**[EP-SRV-01]** proceso de prueba: `sleep 600 & echo $! ; readlink /proc/$!/exe`. **[servidor]** `AGENTE=001 bash probar-ar-api.sh orden kronos-terminar-proceso aplicar <pid> /usr/bin/sleep` y comprobar con `ps -p <pid>` que terminó. Un rechazo: el mismo PID con otra ruta. En EP-WKS-01, con `notepad.exe` (`C:\Windows\System32\notepad.exe`) y `Get-Process -Id`.
+
 ## Referencias
 
 - Documentación de Wazuh 4.14: Active Response y API (`/active-response`, `/security/users`, `/security/roles`, `/security/policies`).
