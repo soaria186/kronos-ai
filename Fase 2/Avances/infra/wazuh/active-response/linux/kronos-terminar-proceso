@@ -1,0 +1,186 @@
+#!/usr/bin/python3
+"""Kronos: termina un proceso. Uso por Active Response:
+extra_args = ["aplicar", "<pid>", "<ruta del ejecutable>"] (exactamente tres argumentos).
+
+No tiene inversa: el proceso se vuelve a abrir si corresponde (accion de la persona).
+
+Barreras (segunda linea; EXECUTE valida lo mismo en ejecucion/ordenes.py):
+- Solo "aplicar", un PID numerico de 5 o mas y una ruta absoluta con caracteres de una
+  lista blanca. Lo que no calza se rechaza.
+- El PID tiene que seguir siendo el mismo programa: el ejecutable real del proceso
+  (/proc/<pid>/exe) debe ser la ruta que trae la alerta. Si no, otro proceso heredo el PID
+  y no se toca. Se abre un pidfd antes de comprobarlo, asi que entre la comprobacion y la
+  senal el PID no puede pasar a otro proceso.
+- Nunca termina procesos protegidos: el agente de Wazuh, SSH, NetBird, systemd, el
+  registro y la auditoria, la base de datos, Ollama y los contenedores, ni a este mismo
+  script ni a sus padres.
+- Primero SIGTERM; si a los 5 s sigue vivo, SIGKILL. Se comprueba que haya terminado.
+- Si el proceso ya no existe: "sin cambios".
+"""
+import datetime, os, re, signal, sys, time
+
+NOMBRE = "kronos-terminar-proceso"
+LOG = "/var/ossec/logs/active-responses.log"
+PROC = "/proc"
+PID_MINIMO = 5
+ESPERA_TERM = 5.0
+TRAMO = r"[\w .()+#@,-]{1,255}"
+RUTA = re.compile(rf"^/(?:{TRAMO}/)*{TRAMO}$")
+# Nombre del ejecutable (sin la carpeta) de los procesos que nunca se terminan.
+PROTEGIDOS = {
+    "init", "systemd", "sshd", "netbird", "ollama", "dockerd", "containerd", "containerd-shim",
+    "containerd-shim-runc-v2", "postgres", "rsyslogd", "auditd", "dbus-daemon", "dbus-broker",
+    "agetty", "login", "cron", "crond",
+}
+# Carpetas de los que tampoco: el agente de Wazuh y el propio Kronos.
+CARPETAS_PROTEGIDAS = ("/var/ossec/", "/var/lib/kronos/")
+PREFIJOS_PROTEGIDOS = ("systemd-", "wazuh-", "ossec-")
+
+
+class Rechazo(Exception):
+    pass
+
+
+def log(msg):
+    hora = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    with open(LOG, "a") as f:
+        f.write(f"{hora} {NOMBRE}: {msg}\n")
+
+
+def ejecutable(pid):
+    """Ruta real del ejecutable, sin el " (deleted)" que agrega Linux si el archivo se borro
+    (el malware suele borrarse a si mismo). None si el proceso ya no existe."""
+    try:
+        ruta = os.readlink(f"{PROC}/{pid}/exe")
+    except FileNotFoundError:
+        return None
+    except PermissionError:
+        raise Rechazo(f"no se puede leer el ejecutable del PID {pid}")
+    except OSError:
+        # Hilo del kernel: no tiene ejecutable.
+        raise Rechazo(f"el PID {pid} es del kernel")
+    return ruta[: -len(" (deleted)")] if ruta.endswith(" (deleted)") else ruta
+
+
+def padres():
+    """El PID de este script y de todos sus padres: nunca se terminan."""
+    cadena, pid = set(), os.getpid()
+    while pid > 1 and pid not in cadena:
+        cadena.add(pid)
+        try:
+            with open(f"{PROC}/{pid}/status") as f:
+                pid = int(next(l for l in f if l.startswith("PPid:")).split()[1])
+        except (OSError, StopIteration, ValueError):
+            break
+    return cadena
+
+
+def protegido(ruta):
+    base = os.path.basename(ruta)
+    return (base in PROTEGIDOS or base.startswith(PREFIJOS_PROTEGIDOS)
+            or ruta.startswith(CARPETAS_PROTEGIDAS))
+
+
+def vivo(pid):
+    try:
+        with open(f"{PROC}/{pid}/stat") as f:
+            estado = f.read().rsplit(")", 1)[1].split()[0]
+    except (OSError, IndexError):
+        return False
+    return estado not in ("Z", "X")  # un zombi ya termino
+
+
+def senal(pidfd, pid, sig):
+    if pidfd is not None:
+        signal.pidfd_send_signal(pidfd, sig)
+    else:
+        os.kill(pid, sig)
+
+
+def terminar(pid, esperada):
+    try:
+        pidfd = os.pidfd_open(pid)
+    except ProcessLookupError:
+        return "sin cambios (el proceso ya no esta en marcha)"
+    except (AttributeError, OSError):
+        pidfd = None  # kernel sin pidfd: se comprueba igual, con una ventana minima
+    try:
+        real = ejecutable(pid)
+        if real is None:
+            return "sin cambios (el proceso ya no esta en marcha)"
+        if real != esperada:
+            raise Rechazo(f"el PID {pid} ahora es {real}, no {esperada}; no se toca")
+        if protegido(real):
+            raise Rechazo(f"proceso protegido: {real}")
+        if pid in padres():
+            raise Rechazo(f"el PID {pid} es de este script o de quien lo lanzo")
+        try:
+            senal(pidfd, pid, signal.SIGTERM)
+        except ProcessLookupError:
+            return "sin cambios (el proceso termino solo)"
+        limite = time.monotonic() + ESPERA_TERM
+        while vivo(pid) and time.monotonic() < limite:
+            time.sleep(0.1)
+        forma = "SIGTERM"
+        if vivo(pid):
+            try:
+                senal(pidfd, pid, signal.SIGKILL)
+            except ProcessLookupError:
+                pass
+            forma = "SIGKILL"
+            limite = time.monotonic() + 2.0
+            while vivo(pid) and time.monotonic() < limite:
+                time.sleep(0.1)
+        if vivo(pid):
+            raise Rechazo(f"el PID {pid} sigue vivo despues de SIGKILL")
+        return f"OK ({forma})"
+    finally:
+        if pidfd is not None:
+            os.close(pidfd)
+
+
+def main():
+    try:
+        args = json_args()
+    except ValueError as e:
+        log(f"entrada invalida: {e}")
+        return 1
+    if len(args) != 3:
+        log(f"entrada invalida: se esperaban 3 argumentos y llegaron {len(args)}")
+        return 1
+    op, texto_pid, ruta = args
+    if op != "aplicar":
+        log(f"operacion invalida: {op}")
+        return 1
+    if not re.fullmatch(r"\d{1,10}", texto_pid) or int(texto_pid) < PID_MINIMO:
+        log(f"aplicar {texto_pid}: rechazada: PID no permitido")
+        return 1
+    pid = int(texto_pid)
+    if len(ruta) > 1024 or not RUTA.match(ruta) or any(t in (".", "..") for t in ruta.split("/")[1:]):
+        log(f"aplicar {pid}: rechazada: ruta no permitida: {ruta!r}")
+        return 1
+    try:
+        resultado = terminar(pid, ruta)
+    except Rechazo as e:
+        log(f"aplicar {pid}: rechazada: {e}")
+        return 1
+    except OSError as e:
+        log(f"aplicar {pid}: ERROR {e}")
+        return 1
+    log(f"aplicar {pid} {ruta}: {resultado}")
+    return 0
+
+
+def json_args():
+    import json
+    try:
+        args = json.loads(sys.stdin.readline())["parameters"]["extra_args"]
+    except Exception as e:
+        raise ValueError(str(e))
+    if not isinstance(args, list) or not all(isinstance(a, str) for a in args):
+        raise ValueError("extra_args debe ser una lista de textos")
+    return args
+
+
+if __name__ == "__main__":
+    sys.exit(main())

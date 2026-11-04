@@ -46,15 +46,19 @@ $SUFIJOS_SID_PROTEGIDOS = @('-500', '-501', '-503', '-504')
 
 # El agente de Wazuh tiene abierto active-responses.log: se abre en modo compartido.
 # Si aun asi no se puede escribir, se dice por la salida de error en vez de esconderlo.
+# Siempre $script:NOMBRE: PowerShell no distingue mayusculas y el alcance es dinamico, asi
+# que una variable local $nombre en la funcion que llama (Validar-Protegida) lo tapaba y el
+# registro decia "Administrador: ERROR ..." en vez de "kronos-deshabilitar-cuenta: ..."
+# (prueba del 02-11-2026).
 function Escribir-Log([string]$texto) {
-    $linea = '{0} {1}: {2}' -f (Get-Date).ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ssZ'), $NOMBRE, $texto
+    $linea = '{0} {1}: {2}' -f (Get-Date).ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ssZ'), $script:NOMBRE, $texto
     try {
         $fs = [System.IO.File]::Open($LOG, [System.IO.FileMode]::Append, [System.IO.FileAccess]::Write,
             [System.IO.FileShare]'ReadWrite, Delete')
         $sw = New-Object System.IO.StreamWriter($fs, (New-Object System.Text.UTF8Encoding($false)))
         try { $sw.WriteLine($linea) } finally { $sw.Dispose() }
     } catch {
-        [Console]::Error.WriteLine("$NOMBRE no pudo escribir en el registro: $($_.Exception.Message)")
+        [Console]::Error.WriteLine("$($script:NOMBRE) no pudo escribir en el registro: $($_.Exception.Message)")
     }
 }
 
@@ -81,11 +85,11 @@ function Buscar-Cuenta([string]$cuenta) {
 }
 
 function Validar-Protegida($usuario) {
-    $nombre = [string]$usuario.Name
-    if ($PROTEGIDAS -contains $nombre -or $nombre.EndsWith('$')) { Terminar 1 "ERROR cuenta protegida: $nombre" }
+    $cuenta = [string]$usuario.Name
+    if ($PROTEGIDAS -contains $cuenta -or $cuenta.EndsWith('$')) { Terminar 1 "ERROR cuenta protegida: $cuenta" }
     $sid = [string]$usuario.SID.Value
     foreach ($sufijo in $SUFIJOS_SID_PROTEGIDOS) {
-        if ($sid.EndsWith($sufijo)) { Terminar 1 "ERROR cuenta protegida (cuenta integrada del sistema): $nombre" }
+        if ($sid.EndsWith($sufijo)) { Terminar 1 "ERROR cuenta protegida (cuenta integrada del sistema): $cuenta" }
     }
 }
 

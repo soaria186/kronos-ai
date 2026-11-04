@@ -11,6 +11,11 @@ Un ciclo, por inquilino:
 3. Toma las reversiones vencidas (nivel 1 al vencer su plazo, o pedidas por una
    persona) y las ejecuta.
 
+La consulta de nivel 0 (acción «consulta») no pasa por Active Response: se pide a la
+API de Wazuh desde el servidor (D-72, ``ejecucion.consulta``) y el ticket termina en
+SUCCESS con el resumen, sin aviso (D-50). Sin consulta configurada, queda como antes:
+FAILED con ACCION_NO_IMPLEMENTADA, que en el nivel 0 no se avisa.
+
 Antes de armar cada orden (y cada reversión) se determina el sistema operativo del
 agente (``ordenes.sistema_operativo``) y se comprueba que la acción tenga script en ese
 sistema (``actuadores_v1`` del catálogo). Si no se sabe el sistema, o no hay script, no
@@ -30,9 +35,11 @@ from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
 from ejecucion.actuador import Actuador, ErrorActuador
+from ejecucion.consulta import Consulta, ErrorConsulta
 from ejecucion.medidas import Medida
 from ejecucion.ordenes import (
     AccionNoImplementada,
+    ArgumentoFaltante,
     OrdenInvalida,
     agente,
     construir,
@@ -48,6 +55,8 @@ MAX_POR_CICLO = 50
 MOTIVO_SIN_MEDIDA = "PLAYBOOK_SIN_MEDIDA"
 MOTIVO_NO_IMPLEMENTADA = "ACCION_NO_IMPLEMENTADA"
 MOTIVO_ORDEN_INVALIDA = "ORDEN_INVALIDA"
+MOTIVO_ARGUMENTO_FALTANTE = "ARGUMENTO_FALTANTE"
+MOTIVO_CONSULTA_FALLIDA = "CONSULTA_FALLIDA"
 MOTIVO_SIN_PLAZO = "PLAZO_DE_REVERSION_SIN_DEFINIR"
 MOTIVO_ACTUADOR = "ACTUADOR_FALLO"
 
@@ -70,12 +79,17 @@ class Ejecutor:
         medidas: Mapping[str, Medida],
         actuadores: Mapping[str, frozenset[str]],
         agentes_so: Mapping[str, str] | None = None,
+        *,
+        consulta: Consulta | None = None,
+        ip_protegidas: frozenset[str] = frozenset(),
     ) -> None:
         self._repo = repositorio
         self._actuador = actuador
         self._medidas = medidas
         self._actuadores = actuadores
         self._agentes_so = agentes_so or {}
+        self._consulta = consulta
+        self._ip_protegidas = ip_protegidas
 
     def ciclo(self, tenant_id: int) -> Resumen:
         resumen = Resumen()
@@ -113,11 +127,17 @@ class Ejecutor:
                 return self._fallo(tenant_id, ticket_id, MOTIVO_SIN_PLAZO, playbook_id)
             plazo = medida.plazo_minutos
         datos = alerta.get("alerta", {})
+        if medida.accion == "consulta":
+            return self._consultar(tenant_id, ticket_id, datos)
         try:
             sistema = self._sistema(medida.accion, datos)
-            orden = construir(medida.accion, datos, sistema=sistema)
+            orden = construir(
+                medida.accion, datos, sistema=sistema, ip_protegidas=self._ip_protegidas
+            )
         except AccionNoImplementada as exc:
             return self._fallo(tenant_id, ticket_id, MOTIVO_NO_IMPLEMENTADA, str(exc))
+        except ArgumentoFaltante as exc:
+            return self._fallo(tenant_id, ticket_id, MOTIVO_ARGUMENTO_FALTANTE, str(exc))
         except OrdenInvalida as exc:
             return self._fallo(tenant_id, ticket_id, MOTIVO_ORDEN_INVALIDA, str(exc))
         try:
@@ -135,6 +155,27 @@ class Ejecutor:
         )
         return True
 
+    def _consultar(self, tenant_id: int, ticket_id: int, datos: Mapping) -> bool:
+        """Nivel 0 (D-72): resumen del agente por la API de Wazuh, sin Active Response."""
+        if self._consulta is None:
+            return self._fallo(
+                tenant_id,
+                ticket_id,
+                MOTIVO_NO_IMPLEMENTADA,
+                "consulta: sin consulta de inventario configurada",
+            )
+        try:
+            agente_id = agente(datos)
+            resumen = dict(self._consulta.consultar(agente_id))
+        except OrdenInvalida as exc:
+            return self._fallo(tenant_id, ticket_id, MOTIVO_ORDEN_INVALIDA, str(exc))
+        except ErrorConsulta as exc:
+            return self._fallo(tenant_id, ticket_id, MOTIVO_CONSULTA_FALLIDA, str(exc))
+        self._repo.registrar_ejecucion(
+            tenant_id, ticket_id, True, {"consulta": {"agente": agente_id, **resumen}}
+        )
+        return True
+
     def _revertir(
         self, tenant_id: int, ticket_id: int, playbook_id: str, alerta: dict
     ) -> bool:
@@ -145,7 +186,9 @@ class Ejecutor:
                 raise AccionNoImplementada(f"{playbook_id}: sin medida en el catálogo")
             datos = alerta.get("alerta", {})
             sistema = self._sistema(medida.accion, datos)
-            orden = construir_reversion(medida.accion, datos, sistema=sistema)
+            orden = construir_reversion(
+                medida.accion, datos, sistema=sistema, ip_protegidas=self._ip_protegidas
+            )
             detalle["orden"] = orden.como_detalle()
             detalle["referencia"] = self._actuador.enviar(orden)
         except (AccionNoImplementada, OrdenInvalida, ErrorActuador) as exc:
