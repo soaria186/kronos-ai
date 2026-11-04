@@ -288,6 +288,28 @@ Huella corta de esta versión: `2cf839e8bd69ba98`.
 
 Todavía **no está activo** en `actuadores_v1` del catálogo: se activa después de probarlo en EP-SRV-01 y EP-WKS-01.
 
+### 2.15 `kronos-limitar-conexiones` (D-69 y D-71)
+
+Frena una denegación de servicio desde una IP (PB-F6-03). Scripts: `linux/kronos-limitar-conexiones` (Python 3) y `windows/kronos-limitar-conexiones.cmd` + `.ps1`. Órdenes: `aplicar <ip>` y `quitar <ip>`. EXECUTE manda la IP de origen de la alerta (`srcip`, o `ipAddress` de Windows); si no viene, `ARGUMENTO_FALTANTE`.
+
+- **Linux:** la IP puede seguir conectándose, pero con a lo más **10 conexiones TCP abiertas a la vez**: `iptables -I INPUT -s <ip> -p tcp --syn -m connlimit --connlimit-above 10 -m comment --comment kronos -j DROP` (`ip6tables` para IPv6).
+- **Windows (D-71):** el firewall no limita conexiones por IP, así que **bloquea la entrada desde la IP por 10 minutos**: regla `Kronos-limite-<ip>` y tarea programada `\Kronos\Kronos-limite-<ip>` que la borra al vencer. Si la tarea no se puede crear, borra la regla y falla: nunca queda un bloqueo sin vencimiento.
+- **Nunca actúa sobre:** loopback, la dirección no especificada, multicast, enlace local, una IP del propio equipo, su puerta de enlace, la red de NetBird (`100.64.0.0/10`) ni el manager de Wazuh (en Windows, tampoco los DNS). Si no puede leer la puerta de enlace o el manager, no actúa.
+- Aplicar y quitar son idempotentes («sin cambios»).
+
+**[EP-SRV-01]** instalación, después de copiarlo con `scp -P 2222`:
+
+```bash
+sudo install -o root -g wazuh -m 750 kronos-limitar-conexiones /var/ossec/active-response/bin/kronos-limitar-conexiones
+sha256sum /var/ossec/active-response/bin/kronos-limitar-conexiones | cut -c1-16
+```
+
+Huella corta de esta versión: `29c9ab973844fd82`.
+
+**[servidor]** prueba por la API: `AGENTE=001 bash probar-ar-api.sh orden kronos-limitar-conexiones aplicar 198.51.100.66`. **[EP-SRV-01]** comprobar con `sudo iptables -S INPUT | grep connlimit`; después `quitar` y comprobar que la regla ya no está. En EP-WKS-01, con `kronos-limitar-conexiones.cmd`: `Get-NetFirewallRule -DisplayName 'Kronos-limite-*'` y `Get-ScheduledTask -TaskPath '\Kronos\'`; a los 10 minutos las dos deben haber desaparecido solas.
+
+Todavía **no está activo** en `actuadores_v1` del catálogo: se activa después de probarlo en EP-SRV-01 y EP-WKS-01.
+
 ## 3. Crear el usuario de API `kronos-execute`
 
 Objetivo: que SOAR-EXECUTE tenga una identidad propia en la API de Wazuh con **un solo permiso**: `active-response:command` sobre los agentes.
