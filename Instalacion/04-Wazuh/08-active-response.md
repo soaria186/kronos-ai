@@ -98,14 +98,89 @@ El script sólo protege al propio equipo. **No** conoce la lista de exclusión d
 
 El script equivalente (`.cmd` más PowerShell con `netsh advfirewall`) está en `infra/wazuh/active-response/windows/` (PR #32). Su instalación y prueba van en la parte 10. En Windows, el agente sólo encuentra el script si el comando lleva la extensión (`!kronos-bloquear-ip.cmd`): prueba del 21-10-2026 en EP-WKS-01 (#43).
 
-### 2.10 `kronos-cerrar-sesion` (Linux y Windows)
+### 2.7 `kronos-deshabilitar-cuenta` en Linux
 
-Cierra todas las sesiones de una cuenta local (`aplicar <cuenta>`). Lo usa PB-F1-04. **No se revierte**: la persona puede volver a entrar, y para impedirlo está `kronos-deshabilitar-cuenta`.
+Script: `infra/wazuh/active-response/linux/kronos-deshabilitar-cuenta` (Python 3, sin dependencias externas). Todavía no está activo en el catálogo (`actuadores_v1`): se activa después de probarlo en EP-SRV-01.
 
-- **Linux:** `infra/wazuh/active-response/linux/kronos-cerrar-sesion` (Python 3). Usa `loginctl terminate-user`, que cierra las sesiones de consola, SSH y escritorio y termina sus procesos.
-- **Windows:** `infra/wazuh/active-response/windows/kronos-cerrar-sesion.cmd` + `.ps1`. Usa `quser` y `logoff`. Barreras completas en el README de `windows/`.
-- **Cuentas protegidas, nunca se tocan:** root, las cuentas del sistema (UID menor que 1000 en Linux; cuentas integradas por SID en Windows), las cuentas de administración y de servicio del laboratorio, y **los administradores** (miembros de `sudo`, `wheel` o `admin` en Linux; del grupo local Administradores en Windows).
-- Si la cuenta no tiene sesiones abiertas, responde «sin cambios». Es idempotente.
+- Recibe exactamente dos argumentos, `aplicar <cuenta>` o `habilitar <cuenta>`. La cuenta debe calzar con `^[A-Za-z0-9._-]{1,32}$` y existir como cuenta local.
+- **Aplicar** bloquea la contraseña (`usermod -L`) y vence la cuenta (`chage -E 0`), para que tampoco entre con llave SSH. **Habilitar** hace lo contrario (`usermod -U` y `chage -E -1`).
+- Sólo hace lo que falta, y responde «sin cambios» si la cuenta ya estaba deshabilitada o habilitada. El estado lo lee con `passwd -S` y con la fecha de vencimiento de `getent shadow`.
+- **Nunca toca** `root`, `labadmin`, `wazuh`, `kronos`, `nobody` ni las cuentas con UID menor que 1000: responde `cuenta protegida`, código 1.
+- **Nunca deshabilita ni habilita a un administrador**: un miembro de `sudo`, `wheel` o `admin`, o una cuenta que tenga uno de ellos como grupo primario. Responde `cuenta protegida: <cuenta> (administrador)`, código 1, para no dejar al equipo sin quien lo administre. Los grupos que no existen en el equipo se ignoran.
+- **Sólo revierte lo que hizo Kronos.** Lo anota en `/var/ossec/active-response/kronos-cuentas.json` (`root:wazuh 640`), con una entrada por cuenta: `{"bloqueo": …, "vencio": …, "desde": "<hora UTC>"}`.
+  - `aplicar` marca cada paso **antes** de hacerlo (`bloqueo` si corre `usermod -L`, `vencio` si corre `chage -E 0`) y lo desmarca si el comando falla. Si no hace nada, no crea entrada.
+  - `habilitar` deshace sólo los pasos marcados y borra la entrada. Sin entrada responde «sin cambios: no la deshabilitó Kronos» y no toca la cuenta: una contraseña que bloqueó otra persona sigue bloqueada.
+  - El archivo se escribe en un temporal de la misma carpeta y se cambia con `os.replace`, así que nunca queda a medio escribir. Si no es JSON válido, el script registra `ERROR` y sale con 1 sin tocar la cuenta. Si no puede guardarlo, tampoco toca la cuenta.
+- Si un comando falla, registra `ERROR` con su código y sale con 1. Los comandos van siempre como lista, sin shell.
+
+**[agente Linux]** se instala igual que `kronos-bloquear-ip` (sección 2.2), con dueño `root`, grupo `wazuh` y permisos `750`:
+
+```bash
+sudo install -o root -g wazuh -m 750 /tmp/kronos-deshabilitar-cuenta /var/ossec/active-response/bin/kronos-deshabilitar-cuenta
+sudo rm /tmp/kronos-deshabilitar-cuenta
+ls -l /var/ossec/active-response/bin/kronos-deshabilitar-cuenta
+sha256sum /var/ossec/active-response/bin/kronos-deshabilitar-cuenta | cut -c1-16
+```
+
+La huella corta de esta versión es `9c935ac289ef66ce`. Para probarlo a mano, con una cuenta local de prueba que no sea de administración ni miembro de `sudo`:
+
+```bash
+echo '{"parameters":{"extra_args":["aplicar","usuario.demo"]}}' | sudo /var/ossec/active-response/bin/kronos-deshabilitar-cuenta
+sudo passwd -S usuario.demo; sudo chage -l usuario.demo | grep -i expir
+sudo cat /var/ossec/active-response/kronos-cuentas.json; sudo ls -l /var/ossec/active-response/kronos-cuentas.json
+echo '{"parameters":{"extra_args":["habilitar","usuario.demo"]}}' | sudo /var/ossec/active-response/bin/kronos-deshabilitar-cuenta
+sudo tail -n 2 /var/ossec/logs/active-responses.log
+```
+
+Después de aplicar, `passwd -S` muestra `L`, la cuenta vence el 01-01-1970 y el archivo de marcas (`-rw-r----- root wazuh`) tiene la entrada de `usuario.demo` con `"bloqueo": true` y `"vencio": true`. Después de habilitar, vuelve a `P` y `never`, la entrada desaparece y el registro tiene `aplicar usuario.demo OK` y `habilitar usuario.demo OK`.
+
+### 2.8 `kronos-aislar-equipo` en Linux
+
+Script: `infra/wazuh/active-response/linux/kronos-aislar-equipo` (Python 3, sin dependencias externas), con la misma lógica que el de Windows. Todavía no está activo en el catálogo (`actuadores_v1`): se activa después de probarlo en EP-SRV-01.
+
+- Recibe exactamente un argumento, `aplicar` o `quitar` (la medida no lleva objetivo).
+- **El agente sigue conectado al manager mientras el equipo está aislado.** Antes de tocar nada lee la dirección del manager en `<client><server><address>` de `/var/ossec/etc/ossec.conf`; si es un nombre, lo resuelve a IPv4. Si no obtiene una IPv4 válida, sale con 1 **sin tocar nada**.
+- Todo va en la cadena propia `KRONOS-AISLAR`, que se arma completa **antes** de engancharla al comienzo de `INPUT` y `OUTPUT`. Sus reglas, en orden: loopback; el manager por TCP 1514 y 1515, y su respuesta (`ESTABLISHED`); las direcciones de administración; la interfaz `wt0` de NetBird si existe; y al final `DROP`. En IPv6 sólo deja pasar loopback.
+- Si algo falla a mitad, deshace lo que alcanzó a hacer y sale con 1.
+- `quitar` desengancha y borra sólo `KRONOS-AISLAR`, en IPv4 e IPv6; nunca toca otras reglas ni cadenas. Aplicar y quitar son idempotentes.
+
+**Direcciones de administración (opcional).** `/var/ossec/etc/kronos-aislar.permitidos`, una IP o red IPv4 por línea, con `#` para comentarios. Se permiten en los dos sentidos mientras dura el aislamiento. Una línea inválida, una red IPv6 o `0.0.0.0/0` impiden aislar. En el laboratorio, para no perder el SSH a EP-SRV-01:
+
+```text
+10.0.2.2  # NAT de VirtualBox: SSH del laboratorio
+```
+
+**[agente Linux]** se instala igual que `kronos-bloquear-ip` (sección 2.2), con dueño `root`, grupo `wazuh` y permisos `750`, y el archivo de permitidos con `root:wazuh 640`:
+
+```bash
+sudo install -o root -g wazuh -m 750 /tmp/kronos-aislar-equipo /var/ossec/active-response/bin/kronos-aislar-equipo
+sudo rm /tmp/kronos-aislar-equipo
+echo '10.0.2.2  # NAT de VirtualBox: SSH del laboratorio' | sudo tee /var/ossec/etc/kronos-aislar.permitidos >/dev/null
+sudo chown root:wazuh /var/ossec/etc/kronos-aislar.permitidos; sudo chmod 640 /var/ossec/etc/kronos-aislar.permitidos
+ls -l /var/ossec/active-response/bin/kronos-aislar-equipo /var/ossec/etc/kronos-aislar.permitidos
+sha256sum /var/ossec/active-response/bin/kronos-aislar-equipo | cut -c1-16
+```
+
+La huella corta de esta versión es `739e6529287fc6b0`.
+
+> **Probarlo siempre desde un snapshot de la VM**, con `kronos-aislar.permitidos` creado antes y una consola de VirtualBox abierta: si el SSH queda fuera de los permitidos, sólo se vuelve atrás desde la consola o con el snapshot. Al aislar, también se pierde todo lo que no está en la lista (actualizaciones, DNS, la consola web).
+
+```bash
+echo '{"parameters":{"extra_args":["aplicar"]}}' | sudo /var/ossec/active-response/bin/kronos-aislar-equipo
+sudo iptables -S KRONOS-AISLAR; sudo iptables -S INPUT | head -n 3
+curl -m 5 -sI https://example.com; echo "codigo: $?"
+echo '{"parameters":{"extra_args":["quitar"]}}' | sudo /var/ossec/active-response/bin/kronos-aislar-equipo
+sudo tail -n 2 /var/ossec/logs/active-responses.log
+```
+
+Durante el aislamiento la cadena termina en `-j DROP`, `INPUT` empieza con `-j KRONOS-AISLAR`, `curl` falla (código distinto de 0) y en el servidor el agente 001 sigue `Active` (`AGENTE=001 bash probar-ar-api.sh estado`). El registro tiene `aplicar OK; manager permitido: <ip> TCP/1514,1515; administracion: 10.0.2.2/32` y, al final, `quitar OK; aislamiento quitado`.
+
+**Limitaciones conocidas:**
+
+- Las reglas viven en memoria: **un reinicio del equipo quita el aislamiento** (como los bloqueos de `kronos-bloquear-ip`, D-52).
+- Si el manager está configurado por nombre, se deja pasar la IP que tenía al aislar. Si el agente necesita resolver el nombre otra vez (por ejemplo, al reconectarse), el DNS está bloqueado y puede perder el canal. En la PyME simulada el manager se configura por IP.
+- No deja pasar DHCP. Si vence el préstamo durante el aislamiento, el equipo puede perder la IP.
+
 ### 2.9 `kronos-detener-servicio` (Linux y Windows)
 
 Detiene un servicio (`aplicar <servicio>`) y lo vuelve a poner en marcha (`iniciar <servicio>`). Lo usan PB-F6-04 (servidor) y PB-F6-05 (puesto).
@@ -158,87 +233,36 @@ Esperado: `inactive` y luego `active`, con las líneas `aplicar cups.service OK`
 **Limitación:** en Linux, `systemctl stop` también detiene los servicios que dependen del detenido. La lista de protegidos cubre los que mantienen al equipo conectado con Kronos.
 
 Todavía **no está activo** en `actuadores_v1` del catálogo: se activa después de probarlo en EP-SRV-01 y EP-WKS-01.
-### 2.8 `kronos-aislar-equipo` en Linux
 
-Script: `infra/wazuh/active-response/linux/kronos-aislar-equipo` (Python 3, sin dependencias externas), con la misma lógica que el de Windows. Todavía no está activo en el catálogo (`actuadores_v1`): se activa después de probarlo en EP-SRV-01.
+### 2.10 `kronos-cerrar-sesion` (Linux y Windows)
 
-- Recibe exactamente un argumento, `aplicar` o `quitar` (la medida no lleva objetivo).
-- **El agente sigue conectado al manager mientras el equipo está aislado.** Antes de tocar nada lee la dirección del manager en `<client><server><address>` de `/var/ossec/etc/ossec.conf`; si es un nombre, lo resuelve a IPv4. Si no obtiene una IPv4 válida, sale con 1 **sin tocar nada**.
-- Todo va en la cadena propia `KRONOS-AISLAR`, que se arma completa **antes** de engancharla al comienzo de `INPUT` y `OUTPUT`. Sus reglas, en orden: loopback; el manager por TCP 1514 y 1515, y su respuesta (`ESTABLISHED`); las direcciones de administración; la interfaz `wt0` de NetBird si existe; y al final `DROP`. En IPv6 sólo deja pasar loopback.
-- Si algo falla a mitad, deshace lo que alcanzó a hacer y sale con 1.
-- `quitar` desengancha y borra sólo `KRONOS-AISLAR`, en IPv4 e IPv6; nunca toca otras reglas ni cadenas. Aplicar y quitar son idempotentes.
+Cierra todas las sesiones de una cuenta local (`aplicar <cuenta>`). Lo usa PB-F1-04. **No se revierte**: la persona puede volver a entrar, y para impedirlo está `kronos-deshabilitar-cuenta`.
 
-**Direcciones de administración (opcional).** `/var/ossec/etc/kronos-aislar.permitidos`, una IP o red IPv4 por línea, con `#` para comentarios. Se permiten en los dos sentidos mientras dura el aislamiento. Una línea inválida, una red IPv6 o `0.0.0.0/0` impiden aislar. En el laboratorio, para no perder el SSH a EP-SRV-01:
+- **Linux:** `infra/wazuh/active-response/linux/kronos-cerrar-sesion` (Python 3). Usa `loginctl terminate-user`, que cierra las sesiones de consola, SSH y escritorio y termina sus procesos.
+- **Windows:** `infra/wazuh/active-response/windows/kronos-cerrar-sesion.cmd` + `.ps1`. Usa `quser` y `logoff`. Barreras completas en el README de `windows/`.
+- **Cuentas protegidas, nunca se tocan:** root, las cuentas del sistema (UID menor que 1000 en Linux; cuentas integradas por SID en Windows), las cuentas de administración y de servicio del laboratorio, y **los administradores** (miembros de `sudo`, `wheel` o `admin` en Linux; del grupo local Administradores en Windows).
+- Si la cuenta no tiene sesiones abiertas, responde «sin cambios». Es idempotente.
 
-```text
-10.0.2.2  # NAT de VirtualBox: SSH del laboratorio
-```
+### 2.11 `kronos-cuarentena` (D-69)
 
-**[agente Linux]** se instala igual que `kronos-bloquear-ip` (sección 2.2), con dueño `root`, grupo `wazuh` y permisos `750`, y el archivo de permitidos con `root:wazuh 640`:
+Pone en cuarentena el archivo de la alerta (playbooks PB-F2-02, PB-F5-01 y PB-F5-03) y lo restaura desde la consola. Scripts: `linux/kronos-cuarentena` (Python 3, como `kronos-bloquear-ip`) y `windows/kronos-cuarentena.cmd` + `.ps1`.
 
-```bash
-sudo install -o root -g wazuh -m 750 /tmp/kronos-aislar-equipo /var/ossec/active-response/bin/kronos-aislar-equipo
-sudo rm /tmp/kronos-aislar-equipo
-echo '10.0.2.2  # NAT de VirtualBox: SSH del laboratorio' | sudo tee /var/ossec/etc/kronos-aislar.permitidos >/dev/null
-sudo chown root:wazuh /var/ossec/etc/kronos-aislar.permitidos; sudo chmod 640 /var/ossec/etc/kronos-aislar.permitidos
-ls -l /var/ossec/active-response/bin/kronos-aislar-equipo /var/ossec/etc/kronos-aislar.permitidos
-sha256sum /var/ossec/active-response/bin/kronos-aislar-equipo | cut -c1-16
-```
+| Orden | Qué hace |
+| :--- | :--- |
+| `aplicar <ruta>` | Copia el archivo a la carpeta de cuarentena, comprueba su SHA-256, borra el original y deja un registro con la ruta, la huella y los permisos. Linux: `/var/lib/kronos/cuarentena/` (700, root), el archivo queda sin permisos. Windows: `C:\ProgramData\Kronos\cuarentena\` (sólo Administradores y SYSTEM), sin permiso de ejecución |
+| `restaurar <ruta>` | Lo devuelve a su ruta con sus permisos, si la huella sigue igual y nadie ocupó la ruta |
 
-La huella corta de esta versión es `739e6529287fc6b0`.
+Barreras: sólo esas dos órdenes y una ruta; lista blanca de caracteres, sin `.`, `..` ni `~`; nunca carpetas del sistema, del agente, de NetBird ni de Kronos (`/etc`, `/usr`, `/var/ossec`, `C:\Windows`, `C:\Program Files (x86)\ossec-agent`, etc.), ni a través de un enlace; sólo archivos regulares; en Windows, un archivo en uso se rechaza (primero hay que terminar el proceso). Aplicar y restaurar son idempotentes («sin cambios»).
 
-> **Probarlo siempre desde un snapshot de la VM**, con `kronos-aislar.permitidos` creado antes y una consola de VirtualBox abierta: si el SSH queda fuera de los permitidos, sólo se vuelve atrás desde la consola o con el snapshot. Al aislar, también se pierde todo lo que no está en la lista (actualizaciones, DNS, la consola web).
+**[EP-SRV-01]** instalación, después de copiarlo con `scp -P 2222`:
 
 ```bash
-echo '{"parameters":{"extra_args":["aplicar"]}}' | sudo /var/ossec/active-response/bin/kronos-aislar-equipo
-sudo iptables -S KRONOS-AISLAR; sudo iptables -S INPUT | head -n 3
-curl -m 5 -sI https://example.com; echo "codigo: $?"
-echo '{"parameters":{"extra_args":["quitar"]}}' | sudo /var/ossec/active-response/bin/kronos-aislar-equipo
-sudo tail -n 2 /var/ossec/logs/active-responses.log
+sudo install -o root -g wazuh -m 750 kronos-cuarentena /var/ossec/active-response/bin/kronos-cuarentena
 ```
 
-Durante el aislamiento la cadena termina en `-j DROP`, `INPUT` empieza con `-j KRONOS-AISLAR`, `curl` falla (código distinto de 0) y en el servidor el agente 001 sigue `Active` (`AGENTE=001 bash probar-ar-api.sh estado`). El registro tiene `aplicar OK; manager permitido: <ip> TCP/1514,1515; administracion: 10.0.2.2/32` y, al final, `quitar OK; aislamiento quitado`.
+**[servidor]** prueba por la API con `probar-ar-api.sh` (parte `pruebas/`): `aplicar` sobre un archivo de prueba en `/tmp` (o en `C:\Users\Public\` para EP-WKS-01), comprobar que desapareció y que está en la carpeta de cuarentena, `restaurar` y comprobar que volvió con la misma huella (`sha256sum` o `Get-FileHash`). Las dos líneas de `active-responses.log` van al PR.
 
-**Limitaciones conocidas:**
-
-- Las reglas viven en memoria: **un reinicio del equipo quita el aislamiento** (como los bloqueos de `kronos-bloquear-ip`, D-52).
-- Si el manager está configurado por nombre, se deja pasar la IP que tenía al aislar. Si el agente necesita resolver el nombre otra vez (por ejemplo, al reconectarse), el DNS está bloqueado y puede perder el canal. En la PyME simulada el manager se configura por IP.
-- No deja pasar DHCP. Si vence el préstamo durante el aislamiento, el equipo puede perder la IP.
-### 2.7 `kronos-deshabilitar-cuenta` en Linux
-
-Script: `infra/wazuh/active-response/linux/kronos-deshabilitar-cuenta` (Python 3, sin dependencias externas). Todavía no está activo en el catálogo (`actuadores_v1`): se activa después de probarlo en EP-SRV-01.
-
-- Recibe exactamente dos argumentos, `aplicar <cuenta>` o `habilitar <cuenta>`. La cuenta debe calzar con `^[A-Za-z0-9._-]{1,32}$` y existir como cuenta local.
-- **Aplicar** bloquea la contraseña (`usermod -L`) y vence la cuenta (`chage -E 0`), para que tampoco entre con llave SSH. **Habilitar** hace lo contrario (`usermod -U` y `chage -E -1`).
-- Sólo hace lo que falta, y responde «sin cambios» si la cuenta ya estaba deshabilitada o habilitada. El estado lo lee con `passwd -S` y con la fecha de vencimiento de `getent shadow`.
-- **Nunca toca** `root`, `labadmin`, `wazuh`, `kronos`, `nobody` ni las cuentas con UID menor que 1000: responde `cuenta protegida`, código 1.
-- **Nunca deshabilita ni habilita a un administrador**: un miembro de `sudo`, `wheel` o `admin`, o una cuenta que tenga uno de ellos como grupo primario. Responde `cuenta protegida: <cuenta> (administrador)`, código 1, para no dejar al equipo sin quien lo administre. Los grupos que no existen en el equipo se ignoran.
-- **Sólo revierte lo que hizo Kronos.** Lo anota en `/var/ossec/active-response/kronos-cuentas.json` (`root:wazuh 640`), con una entrada por cuenta: `{"bloqueo": …, "vencio": …, "desde": "<hora UTC>"}`.
-  - `aplicar` marca cada paso **antes** de hacerlo (`bloqueo` si corre `usermod -L`, `vencio` si corre `chage -E 0`) y lo desmarca si el comando falla. Si no hace nada, no crea entrada.
-  - `habilitar` deshace sólo los pasos marcados y borra la entrada. Sin entrada responde «sin cambios: no la deshabilitó Kronos» y no toca la cuenta: una contraseña que bloqueó otra persona sigue bloqueada.
-  - El archivo se escribe en un temporal de la misma carpeta y se cambia con `os.replace`, así que nunca queda a medio escribir. Si no es JSON válido, el script registra `ERROR` y sale con 1 sin tocar la cuenta. Si no puede guardarlo, tampoco toca la cuenta.
-- Si un comando falla, registra `ERROR` con su código y sale con 1. Los comandos van siempre como lista, sin shell.
-
-**[agente Linux]** se instala igual que `kronos-bloquear-ip` (sección 2.2), con dueño `root`, grupo `wazuh` y permisos `750`:
-
-```bash
-sudo install -o root -g wazuh -m 750 /tmp/kronos-deshabilitar-cuenta /var/ossec/active-response/bin/kronos-deshabilitar-cuenta
-sudo rm /tmp/kronos-deshabilitar-cuenta
-ls -l /var/ossec/active-response/bin/kronos-deshabilitar-cuenta
-sha256sum /var/ossec/active-response/bin/kronos-deshabilitar-cuenta | cut -c1-16
-```
-
-La huella corta de esta versión es `9c935ac289ef66ce`. Para probarlo a mano, con una cuenta local de prueba que no sea de administración ni miembro de `sudo`:
-
-```bash
-echo '{"parameters":{"extra_args":["aplicar","usuario.demo"]}}' | sudo /var/ossec/active-response/bin/kronos-deshabilitar-cuenta
-sudo passwd -S usuario.demo; sudo chage -l usuario.demo | grep -i expir
-sudo cat /var/ossec/active-response/kronos-cuentas.json; sudo ls -l /var/ossec/active-response/kronos-cuentas.json
-echo '{"parameters":{"extra_args":["habilitar","usuario.demo"]}}' | sudo /var/ossec/active-response/bin/kronos-deshabilitar-cuenta
-sudo tail -n 2 /var/ossec/logs/active-responses.log
-```
-
-Después de aplicar, `passwd -S` muestra `L`, la cuenta vence el 01-01-1970 y el archivo de marcas (`-rw-r----- root wazuh`) tiene la entrada de `usuario.demo` con `"bloqueo": true` y `"vencio": true`. Después de habilitar, vuelve a `P` y `never`, la entrada desaparece y el registro tiene `aplicar usuario.demo OK` y `habilitar usuario.demo OK`.
+> **Limitación:** en Linux las alertas de integridad de archivos (F5) suelen ser de `/etc` o `/usr`, que están protegidas: esas medidas terminan en falla segura (`ORDEN_INVALIDA`) y se avisan, en vez de dejar el sistema sin un archivo que necesita. Y el borrado del registro de seguridad de Windows (E4) no trae archivo: termina en `ARGUMENTO_FALTANTE`.
 
 ## 3. Crear el usuario de API `kronos-execute`
 
