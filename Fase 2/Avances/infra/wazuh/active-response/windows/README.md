@@ -10,6 +10,8 @@ el script `.ps1` que hace el trabajo. Compatibles con Windows PowerShell 5.1.
 | `kronos-terminar-proceso` | `kronos-terminar-proceso.cmd` + `.ps1` | `aplicar <pid> <ejecutable>`: termina el proceso **si sigue siendo ese programa** | — (la persona lo vuelve a abrir) |
 | `kronos-deshabilitar-cuenta` | `kronos-deshabilitar-cuenta.cmd` + `.ps1` | `aplicar <cuenta>`: deshabilita la cuenta **local** (`Disable-LocalUser`) | `habilitar <cuenta>`: la vuelve a habilitar, **sólo si la deshabilitó Kronos** |
 | `kronos-aislar-equipo` | `kronos-aislar-equipo.cmd` + `.ps1` | `aplicar`: corta todo el tráfico del equipo **salvo el canal del agente con el manager** | `quitar`: deja el firewall exactamente como estaba |
+| `kronos-cerrar-sesion` | `kronos-cerrar-sesion.cmd` + `.ps1` | `aplicar <cuenta>`: cierra todas las sesiones de la cuenta **local** (`quser` + `logoff`) | No se revierte: la persona puede volver a entrar |
+| `kronos-detener-servicio` | `kronos-detener-servicio.cmd` + `.ps1` | `aplicar <servicio>`: detiene el servicio (`Stop-Service`, sin `-Force`) | `iniciar <servicio>`: lo vuelve a poner en marcha, **sólo si lo detuvo Kronos** |
 
 El agente es de 32 bits: el `.cmd` lanza la PowerShell de 64 bits por `Sysnative`. Para
 `kronos-deshabilitar-cuenta` es indispensable, porque el módulo `LocalAccounts`
@@ -107,6 +109,35 @@ Son una segunda línea de defensa: EXECUTE (`ejecucion/ordenes.py`) ya valida lo
   estaba aislado (por ejemplo, un bloqueo de IP de Kronos en ese lapso) se pierde.
 - Si el manager se alcanza por IPv6, el aislamiento no deja pasar el descubrimiento de
   vecinos (ICMPv6). En la PyME simulada el manager se alcanza por IPv4.
+
+### `kronos-cerrar-sesion`
+
+- Sólo `aplicar` y exactamente una cuenta: esta medida **no se revierte** (no hay nada que
+  deshacer; para impedir que vuelva a entrar está `kronos-deshabilitar-cuenta`).
+- Las mismas barreras de `kronos-deshabilitar-cuenta`: nombre con `^[A-Za-z0-9._-]{1,64}$`,
+  sólo cuentas locales, cuentas protegidas por nombre y por SID integrado, y **nunca un
+  miembro del grupo local Administradores** (podría ser quien está respondiendo al
+  incidente). Si no puede leer el grupo, no actúa.
+- Lee las sesiones con `quser` (por posición de columna, no por los títulos, que cambian con
+  el idioma) y cierra cada una con `logoff <id>`. Si la cuenta no tiene sesiones, no hace
+  nada. Después comprueba que no quede ninguna.
+### `kronos-detener-servicio`
+
+- Sólo `aplicar` o `iniciar` (comparación exacta) y exactamente un servicio.
+- Nombre con `^[A-Za-z0-9._@][A-Za-z0-9._@-]{0,127}$` (el mismo de `ejecucion/ordenes.py`, sin
+  guion inicial): sin `*`, `?` ni `[ ]`, así que `Get-Service -Name` no lo toma como comodín.
+- **Servicios protegidos, rechazados siempre** (por el nombre corto, sin distinguir
+  mayúsculas): el agente (`WazuhSvc`, `OssecSvc`), SSH, NetBird, el firewall (`mpssvc`,
+  `BFE`), Defender, la red (`Dhcp`, `Dnscache`, `nsi`, `NlaSvc`, `netprofm`,
+  `LanmanWorkstation`), el registro de eventos y los servicios básicos de Windows (`RpcSs`,
+  `DcomLaunch`, `LSM`, `SamSs`, `Winmgmt`, `Schedule`, `ProfSvc`, `Power`, `PlugPlay` y otros),
+  además de Escritorio remoto y las herramientas de VirtualBox.
+- **No detiene un servicio con dependientes en marcha**: `Stop-Service` los detendría
+  también y podría llevarse uno protegido. No usa `-Force`.
+- **Sólo revierte lo que hizo Kronos.** Al aplicar deja la marca
+  `active-response\kronos-estado\servicio-<nombre>.txt` antes de detener; si falla, la
+  borra. `iniciar` sólo actúa si existe la marca.
+- Después de actuar espera hasta 30 s el estado pedido y lo comprueba.
 
 ### Registro
 
