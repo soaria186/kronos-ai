@@ -9,6 +9,7 @@ el script `.ps1` que hace el trabajo. Compatibles con Windows PowerShell 5.1.
 | `kronos-bloquear-ip` | `kronos-bloquear-ip.cmd` + `.ps1` | `aplicar <ip>`: regla de entrada `Kronos-bloqueo-<ip>` con `netsh advfirewall` | `quitar <ip>`: borra esa regla |
 | `kronos-terminar-proceso` | `kronos-terminar-proceso.cmd` + `.ps1` | `aplicar <pid> <ejecutable>`: termina el proceso **si sigue siendo ese programa** | — (la persona lo vuelve a abrir) |
 | `kronos-deshabilitar-cuenta` | `kronos-deshabilitar-cuenta.cmd` + `.ps1` | `aplicar <cuenta>`: deshabilita la cuenta **local** (`Disable-LocalUser`) | `habilitar <cuenta>`: la vuelve a habilitar, **sólo si la deshabilitó Kronos** |
+| `kronos-revertir-tarea` | `kronos-revertir-tarea.cmd` + `.ps1` | `aplicar <\carpeta\tarea>`: deshabilita la tarea programada (`Disable-ScheduledTask`, como `schtasks /DISABLE`) | `habilitar <\carpeta\tarea>`: la vuelve a habilitar, **sólo si la deshabilitó Kronos** |
 | `kronos-aislar-equipo` | `kronos-aislar-equipo.cmd` + `.ps1` | `aplicar`: corta todo el tráfico del equipo **salvo el canal del agente con el manager** | `quitar`: deja el firewall exactamente como estaba |
 | `kronos-cerrar-sesion` | `kronos-cerrar-sesion.cmd` + `.ps1` | `aplicar <cuenta>`: cierra todas las sesiones de la cuenta **local** (`quser` + `logoff`) | No se revierte: la persona puede volver a entrar |
 | `kronos-detener-servicio` | `kronos-detener-servicio.cmd` + `.ps1` | `aplicar <servicio>`: detiene el servicio (`Stop-Service`, sin `-Force`) | `iniciar <servicio>`: lo vuelve a poner en marcha, **sólo si lo detuvo Kronos** |
@@ -79,6 +80,18 @@ Son una segunda línea de defensa: EXECUTE (`ejecucion/ordenes.py`) ya valida lo
   deshabilitada, sale con 0 y no deja marca. `habilitar` sólo actúa si existe la marca; si
   no, sale con 0 y la cuenta queda como está.
 - Después de actuar vuelve a leer `Enabled` y sale con 1 si no quedó como se pidió.
+
+### `kronos-revertir-tarea`
+
+- Sólo `aplicar` o `habilitar` y exactamente una tarea, con la forma `\carpeta\tarea` y la
+  misma lista blanca que EXECUTE (sin comodines, comillas ni caracteres de shell, sin `.`
+  ni `..`).
+- **Tareas protegidas:** las del agente de Wazuh, de Kronos, de NetBird y de Windows
+  Defender (por nombre o carpeta).
+- **Sólo revierte lo que hizo Kronos:** al deshabilitar deja la marca
+  `active-response\kronos-estado\tarea-<huella>.txt` (antes de deshabilitar); `habilitar`
+  sólo actúa si existe. Después de actuar comprueba el estado de la tarea.
+- Deshabilitar no detiene una ejecución en curso: para eso está `kronos-terminar-proceso`.
 
 ### `kronos-aislar-equipo`
 
