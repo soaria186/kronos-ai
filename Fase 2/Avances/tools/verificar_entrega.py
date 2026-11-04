@@ -29,7 +29,7 @@ PROYECTO_DIR = Path(__file__).resolve().parent.parent
 RAIZ = Path(
     subprocess.run(
         ["git", "rev-parse", "--show-toplevel"],
-        cwd=PROYECTO_DIR, capture_output=True, text=True, check=False,
+        cwd=PROYECTO_DIR, capture_output=True, text=True, encoding="utf-8", check=False,
     ).stdout.strip()
     or PROYECTO_DIR
 )
@@ -58,9 +58,12 @@ resultados: list[tuple[bool, bool, str, str]] = []  # (ok, obligatoria, nombre, 
 
 
 def git(*args: str) -> str:
+    # git escribe las rutas en UTF-8. Sin encoding, Windows las lee con su página de
+    # códigos («DocumentaciÃ³n»): leer() no encuentra esos archivos y los da por vacíos.
     return subprocess.run(
         ["git", "-c", "core.quotePath=false", *args],
-        cwd=RAIZ, capture_output=True, text=True, check=False,
+        cwd=RAIZ, capture_output=True, text=True, encoding="utf-8", errors="replace",
+        check=False,
     ).stdout.strip()
 
 
