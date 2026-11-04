@@ -7,6 +7,7 @@ el script `.ps1` que hace el trabajo. Compatibles con Windows PowerShell 5.1.
 | Comando | Archivos | Aplicar | Revertir |
 | :--- | :--- | :--- | :--- |
 | `kronos-bloquear-ip` | `kronos-bloquear-ip.cmd` + `.ps1` | `aplicar <ip>`: regla de entrada `Kronos-bloqueo-<ip>` con `netsh advfirewall` | `quitar <ip>`: borra esa regla |
+| `kronos-terminar-proceso` | `kronos-terminar-proceso.cmd` + `.ps1` | `aplicar <pid> <ejecutable>`: termina el proceso **si sigue siendo ese programa** | — (la persona lo vuelve a abrir) |
 | `kronos-deshabilitar-cuenta` | `kronos-deshabilitar-cuenta.cmd` + `.ps1` | `aplicar <cuenta>`: deshabilita la cuenta **local** (`Disable-LocalUser`) | `habilitar <cuenta>`: la vuelve a habilitar, **sólo si la deshabilitó Kronos** |
 | `kronos-aislar-equipo` | `kronos-aislar-equipo.cmd` + `.ps1` | `aplicar`: corta todo el tráfico del equipo **salvo el canal del agente con el manager** | `quitar`: deja el firewall exactamente como estaba |
 | `kronos-cerrar-sesion` | `kronos-cerrar-sesion.cmd` + `.ps1` | `aplicar <cuenta>`: cierra todas las sesiones de la cuenta **local** (`quser` + `logoff`) | No se revierte: la persona puede volver a entrar |
@@ -44,6 +45,21 @@ Son una segunda línea de defensa: EXECUTE (`ejecucion/ordenes.py`) ya valida lo
 - Aplicar y quitar son idempotentes.
 - Si el firewall está apagado en algún perfil, deja una ADVERTENCIA en el registro (la
   regla existe, pero no bloquea en ese perfil).
+
+### `kronos-terminar-proceso`
+
+- Sólo `aplicar`, un PID de 5 o más y la ruta del ejecutable (`C:\…`, con la misma lista
+  blanca que EXECUTE). Exactamente tres argumentos.
+- **El PID tiene que seguir siendo el mismo programa:** `Win32_Process.ExecutablePath` debe
+  ser la ruta de la alerta (sin distinguir mayúsculas). Justo antes de terminarlo se vuelve
+  a comprobar, con la misma hora de inicio. Si no, otro proceso heredó el PID: sale con 1
+  sin tocar nada.
+- **Procesos protegidos:** los del sistema (`System`, `smss`, `csrss`, `wininit`,
+  `winlogon`, `services`, `lsass`, `svchost`, `dwm`…), Defender, **Sysmon**, el agente de
+  Wazuh y todo lo que corre desde su carpeta o la de Kronos, NetBird, `sshd`, las
+  herramientas de VirtualBox, y este mismo script y su padre.
+- Si el proceso ya no existe, sale con 0 («sin cambios»).
+- Después de terminarlo espera hasta 10 s y sale con 1 si sigue vivo.
 
 ### `kronos-deshabilitar-cuenta`
 
