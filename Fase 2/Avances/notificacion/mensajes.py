@@ -40,7 +40,12 @@ FAMILIAS = {
 # Por qué no se aplicó una medida (motivo de EXECUTE), dicho para el encargado de TI.
 POR_QUE_FALLO = {
     "ACCION_NO_IMPLEMENTADA": "esta medida no está disponible en esta versión de Kronos",
-    "ORDEN_INVALIDA": "la alerta no trae un objetivo válido (IP, cuenta o equipo)",
+    "ORDEN_INVALIDA": "el objetivo de la alerta no es válido o está protegido",
+    "ARGUMENTO_FALTANTE": (
+        "la alerta no trae el dato que la medida necesita (por ejemplo, el archivo o la"
+        " tarea)"
+    ),
+    "CONSULTA_FALLIDA": "no se pudo leer el inventario del equipo en Wazuh",
     "ACTUADOR_FALLO": "la orden no llegó al equipo; puede estar apagado o sin conexión",
     "PLAYBOOK_SIN_MEDIDA": "la medida no está en el catálogo cargado",
     "PLAZO_DE_REVERSION_SIN_DEFINIR": "la medida no tiene plazo de reversión en el catálogo",
@@ -49,6 +54,7 @@ POR_QUE_FALLO = {
 POR_QUE_NO_SE_REVIRTIO = {
     "ErrorActuador": "la orden no llegó al equipo; puede estar apagado o sin conexión",
     "OrdenInvalida": "ya no se conoce el objetivo de la medida",
+    "ArgumentoFaltante": "ya no se conoce el objetivo de la medida",
     "AccionNoImplementada": "esta medida no se puede deshacer desde Kronos",
 }
 

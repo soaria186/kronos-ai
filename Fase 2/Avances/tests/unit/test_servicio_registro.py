@@ -232,7 +232,8 @@ class ContratoConExecute(unittest.TestCase):
         repo = RepoFalso()
         registrar(repo, 1, alerta)
         orden = construir("terminar_proceso", repo.llamadas[0]["detalle"]["alerta"], sistema="windows")
-        self.assertEqual((orden.agente, orden.argumentos), ("007", ("aplicar", "4312")))
+        imagen = "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe"
+        self.assertEqual((orden.agente, orden.argumentos), ("007", ("aplicar", "4312", imagen)))
 
 
 class EjecutarSoloLoQueSeRevisó(unittest.TestCase):
@@ -282,6 +283,25 @@ class EjecutarSoloLoQueSeRevisó(unittest.TestCase):
             self.assertRevisado("servicio", orden.argumentos[1], alerta)
             total += 1
         self.assertGreaterEqual(total, 3)
+
+    def test_ip_de_destino(self):
+        total = 0
+        for alerta, orden in self.ordenes("bloquear_destino"):
+            self.assertRevisado("ip", orden.argumentos[1], alerta)
+            total += 1
+        self.assertGreaterEqual(total, 10)
+
+    def test_ruta_de_la_cuarentena(self):
+        total = 0
+        for sistema in ("linux", "windows"):
+            for alerta in self.alertas:
+                try:
+                    orden = construir("cuarentena", alerta, sistema=sistema)
+                except (OrdenInvalida, AccionNoImplementada):
+                    continue
+                self.assertRevisado("programa", orden.argumentos[1], alerta)
+                total += 1
+        self.assertGreaterEqual(total, 10)
 
     def test_equipo(self):
         # Toda medida actúa sobre el agente de la alerta: el equipo se revisa siempre.

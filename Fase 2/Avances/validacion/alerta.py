@@ -57,6 +57,8 @@ _OBJETIVO = {
         ("data", "srcip"),
         ("data", "dstip"),
         ("data", "win", "eventdata", "ipAddress"),
+        # IP de destino de Sysmon (evento 3): la usa bloquear_destino en EXECUTE (D-69).
+        ("data", "win", "eventdata", "destinationIp"),
     ),
     "cuenta": (
         ("syscheck", "audit", "user", "name"),
