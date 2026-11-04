@@ -18,6 +18,10 @@ Milestone [«v1.0: cierre»](https://github.com/soaria186/kronos-ai/milestone/1)
 - CI: pruebas de la consola, pruebas de integración con PostgreSQL 17.11 y verificación de la entrega en los PR hacia `main` (#77). Desde la reestructuración, el CI corre también en cada cambio a `develop` y `main`.
 - Catálogo KRO-CAT-01 1.0, con las acciones que tienen script en cada sistema operativo (D-60) (#83).
 - `validate.json` 1.0, aprobada (D-65) (#84).
+- Active Response `kronos-cerrar-sesion` para Linux y Windows (D-69): cierra todas las sesiones de una cuenta local, sin tocar a los administradores ni a las cuentas protegidas.
+- Active Response `kronos-detener-servicio` para Linux y Windows (D-69): detiene y vuelve a iniciar un servicio, con servicios protegidos y marca para revertir sólo lo que hizo Kronos.
+- `kronos-aislar-equipo` para Linux: corta el tráfico con la cadena `KRONOS-AISLAR` (iptables e ip6tables) salvo loopback, el manager por TCP 1514 y 1515, las direcciones de `kronos-aislar.permitidos` y NetBird, y la quita sin tocar otras reglas (D-69). Todavía no se activa en el catálogo: falta probarlo en EP-SRV-01.
+- `kronos-deshabilitar-cuenta` para Linux: bloquea la contraseña y vence la cuenta (`usermod -L` y `chage -E 0`), y las habilita de vuelta, deshaciendo sólo lo que hizo Kronos; nunca toca `root`, las cuentas del sistema, las del laboratorio ni a los administradores (`sudo`, `wheel` y `admin`) (D-69). Todavía no se activa en el catálogo: falta probarlo en EP-SRV-01.
 - SOAR-EXECUTE con los comandos de D-69: `kronos-cuarentena`, `kronos-bloquear-destino`, `kronos-limitar-conexiones` y `kronos-revertir-tarea`, con validación cerrada de la ruta, la IP de destino y el nombre de la tarea; falla segura `ARGUMENTO_FALTANTE` cuando la alerta no trae el campo; `KRONOS_IP_PROTEGIDAS` para el manager y la puerta de enlace; y la consulta de nivel 0 por la API de Wazuh, que termina en `SUCCESS` sin aviso (D-72, H1). Cada acción se activa en `actuadores_v1` con el PR de su script. VALIDATE revisa también `destinationIp` en la lista de exclusión.
 
 ### Corregido
