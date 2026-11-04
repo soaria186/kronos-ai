@@ -99,6 +99,21 @@ tarda.
     IP de `casos_150` son del rango de documentación 192.0.2.0/24, que cuenta como externa, así
     que esta medición no cambia; el efecto real depende de las IP de cada cliente.
 
+## E3 y E4 con las alertas reales de la prueba integral (D-67)
+
+`escenarios_e3_e4_reales_qwen2.5_7b_20261104.csv`, del 04-11. Lo generó `tools/medir_escenarios.py --alertas` desde el PC de
+Patricio contra el Ollama de SOAR-CORE-01 (0.40.0, qwen2.5:7b), con 5 repeticiones. Usó las alertas reales de los tickets #35 (E3, regla 100103, cuenta bloqueada en EP-WKS-01) y #36 (E4, regla 100113, registro de auditoría borrado en EP-WKS-01), tal como quedaron en `alertas_guardadas` el 03-11. El archivo de alertas no está en el repositorio porque trae datos del laboratorio. **No se cambió el prompt.**
+
+| Escenario | Esperada | Eligió | Nivel | Confianza (paso 1 / paso 2) | VALIDATE | Coincide |
+| :-: | :--- | :--- | :-: | :-: | :--- | :-: |
+| E3 | PB-F1-05 (deshabilitar la cuenta) | PB-F1-05 las 5 veces | 2 | 0,8 / 0,8 | aprobada | 5/5 |
+| E4 | PB-F5-04 (aislar un equipo de trabajo) | PB-F5-03 (cuarentena de un archivo) las 5 veces | 3 | 0,8 / 0,8 | aprobada | 0/5 |
+
+Tiempo: la primera repetición de cada escenario tardó unos 50 s, porque el prompt de esa alerta todavía no estaba en caché; las demás, entre 8,2 y 8,7 s.
+
+12. **E3 acierta y es estable:** con la alerta real elige deshabilitar la cuenta, de nivel 2 y automática, igual que en la prueba integral del 03-11.
+13. **E4 es estable, pero elige otra medida:** las 5 veces eligió PB-F5-03, aunque la condición de uso de PB-F5-04 nombra el caso («registros de auditoría borrados, en un EQUIPO DE TRABAJO»). Es el mismo sesgo de la conclusión 9, donde todos los casos de nivel 3 de `casos_150` fueron PB-F5-03. Es una falla segura: las dos medidas son de nivel 3 y esperan la aprobación del encargado de TI. La alerta no trae un archivo, así que, aprobada, la cuarentena termina en `ARGUMENTO_FALTANTE` sin tocar el equipo. El resultado es que el equipo no se aísla aunque el encargado de TI apruebe. Queda para decidir entre los tres, sin cambiar el prompt antes de la v1.0 (D-67): dejarlo como limitación documentada o, después de la v1.0, un chequeo determinista que lleve la regla 100113 en un equipo de trabajo a PB-F5-04.
+
 ## Ramas de experimentos archivadas
 
 Las cuatro ramas de las mediciones del 14-10 se integraron aquí para poder borrarlas sin perder nada. Sus datos
