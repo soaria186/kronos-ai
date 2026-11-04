@@ -227,6 +227,126 @@ class CicloReversion(unittest.TestCase):
         self.assertEqual(repo.revertidas[0][2]["motivo"], "ErrorActuador")
 
 
+MEDIDAS_D69 = {
+    **MEDIDAS,
+    "PB-F1-01": Medida("PB-F1-01", "consulta", 0, "no_aplica", None),
+    "PB-F4-01": Medida("PB-F4-01", "bloquear_destino", 1, "automatica_al_vencer", 60),
+    "PB-F5-03": Medida("PB-F5-03", "cuarentena", 3, "manual", None),
+}
+ACTUADORES_D69 = {
+    "linux": ACTUADORES["linux"] | {"cuarentena", "bloquear_destino"},
+    "windows": ACTUADORES["windows"] | {"cuarentena", "bloquear_destino"},
+}
+
+
+class ConsultaFalsa:
+    def __init__(self, falla=False):
+        self.falla = falla
+        self.agentes = []
+
+    def consultar(self, agente):
+        from ejecucion.consulta import ErrorConsulta
+
+        if self.falla:
+            raise ErrorConsulta("API de Wazuh sin respuesta")
+        self.agentes.append(agente)
+        return {"procesos": 87, "puertos_abiertos": [22, 1514]}
+
+
+def ejecutor_d69(repo, actuador, **opciones):
+    return Ejecutor(repo, actuador, MEDIDAS_D69, ACTUADORES_D69, AGENTES_SO, **opciones)
+
+
+class CicloArgumentoFaltante(unittest.TestCase):
+    def test_sin_ruta_queda_en_argumento_faltante(self):
+        # E4 del 03-11: el borrado del registro de seguridad no trae archivo.
+        alerta = {"agent": {"id": "002"}, "data": {"win": {"eventdata": {"subjectUserName": "x"}}}}
+        repo, actuador = RepoFalso([Ticket(40, "PB-F5-03", alerta)]), ActuadorFalso()
+        resumen = ejecutor_d69(repo, actuador).ciclo(1)
+        self.assertEqual(resumen.fallidas, [40])
+        self.assertEqual(actuador.ordenes, [])
+        self.assertEqual(repo.ejecuciones[0][2]["motivo"], "ARGUMENTO_FALTANTE")
+
+    def test_valor_invalido_sigue_siendo_orden_invalida(self):
+        alerta = {"agent": {"id": "002"}, "data": {"win": {"eventdata": {"image": "C:\\Windows\\x.exe"}}}}
+        repo, actuador = RepoFalso([Ticket(41, "PB-F5-03", alerta)]), ActuadorFalso()
+        ejecutor_d69(repo, actuador).ciclo(1)
+        self.assertEqual(actuador.ordenes, [])
+        self.assertEqual(repo.ejecuciones[0][2]["motivo"], "ORDEN_INVALIDA")
+
+    def test_cuarentena_con_actuador(self):
+        ruta = "C:\\Users\\Public\\upd.exe"
+        alerta = {"agent": {"id": "002"}, "data": {"win": {"eventdata": {"image": ruta}}}}
+        repo, actuador = RepoFalso([Ticket(42, "PB-F5-03", alerta)]), ActuadorFalso()
+        resumen = ejecutor_d69(repo, actuador).ciclo(1)
+        self.assertEqual(resumen.exitosas, [42])
+        self.assertEqual(actuador.ordenes[0].comando, "kronos-cuarentena")
+        self.assertEqual(actuador.ordenes[0].argumentos, ("aplicar", ruta))
+
+    def test_reversion_sin_argumento(self):
+        alerta = {"agent": {"id": "002"}, "data": {}}
+        repo, actuador = RepoFalso(reversiones=[Ticket(43, "PB-F5-03", alerta)]), ActuadorFalso()
+        resumen = ejecutor_d69(repo, actuador).ciclo(1)
+        self.assertEqual(resumen.reversiones_fallidas, [43])
+        self.assertEqual(actuador.ordenes, [])
+        self.assertEqual(repo.revertidas[0][2]["motivo"], "ArgumentoFaltante")
+
+
+class IpProtegidas(unittest.TestCase):
+    def test_el_destino_protegido_no_llega_al_actuador(self):
+        alerta = {"agent": {"id": "002"}, "data": {"win": {"eventdata": {"destinationIp": "203.0.113.10"}}}}
+        repo, actuador = RepoFalso([Ticket(50, "PB-F4-01", alerta)]), ActuadorFalso()
+        ejecutor_d69(repo, actuador, ip_protegidas=frozenset({"203.0.113.10"})).ciclo(1)
+        self.assertEqual(actuador.ordenes, [])
+        self.assertEqual(repo.ejecuciones[0][2]["motivo"], "ORDEN_INVALIDA")
+
+    def test_la_reversion_tambien_respeta_las_protegidas(self):
+        repo, actuador = RepoFalso(reversiones=[Ticket(51, "PB-F1-02", ALERTA)]), ActuadorFalso()
+        ejecutor_d69(repo, actuador, ip_protegidas=frozenset({"203.0.113.7"})).ciclo(1)
+        self.assertEqual(actuador.ordenes, [])
+        self.assertEqual(repo.revertidas[0][2]["motivo"], "OrdenInvalida")
+
+
+class ConsultaNivel0(unittest.TestCase):
+    """H1 de la prueba integral del 03-11: el nivel 0 termina en SUCCESS (D-50 y D-72)."""
+
+    def test_consulta_termina_en_success_sin_active_response(self):
+        repo, actuador, consulta = RepoFalso([Ticket(60, "PB-F1-01", ALERTA)]), ActuadorFalso(), ConsultaFalsa()
+        resumen = ejecutor_d69(repo, actuador, consulta=consulta).ciclo(1)
+        self.assertEqual(resumen.exitosas, [60])
+        self.assertEqual(actuador.ordenes, [])
+        self.assertEqual(consulta.agentes, ["002"])
+        _, exito, detalle, plazo = repo.ejecuciones[0]
+        self.assertTrue(exito)
+        self.assertIsNone(plazo)
+        self.assertEqual(detalle["consulta"]["agente"], "002")
+        self.assertEqual(detalle["consulta"]["procesos"], 87)
+
+    def test_no_depende_de_actuadores_v1_ni_del_sistema(self):
+        # Agente fuera del mapa y sin señales de sistema: igual se consulta.
+        alerta = {"agent": {"id": "009"}, "data": {"srcip": "203.0.113.7"}}
+        repo, consulta = RepoFalso([Ticket(61, "PB-F1-01", alerta)]), ConsultaFalsa()
+        resumen = ejecutor_d69(repo, ActuadorFalso(), consulta=consulta).ciclo(1)
+        self.assertEqual(resumen.exitosas, [61])
+
+    def test_sin_consulta_configurada_queda_como_antes(self):
+        repo = RepoFalso([Ticket(62, "PB-F1-01", ALERTA)])
+        ejecutor_d69(repo, ActuadorFalso()).ciclo(1)
+        self.assertEqual(repo.ejecuciones[0][2]["motivo"], "ACCION_NO_IMPLEMENTADA")
+
+    def test_api_caida(self):
+        repo = RepoFalso([Ticket(63, "PB-F1-01", ALERTA)])
+        resumen = ejecutor_d69(repo, ActuadorFalso(), consulta=ConsultaFalsa(falla=True)).ciclo(1)
+        self.assertEqual(resumen.fallidas, [63])
+        self.assertEqual(repo.ejecuciones[0][2]["motivo"], "CONSULTA_FALLIDA")
+
+    def test_nunca_el_manager(self):
+        repo, consulta = RepoFalso([Ticket(64, "PB-F1-01", {"agent": {"id": "000"}})]), ConsultaFalsa()
+        ejecutor_d69(repo, ActuadorFalso(), consulta=consulta).ciclo(1)
+        self.assertEqual(consulta.agentes, [])
+        self.assertEqual(repo.ejecuciones[0][2]["motivo"], "ORDEN_INVALIDA")
+
+
 class CicloHuerfanos(unittest.TestCase):
     def test_los_huerfanos_se_informan_y_no_se_ejecutan(self):
         repo = RepoFalso(huerfanos=[7, 9])

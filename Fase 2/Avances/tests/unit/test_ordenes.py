@@ -48,8 +48,9 @@ class Construir(unittest.TestCase):
         self.assertEqual(construir("aislar_equipo", alerta(), sistema="windows").argumentos, ("aplicar",))
 
     def test_terminar_proceso(self):
-        orden = construir("terminar_proceso", windows(processId="4312"), sistema="windows")
-        self.assertEqual(orden.argumentos, ("aplicar", "4312"))
+        ruta = "C:\\Users\\Public\\upd.exe"
+        orden = construir("terminar_proceso", windows(processId="4312", image=ruta), sistema="windows")
+        self.assertEqual(orden.argumentos, ("aplicar", "4312", ruta))
 
     def test_servicio(self):
         orden = construir("detener_servicio", windows(serviceName="Spooler"), sistema="windows")
@@ -105,8 +106,9 @@ class Rechazos(unittest.TestCase):
         self.assertInvalida("bloquear_ip", alerta(srcip={"a": 1}))
         self.assertInvalida("bloquear_ip", alerta(srcip=["1.2.3.4"]))
 
-    def test_acciones_pendientes(self):
-        for accion in ("consulta", "cuarentena", "bloquear_destino", "revertir_tarea", "otra"):
+    def test_acciones_sin_comando(self):
+        # La consulta va por la API de Wazuh (D-72), no por Active Response.
+        for accion in ("consulta", "otra"):
             with self.subTest(accion=accion), self.assertRaises(AccionNoImplementada):
                 construir(accion, alerta(srcip="203.0.113.7"), sistema="windows")
 

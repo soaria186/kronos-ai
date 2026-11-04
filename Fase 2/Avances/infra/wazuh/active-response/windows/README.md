@@ -12,6 +12,7 @@ el script `.ps1` que hace el trabajo. Compatibles con Windows PowerShell 5.1.
 | `kronos-aislar-equipo` | `kronos-aislar-equipo.cmd` + `.ps1` | `aplicar`: corta todo el tráfico del equipo **salvo el canal del agente con el manager** | `quitar`: deja el firewall exactamente como estaba |
 | `kronos-cerrar-sesion` | `kronos-cerrar-sesion.cmd` + `.ps1` | `aplicar <cuenta>`: cierra todas las sesiones de la cuenta **local** (`quser` + `logoff`) | No se revierte: la persona puede volver a entrar |
 | `kronos-detener-servicio` | `kronos-detener-servicio.cmd` + `.ps1` | `aplicar <servicio>`: detiene el servicio (`Stop-Service`, sin `-Force`) | `iniciar <servicio>`: lo vuelve a poner en marcha, **sólo si lo detuvo Kronos** |
+| `kronos-cuarentena` | `kronos-cuarentena.cmd` + `.ps1` | `aplicar <ruta>`: mueve el archivo a `C:\ProgramData\Kronos\cuarentena\` (sólo Administradores y SYSTEM), con su huella y sus permisos | `restaurar <ruta>`: lo devuelve, si la huella sigue igual y la ruta está libre |
 
 El agente es de 32 bits: el `.cmd` lanza la PowerShell de 64 bits por `Sysnative`. Para
 `kronos-deshabilitar-cuenta` es indispensable, porque el módulo `LocalAccounts`
@@ -139,6 +140,23 @@ Son una segunda línea de defensa: EXECUTE (`ejecucion/ordenes.py`) ya valida lo
   borra. `iniciar` sólo actúa si existe la marca.
 - Después de actuar espera hasta 30 s el estado pedido y lo comprueba.
 
+### `kronos-cuarentena`
+
+- Sólo `aplicar` o `restaurar` (comparación exacta) y exactamente una ruta.
+- Ruta `C:\…` con la misma lista blanca que EXECUTE: sin comodines, sin `~` (los nombres
+  cortos como `PROGRA~2` esquivarían las carpetas protegidas), sin `:` fuera de la unidad
+  (flujos alternativos), sin `.` ni `..` y sin tramos que terminen en punto o espacio.
+- **Carpetas protegidas:** `C:\Windows`, `C:\Program Files (x86)\ossec-agent`,
+  `C:\Program Files\ossec-agent`, `C:\Program Files\NetBird` y `C:\ProgramData\Kronos`.
+- Nunca a través de un enlace o una unión (reparse point) en ningún tramo de la ruta.
+- Sólo archivos. Si está en uso, sale con 1: primero hay que terminar el proceso.
+- **Nunca se pierde el archivo:** copia, comprueba el SHA-256 y recién entonces borra el
+  original. El registro (`<huella de la ruta>.json`, con la ruta, la huella y el SDDL) se
+  escribe antes de mover.
+- `restaurar` no sobrescribe un archivo que ocupe la ruta, comprueba la huella y devuelve
+  los permisos originales (si no puede, deja una ADVERTENCIA).
+- Aplicar y restaurar son idempotentes («sin cambios»).
+
 ### Registro
 
 Resultado en `C:\Program Files (x86)\ossec-agent\active-response\active-responses.log`,
@@ -259,7 +277,7 @@ Agente 002, con la cuenta `usuario.demo`. Salidas en
 | A mano: cuenta deshabilitada por otra persona; habilitar no la toca | 02-11-2026 | Aplicar sale con 0 («ya estaba deshabilitada»), habilitar sale con 0 («no la deshabilitó Kronos») y la cuenta sigue deshabilitada |
 | A mano: casos de rechazo | 02-11-2026 | Salida 1 en los 8: `Administrador`, `labadmin` (miembro de Administradores), `usuario.demo & calc`, `noexiste01`, tres argumentos, `borrar`, entrada vacía y JSON roto. `labadmin` y `usuario.demo` siguen habilitadas |
 | Por la API (`!kronos-deshabilitar-cuenta.cmd`), aplicar y habilitar | 02-11-2026 | `Enabled` pasa a False (18:35:53 UTC) y después a True (18:36:22 UTC) |
-| Registro en `active-responses.log` | 02-11-2026 | Una línea por orden. Hallazgo: el rechazo por nombre protegido sale como `Administrador: ERROR cuenta protegida: Administrador`, porque la variable local `$nombre` tapa a `$NOMBRE`; no cambia lo que hace el script |
+| Registro en `active-responses.log` | 02-11-2026 | Una línea por orden. Hallazgo: el rechazo por nombre protegido sale como `Administrador: ERROR cuenta protegida: Administrador`, porque la variable local `$nombre` tapa a `$NOMBRE`; no cambia lo que hace el script. **Corregido** (D-69): todos los scripts escriben con `$script:NOMBRE` y ninguna función usa una variable `$nombre` |
 
 ## Prueba de `kronos-aislar-equipo` en EP-WKS-01
 

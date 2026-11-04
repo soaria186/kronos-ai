@@ -34,14 +34,14 @@ $LOG = Join-Path (Split-Path -Parent $PSScriptRoot) 'active-responses.log'
 # (Add-Content fallaba). Si aun asi no se puede escribir, se dice por la salida de error en
 # vez de esconderlo.
 function Escribir-Log([string]$texto) {
-    $linea = '{0} {1}: {2}' -f (Get-Date).ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ssZ'), $NOMBRE, $texto
+    $linea = '{0} {1}: {2}' -f (Get-Date).ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ssZ'), $script:NOMBRE, $texto
     try {
         $fs = [System.IO.File]::Open($LOG, [System.IO.FileMode]::Append, [System.IO.FileAccess]::Write,
             [System.IO.FileShare]'ReadWrite, Delete')
         $sw = New-Object System.IO.StreamWriter($fs, (New-Object System.Text.UTF8Encoding($false)))
         try { $sw.WriteLine($linea) } finally { $sw.Dispose() }
     } catch {
-        [Console]::Error.WriteLine("$NOMBRE no pudo escribir en el registro: $($_.Exception.Message)")
+        [Console]::Error.WriteLine("$($script:NOMBRE) no pudo escribir en el registro: $($_.Exception.Message)")
     }
 }
 
@@ -85,8 +85,8 @@ function Validar-Ip([string]$texto) {
     if ($puertas -contains $texto) { Terminar 1 "ERROR es la puerta de enlace del equipo: $texto" }
 }
 
-function Regla-Existe([string]$nombre) {
-    & netsh.exe advfirewall firewall show rule "name=$nombre" | Out-Null
+function Regla-Existe([string]$regla) {
+    & netsh.exe advfirewall firewall show rule "name=$regla" | Out-Null
     return ($LASTEXITCODE -eq 0)
 }
 

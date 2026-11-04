@@ -1,0 +1,177 @@
+#!/usr/bin/python3
+"""Kronos: pone un archivo en cuarentena o lo restaura. Uso por Active Response:
+extra_args = ["aplicar" | "restaurar", "<ruta absoluta>"] (exactamente dos argumentos).
+
+aplicar   <ruta> -> mueve el archivo a /var/lib/kronos/cuarentena/ (carpeta 700 de root),
+                    sin permisos, y deja un registro con la ruta original, su SHA-256, su
+                    dueno y sus permisos.
+restaurar <ruta> -> lo devuelve a su ruta, con su dueno y sus permisos, si la huella
+                    sigue siendo la misma y la ruta no fue ocupada por otro archivo.
+
+Barreras (segunda linea; EXECUTE valida lo mismo en ejecucion/ordenes.py):
+- Solo esas dos operaciones y exactamente una ruta. Lo que no calza se rechaza: no se
+  limpia ni se recorta.
+- Ruta absoluta con caracteres de una lista blanca, sin "." ni "..", sin tramos vacios.
+- Nunca en carpetas del sistema, del agente ni de Kronos (CARPETAS_PROTEGIDAS), tampoco
+  a traves de un enlace simbolico: se revisa la ruta pedida y la ruta real.
+- Solo archivos regulares, nunca carpetas, enlaces ni dispositivos.
+- Idempotente: si ya estaba en cuarentena, o ya estaba restaurado, "sin cambios".
+- Nunca se pierde el archivo: se copia, se comprueba la huella y recien entonces se borra
+  el original.
+"""
+import datetime, hashlib, json, os, re, shutil, stat, sys
+
+NOMBRE = "kronos-cuarentena"
+LOG = "/var/ossec/logs/active-responses.log"
+CUARENTENA = "/var/lib/kronos/cuarentena"
+LARGO_MAXIMO = 1024
+TRAMO = r"[\w .()+#@,-]{1,255}"
+RUTA = re.compile(rf"^/(?:{TRAMO}/)*{TRAMO}$")
+CARPETAS_PROTEGIDAS = (
+    "/bin", "/boot", "/dev", "/etc", "/lib", "/lib32", "/lib64", "/libx32", "/proc",
+    "/run", "/sbin", "/sys", "/usr", "/var/lib", "/var/ossec",
+)
+
+
+class Rechazo(Exception):
+    pass
+
+
+def log(msg):
+    hora = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    with open(LOG, "a") as f:
+        f.write(f"{hora} {NOMBRE}: {msg}\n")
+
+
+def protegida(ruta):
+    return any(ruta == c or ruta.startswith(c + "/") for c in CARPETAS_PROTEGIDAS)
+
+
+def validar(ruta):
+    if len(ruta) > LARGO_MAXIMO or not RUTA.match(ruta):
+        raise Rechazo(f"ruta no permitida: {ruta!r}")
+    for tramo in ruta.split("/")[1:]:
+        if tramo in (".", "..") or tramo != tramo.strip():
+            raise Rechazo(f"ruta con tramos no permitidos: {ruta!r}")
+    if protegida(ruta):
+        raise Rechazo(f"ruta protegida: {ruta}")
+    real = os.path.realpath(ruta)
+    if protegida(real):
+        raise Rechazo(f"ruta protegida (enlace hacia {real}): {ruta}")
+
+
+def huella(ruta):
+    h = hashlib.sha256()
+    with open(ruta, "rb") as f:
+        for bloque in iter(lambda: f.read(1 << 20), b""):
+            h.update(bloque)
+    return h.hexdigest()
+
+
+def rutas_de(ruta):
+    clave = hashlib.sha256(ruta.encode("utf-8")).hexdigest()
+    base = os.path.join(CUARENTENA, clave)
+    return base + ".bin", base + ".json"
+
+
+def copiar_y_verificar(origen, destino, esperada):
+    """Copia, comprueba la huella y recien entonces borra el origen."""
+    temporal = destino + ".parcial"
+    shutil.copyfile(origen, temporal)
+    if huella(temporal) != esperada:
+        os.unlink(temporal)
+        raise Rechazo("la copia no coincide con el original; no se movio nada")
+    os.replace(temporal, destino)
+    os.unlink(origen)
+
+
+def aplicar(ruta):
+    guardado, registro = rutas_de(ruta)
+    if os.path.exists(registro):
+        if not os.path.lexists(ruta):
+            return "sin cambios (ya estaba en cuarentena)"
+        raise Rechazo("ya hay un archivo en cuarentena para esa ruta y la ruta se volvio a ocupar")
+    try:
+        info = os.lstat(ruta)
+    except FileNotFoundError:
+        raise Rechazo(f"no existe: {ruta}")
+    if not stat.S_ISREG(info.st_mode):
+        raise Rechazo(f"no es un archivo regular: {ruta}")
+    os.makedirs(CUARENTENA, mode=0o700, exist_ok=True)
+    os.chmod(CUARENTENA, 0o700)
+    sha = huella(ruta)
+    datos = {
+        "ruta": ruta, "sha256": sha, "tamano": info.st_size, "modo": stat.S_IMODE(info.st_mode),
+        "uid": info.st_uid, "gid": info.st_gid,
+        "fecha": datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+    }
+    # El registro va antes de mover: si se escribiera despues y fallara, el archivo
+    # quedaria en cuarentena sin que Kronos supiera devolverlo.
+    with open(registro, "w") as f:
+        json.dump(datos, f)
+    try:
+        copiar_y_verificar(ruta, guardado, sha)
+        os.chmod(guardado, 0)
+    except Exception:
+        if os.path.exists(guardado) and not os.path.lexists(ruta):
+            raise  # el original ya se borro: se conserva el registro para restaurar
+        os.unlink(registro)
+        if os.path.exists(guardado):
+            os.unlink(guardado)
+        raise
+    return f"OK (sha256 {sha})"
+
+
+def restaurar(ruta):
+    guardado, registro = rutas_de(ruta)
+    if not os.path.exists(registro):
+        return "sin cambios (no estaba en cuarentena)"
+    with open(registro) as f:
+        datos = json.load(f)
+    if datos.get("ruta") != ruta:
+        raise Rechazo("el registro de la cuarentena no corresponde a esa ruta")
+    if os.path.lexists(ruta):
+        raise Rechazo(f"la ruta ya esta ocupada; no se sobrescribe: {ruta}")
+    carpeta = os.path.dirname(ruta)
+    if not os.path.isdir(carpeta):
+        raise Rechazo(f"no existe la carpeta de destino: {carpeta}")
+    os.chmod(guardado, 0o600)
+    if huella(guardado) != datos["sha256"]:
+        os.chmod(guardado, 0)
+        raise Rechazo("la huella del archivo en cuarentena no coincide; no se restaura")
+    copiar_y_verificar(guardado, ruta, datos["sha256"])
+    os.chown(ruta, datos["uid"], datos["gid"])
+    os.chmod(ruta, datos["modo"])
+    os.unlink(registro)
+    return f"OK (sha256 {datos['sha256']})"
+
+
+def main():
+    try:
+        args = json.loads(sys.stdin.readline())["parameters"]["extra_args"]
+    except Exception as e:
+        log(f"entrada invalida: {e}")
+        return 1
+    if not isinstance(args, list) or len(args) != 2 or not all(isinstance(a, str) for a in args):
+        cantidad = len(args) if isinstance(args, list) else "?"
+        log(f"entrada invalida: se esperaban 2 argumentos y llegaron {cantidad}")
+        return 1
+    op, ruta = args
+    if op not in ("aplicar", "restaurar"):
+        log(f"operacion invalida: {op}")
+        return 1
+    try:
+        validar(ruta)
+        resultado = aplicar(ruta) if op == "aplicar" else restaurar(ruta)
+    except Rechazo as e:
+        log(f"{op} {ruta}: rechazada: {e}")
+        return 1
+    except OSError as e:
+        log(f"{op} {ruta}: ERROR {e}")
+        return 1
+    log(f"{op} {ruta}: {resultado}")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

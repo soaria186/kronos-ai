@@ -2,14 +2,19 @@
 # Despliega Kronos AI en SOAR-CORE-01 desde un clon de git, en una etiqueta de versión (D-55).
 #
 # Uso, en el servidor, con un usuario con sudo:
-#   bash desplegar.sh <etiqueta>          por ejemplo: bash desplegar.sh v1.0.0
+#   bash desplegar.sh <etiqueta> [IP protegidas]
+#   por ejemplo: bash desplegar.sh v1.0.0  o  bash desplegar.sh v1.0.0 10.0.50.1
 #
 # - Primera vez (caso a de la parte 07 de la guía): clona en /opt/kronos/kronos-ai con la llave de
 #   despliegue de sólo lectura, copia lo que vive sólo en el servidor (.env, secrets/, 03_roles.sql y
 #   05_clave_consola.sql), aparta la copia vieja y deja /opt/kronos/audit como enlace al proyecto.
 # - Las siguientes: fetch de las etiquetas y checkout de la pedida.
-# - Siempre: respaldo previo, KRONOS_AGENTES_SO en el .env si falta, migraciones (idempotentes),
-#   reconstrucción de los servicios y su comprobación.
+# - Siempre: respaldo previo, KRONOS_AGENTES_SO y KRONOS_IP_PROTEGIDAS en el .env si faltan,
+#   migraciones (idempotentes), reconstrucción de los servicios y su comprobación.
+# - KRONOS_IP_PROTEGIDAS (IP sobre las que EXECUTE nunca actúa): si falta, se arma con las IPv4
+#   del propio servidor (la pública, a la que se conectan los agentes, y la de NetBird; no las
+#   redes de Docker) más las que se pasen como segundo argumento (por ejemplo, la puerta de
+#   enlace del laboratorio). Las IP no se muestran: sólo cuántas son.
 #
 # Se detiene en el primer error y dice dónde. Todo queda en ~/kronos-despliegue-<fecha UTC>.log.
 # Antes y después: aviso en el grupo del equipo. No muestra secretos.
@@ -19,6 +24,11 @@
 principal() {
 	set -uo pipefail
 	local etiqueta="${1:?falta la etiqueta, por ejemplo: bash desplegar.sh v1.0.0}"
+	local extra="${2:-}"
+	if [ -n "$extra" ] && ! [[ $extra =~ ^[0-9.,]+$ ]]; then
+		echo "IP protegidas no válidas: $extra (IPv4 separadas por coma)"
+		exit 1
+	fi
 	local log
 	log="$HOME/kronos-despliegue-$(date -u +%Y%m%dT%H%M%SZ).log"
 	exec > >(tee -a "$log") 2>&1
@@ -74,6 +84,19 @@ principal() {
 	else
 		echo "ya estaba: KRONOS_AGENTES_SO"
 	fi
+	if ! sudo grep -q '^KRONOS_IP_PROTEGIDAS=' .env; then
+		local propias
+		propias=$(ip -4 -o addr show scope global | awk '{print $4}' | cut -d/ -f1 |
+			grep -vE '^172\.(1[6-9]|2[0-9]|3[01])\.' | paste -sd, -)
+		local lista
+		lista=$(printf '%s,%s' "$propias" "$extra" | tr ',' '\n' | grep -E '^[0-9]+(\.[0-9]+){3}$' | sort -u | paste -sd, -)
+		[ -n "$lista" ] || fallo "no se pudo armar KRONOS_IP_PROTEGIDAS"
+		[ -n "$(sudo tail -c1 .env)" ] && echo | sudo tee -a .env >/dev/null
+		echo "KRONOS_IP_PROTEGIDAS=$lista" | sudo tee -a .env >/dev/null
+		echo "agregada: KRONOS_IP_PROTEGIDAS ($(echo "$lista" | tr ',' '\n' | wc -l) IP)"
+	else
+		echo "ya estaba: KRONOS_IP_PROTEGIDAS ($(sudo grep '^KRONOS_IP_PROTEGIDAS=' .env | cut -d= -f2 | tr ',' '\n' | grep -c .) IP)"
+	fi
 	echo "nombres del ejemplo que faltan en el .env (los que tienen valor por omisión en servicios.yml pueden faltar):"
 	diff <(grep -oE '^[A-Z_]+' servicios/.env.example | sort -u) <(sudo grep -oE '^[A-Z_]+' .env | sort -u) | grep '^<' || echo "(ninguno)"
 
@@ -93,7 +116,7 @@ principal() {
 	$dc ps --format 'table {{.Service}}\t{{.State}}\t{{.Status}}'
 	echo
 	echo "registros de arranque:"
-	$dc logs --since 5m validate execute notify consola 2>&1 | grep -E "en marcha|no arranca|equipo de|sistema operativo|Traceback|ERROR" | tail -20
+	$dc logs --since 5m validate execute notify consola 2>&1 | grep -E "en marcha|no arranca|equipo de|sistema operativo|IP protegidas|Traceback|ERROR" | tail -20
 
 	echo
 	echo "== $(date -u +%FT%TZ) fin. Versión: $(sudo git -C "$clon" describe --tags). Registro: $log"
