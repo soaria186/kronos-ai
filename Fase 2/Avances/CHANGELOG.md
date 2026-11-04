@@ -18,6 +18,7 @@ Milestone [«v1.0: cierre»](https://github.com/soaria186/kronos-ai/milestone/1)
 - CI: pruebas de la consola, pruebas de integración con PostgreSQL 17.11 y verificación de la entrega en los PR hacia `main` (#77). Desde la reestructuración, el CI corre también en cada cambio a `develop` y `main`.
 - Catálogo KRO-CAT-01 1.0, con las acciones que tienen script en cada sistema operativo (D-60) (#83).
 - `validate.json` 1.0, aprobada (D-65) (#84).
+- SOAR-EXECUTE con los comandos de D-69: `kronos-cuarentena`, `kronos-bloquear-destino`, `kronos-limitar-conexiones` y `kronos-revertir-tarea`, con validación cerrada de la ruta, la IP de destino y el nombre de la tarea; falla segura `ARGUMENTO_FALTANTE` cuando la alerta no trae el campo; `KRONOS_IP_PROTEGIDAS` para el manager y la puerta de enlace; y la consulta de nivel 0 por la API de Wazuh, que termina en `SUCCESS` sin aviso (D-72, H1). Cada acción se activa en `actuadores_v1` con el PR de su script. VALIDATE revisa también `destinationIp` en la lista de exclusión.
 
 ### Corregido
 

@@ -283,6 +283,25 @@ class EjecutarSoloLoQueSeRevisó(unittest.TestCase):
             total += 1
         self.assertGreaterEqual(total, 3)
 
+    def test_ip_de_destino(self):
+        total = 0
+        for alerta, orden in self.ordenes("bloquear_destino"):
+            self.assertRevisado("ip", orden.argumentos[1], alerta)
+            total += 1
+        self.assertGreaterEqual(total, 10)
+
+    def test_ruta_de_la_cuarentena(self):
+        total = 0
+        for sistema in ("linux", "windows"):
+            for alerta in self.alertas:
+                try:
+                    orden = construir("cuarentena", alerta, sistema=sistema)
+                except (OrdenInvalida, AccionNoImplementada):
+                    continue
+                self.assertRevisado("programa", orden.argumentos[1], alerta)
+                total += 1
+        self.assertGreaterEqual(total, 10)
+
     def test_equipo(self):
         # Toda medida actúa sobre el agente de la alerta: el equipo se revisa siempre.
         for alerta in self.alertas:
