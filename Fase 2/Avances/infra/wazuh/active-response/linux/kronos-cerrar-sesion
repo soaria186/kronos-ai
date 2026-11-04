@@ -1,0 +1,102 @@
+#!/usr/bin/python3
+"""Kronos: cierra todas las sesiones de una cuenta local. Uso por Active Response:
+extra_args = ["aplicar", "<cuenta>"] (exactamente dos argumentos).
+
+Usa `loginctl terminate-user`, que cierra todas las sesiones de la cuenta (consola, SSH,
+escritorio) y termina sus procesos. No impide que la persona vuelva a entrar: para eso
+esta kronos-deshabilitar-cuenta. Esta medida no se revierte (no hay nada que deshacer).
+
+Nunca toca root, las cuentas del sistema (UID menor que 1000), nobody, las cuentas de
+administracion y de servicio del laboratorio ni a los miembros de sudo, wheel o admin:
+cerrarle la sesion al administrador podria cortar justo a quien esta respondiendo al
+incidente. Si la cuenta no tiene sesiones abiertas, no hace nada."""
+import datetime, grp, json, pwd, re, subprocess, sys
+
+LOG = "/var/ossec/logs/active-responses.log"
+PROTEGIDAS = {"root", "labadmin", "wazuh", "kronos", "nobody"}
+ADMINISTRADORES = ("sudo", "wheel", "admin")
+
+
+def ahora():
+    return datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
+def log(msg):
+    with open(LOG, "a") as f:
+        f.write(f"{ahora()} kronos-cerrar-sesion: {msg}\n")
+
+
+def correr(cmd):
+    """Corre el comando (siempre como lista, sin shell). Devuelve el resultado."""
+    return subprocess.run(cmd, capture_output=True, text=True)
+
+
+def es_administrador(cuenta, gid):
+    """Miembro de sudo, wheel o admin, o con uno de ellos como grupo primario. Los grupos
+    que no existen en el equipo se ignoran."""
+    for nombre in ADMINISTRADORES:
+        try:
+            g = grp.getgrnam(nombre)
+        except KeyError:
+            continue
+        if cuenta in g.gr_mem or g.gr_gid == gid:
+            return True
+    return False
+
+
+def sesiones(uid):
+    """Cantidad de sesiones abiertas de la cuenta. `loginctl show-user` falla si la cuenta
+    no tiene sesiones; cualquier otro error se registra y no se actua."""
+    r = correr(["loginctl", "show-user", str(uid), "-p", "Sessions", "--value"])
+    if r.returncode != 0:
+        if "not logged in" in r.stderr or "No such" in r.stderr or "not known" in r.stderr:
+            return 0
+        log(f"ERROR loginctl show-user {uid} (codigo {r.returncode}): {r.stderr.strip()}")
+        sys.exit(1)
+    return len(r.stdout.split())
+
+
+try:
+    args = json.loads(sys.stdin.readline())["parameters"]["extra_args"]
+except Exception as e:
+    log(f"entrada invalida: {e}")
+    sys.exit(1)
+
+if not isinstance(args, list) or len(args) != 2 or not all(isinstance(a, str) for a in args):
+    cantidad = len(args) if isinstance(args, list) else "?"
+    log(f"entrada invalida: se esperaban 2 argumentos y llegaron {cantidad}")
+    sys.exit(1)
+
+op, cuenta = args
+if op != "aplicar":
+    log(f"entrada invalida: operacion desconocida: {op} (esta medida no se revierte)")
+    sys.exit(1)
+if not re.fullmatch(r"[A-Za-z0-9._-]{1,32}", cuenta):
+    log(f"entrada invalida: nombre de cuenta no permitido: {cuenta!r}")
+    sys.exit(1)
+if cuenta in PROTEGIDAS:
+    log(f"cuenta protegida: {cuenta}")
+    sys.exit(1)
+try:
+    datos = pwd.getpwnam(cuenta)
+except KeyError:
+    log(f"ERROR no existe la cuenta local: {cuenta}")
+    sys.exit(1)
+if datos.pw_uid < 1000:
+    log(f"cuenta protegida: {cuenta}")
+    sys.exit(1)
+if es_administrador(cuenta, datos.pw_gid):
+    log(f"cuenta protegida: {cuenta} (administrador)")
+    sys.exit(1)
+
+abiertas = sesiones(datos.pw_uid)
+if abiertas == 0:
+    log(f"aplicar {cuenta} OK (sin cambios: no tenia sesiones abiertas)")
+    sys.exit(0)
+
+r = correr(["loginctl", "terminate-user", str(datos.pw_uid)])
+if r.returncode != 0:
+    log(f"ERROR loginctl terminate-user {cuenta} (codigo {r.returncode}): {r.stderr.strip()}")
+    sys.exit(1)
+log(f"aplicar {cuenta} OK ({abiertas} sesion(es) cerrada(s))")
+sys.exit(0)
