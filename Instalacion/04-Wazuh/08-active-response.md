@@ -98,6 +98,53 @@ El script sólo protege al propio equipo. **No** conoce la lista de exclusión d
 
 El script equivalente (`.cmd` más PowerShell con `netsh advfirewall`) está en `infra/wazuh/active-response/windows/` (PR #32). Su instalación y prueba van en la parte 10. En Windows, el agente sólo encuentra el script si el comando lleva la extensión (`!kronos-bloquear-ip.cmd`): prueba del 21-10-2026 en EP-WKS-01 (#43).
 
+### 2.8 `kronos-aislar-equipo` en Linux
+
+Script: `infra/wazuh/active-response/linux/kronos-aislar-equipo` (Python 3, sin dependencias externas), con la misma lógica que el de Windows. Todavía no está activo en el catálogo (`actuadores_v1`): se activa después de probarlo en EP-SRV-01.
+
+- Recibe exactamente un argumento, `aplicar` o `quitar` (la medida no lleva objetivo).
+- **El agente sigue conectado al manager mientras el equipo está aislado.** Antes de tocar nada lee la dirección del manager en `<client><server><address>` de `/var/ossec/etc/ossec.conf`; si es un nombre, lo resuelve a IPv4. Si no obtiene una IPv4 válida, sale con 1 **sin tocar nada**.
+- Todo va en la cadena propia `KRONOS-AISLAR`, que se arma completa **antes** de engancharla al comienzo de `INPUT` y `OUTPUT`. Sus reglas, en orden: loopback; el manager por TCP 1514 y 1515, y su respuesta (`ESTABLISHED`); las direcciones de administración; la interfaz `wt0` de NetBird si existe; y al final `DROP`. En IPv6 sólo deja pasar loopback.
+- Si algo falla a mitad, deshace lo que alcanzó a hacer y sale con 1.
+- `quitar` desengancha y borra sólo `KRONOS-AISLAR`, en IPv4 e IPv6; nunca toca otras reglas ni cadenas. Aplicar y quitar son idempotentes.
+
+**Direcciones de administración (opcional).** `/var/ossec/etc/kronos-aislar.permitidos`, una IP o red IPv4 por línea, con `#` para comentarios. Se permiten en los dos sentidos mientras dura el aislamiento. Una línea inválida, una red IPv6 o `0.0.0.0/0` impiden aislar. En el laboratorio, para no perder el SSH a EP-SRV-01:
+
+```text
+10.0.2.2  # NAT de VirtualBox: SSH del laboratorio
+```
+
+**[agente Linux]** se instala igual que `kronos-bloquear-ip` (sección 2.2), con dueño `root`, grupo `wazuh` y permisos `750`, y el archivo de permitidos con `root:wazuh 640`:
+
+```bash
+sudo install -o root -g wazuh -m 750 /tmp/kronos-aislar-equipo /var/ossec/active-response/bin/kronos-aislar-equipo
+sudo rm /tmp/kronos-aislar-equipo
+echo '10.0.2.2  # NAT de VirtualBox: SSH del laboratorio' | sudo tee /var/ossec/etc/kronos-aislar.permitidos >/dev/null
+sudo chown root:wazuh /var/ossec/etc/kronos-aislar.permitidos; sudo chmod 640 /var/ossec/etc/kronos-aislar.permitidos
+ls -l /var/ossec/active-response/bin/kronos-aislar-equipo /var/ossec/etc/kronos-aislar.permitidos
+sha256sum /var/ossec/active-response/bin/kronos-aislar-equipo | cut -c1-16
+```
+
+La huella corta de esta versión es `739e6529287fc6b0`.
+
+> **Probarlo siempre desde un snapshot de la VM**, con `kronos-aislar.permitidos` creado antes y una consola de VirtualBox abierta: si el SSH queda fuera de los permitidos, sólo se vuelve atrás desde la consola o con el snapshot. Al aislar, también se pierde todo lo que no está en la lista (actualizaciones, DNS, la consola web).
+
+```bash
+echo '{"parameters":{"extra_args":["aplicar"]}}' | sudo /var/ossec/active-response/bin/kronos-aislar-equipo
+sudo iptables -S KRONOS-AISLAR; sudo iptables -S INPUT | head -n 3
+curl -m 5 -sI https://example.com; echo "codigo: $?"
+echo '{"parameters":{"extra_args":["quitar"]}}' | sudo /var/ossec/active-response/bin/kronos-aislar-equipo
+sudo tail -n 2 /var/ossec/logs/active-responses.log
+```
+
+Durante el aislamiento la cadena termina en `-j DROP`, `INPUT` empieza con `-j KRONOS-AISLAR`, `curl` falla (código distinto de 0) y en el servidor el agente 001 sigue `Active` (`AGENTE=001 bash probar-ar-api.sh estado`). El registro tiene `aplicar OK; manager permitido: <ip> TCP/1514,1515; administracion: 10.0.2.2/32` y, al final, `quitar OK; aislamiento quitado`.
+
+**Limitaciones conocidas:**
+
+- Las reglas viven en memoria: **un reinicio del equipo quita el aislamiento** (como los bloqueos de `kronos-bloquear-ip`, D-52).
+- Si el manager está configurado por nombre, se deja pasar la IP que tenía al aislar. Si el agente necesita resolver el nombre otra vez (por ejemplo, al reconectarse), el DNS está bloqueado y puede perder el canal. En la PyME simulada el manager se configura por IP.
+- No deja pasar DHCP. Si vence el préstamo durante el aislamiento, el equipo puede perder la IP.
+
 ## 3. Crear el usuario de API `kronos-execute`
 
 Objetivo: que SOAR-EXECUTE tenga una identidad propia en la API de Wazuh con **un solo permiso**: `active-response:command` sobre los agentes.
