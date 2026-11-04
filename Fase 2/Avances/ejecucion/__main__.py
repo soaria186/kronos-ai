@@ -29,6 +29,7 @@ from pathlib import Path
 from psycopg.conninfo import make_conninfo
 
 from ejecucion.actuador_wazuh import ActuadorWazuh
+from ejecucion.consulta_wazuh import ConsultaWazuh
 from ejecucion.ejecutor import Ejecutor
 from ejecucion.medidas import cargar_actuadores, cargar_medidas
 from ejecucion.ordenes import leer_ip_protegidas, leer_mapa_agentes
@@ -59,12 +60,14 @@ def main() -> int:
         intervalo = float(os.environ.get("KRONOS_INTERVALO_SEGUNDOS", "10"))
         agentes_so = leer_mapa_agentes(os.environ.get("KRONOS_AGENTES_SO", ""))
         ip_protegidas = leer_ip_protegidas(os.environ.get("KRONOS_IP_PROTEGIDAS", ""))
+        actuador = ActuadorWazuh.desde_entorno()
         ejecutor = Ejecutor(
             Repositorio(dsn, actor=ACTOR_EXECUTE),
-            ActuadorWazuh.desde_entorno(),
+            actuador,
             cargar_medidas(),
             cargar_actuadores(),
             agentes_so,
+            consulta=ConsultaWazuh(actuador),
             ip_protegidas=ip_protegidas,
         )
     except (KeyError, ValueError, OSError) as exc:

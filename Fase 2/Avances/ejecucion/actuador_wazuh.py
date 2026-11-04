@@ -114,9 +114,22 @@ class ActuadorWazuh:
             )
         return f"wazuh-ar:{orden.agente}:{script}"
 
+    def leer(self, ruta: str) -> Any:
+        """GET de sólo lectura a la API (por ejemplo, syscollector para la consulta de
+        nivel 0, D-72). Usa el mismo usuario y el mismo token que las órdenes. Si la API
+        no responde 200, lanza ErrorActuador."""
+        if not ruta.startswith("/") or any(c in ruta for c in "\r\n "):
+            raise ErrorActuador("ruta de la API no válida")
+        estado, datos = self._con_token("GET", ruta, None)
+        if estado != 200:
+            raise ErrorActuador(f"la API respondió {estado}: {_mensaje(datos)}")
+        return datos
+
     # ------------------------------------------------------------------ interno
 
-    def _con_token(self, metodo: str, ruta: str, cuerpo: dict) -> tuple[int, Any]:
+    def _con_token(
+        self, metodo: str, ruta: str, cuerpo: dict | None
+    ) -> tuple[int, Any]:
         estado, datos = self._pedir(metodo, ruta, cuerpo, self._vigente())
         if estado == 401:
             # Token vencido o revocado: se pide uno nuevo y se reintenta UNA vez. Un 401

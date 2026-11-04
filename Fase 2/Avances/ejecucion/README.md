@@ -8,6 +8,7 @@ programa sus reversiones. Es el único actuador de Kronos.
 | `medidas.py` | Carga el catálogo KRO-CAT-01 (validado con `validacion.catalogo`) y entrega, por playbook, la acción, el nivel y cómo se revierte |
 | `ordenes.py` | Traduce una acción a una orden cerrada: comando de una tabla fija, argumentos tomados de campos fijos de la alerta y validados (IP con `ipaddress`; cuentas, servicios, rutas y tareas con lista blanca de caracteres). Nunca el agente 000, la IP del propio equipo, las IP de `KRONOS_IP_PROTEGIDAS`, cuentas como `root` o `Administrator`, ni archivos de las carpetas del sistema, del agente o de Kronos |
 | `consulta.py` | Interfaz de la consulta de nivel 0 (D-72): inventario del agente por la API de Wazuh, sin Active Response |
+| `consulta_wazuh.py` | Consulta real de nivel 0: lee syscollector (sistema, procesos, puertos en escucha y red) con `ActuadorWazuh.leer` y arma un resumen corto para la bitácora |
 | `actuador.py` | Interfaz del actuador |
 | `actuador_wazuh.py` | Actuador real: `PUT /active-response` por la API de Wazuh. HTTPS con verificación obligatoria, token renovado, un solo envío por orden |
 | `ejecutor.py` | Un ciclo por inquilino: pasa a revisión manual los tickets huérfanos (sin decisión de VALIDATE a los 10 minutos), vence aprobaciones de nivel 3, ejecuta los tickets `PENDING` y las reversiones vencidas |
