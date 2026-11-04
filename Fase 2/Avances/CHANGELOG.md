@@ -19,6 +19,7 @@ Milestone [«v1.0: cierre»](https://github.com/soaria186/kronos-ai/milestone/1)
 - Catálogo KRO-CAT-01 1.0, con las acciones que tienen script en cada sistema operativo (D-60) (#83).
 - `validate.json` 1.0, aprobada (D-65) (#84).
 - `kronos-aislar-equipo` para Linux: corta el tráfico con la cadena `KRONOS-AISLAR` (iptables e ip6tables) salvo loopback, el manager por TCP 1514 y 1515, las direcciones de `kronos-aislar.permitidos` y NetBird, y la quita sin tocar otras reglas (D-69). Todavía no se activa en el catálogo: falta probarlo en EP-SRV-01.
+- `kronos-deshabilitar-cuenta` para Linux: bloquea la contraseña y vence la cuenta (`usermod -L` y `chage -E 0`), y las habilita de vuelta, deshaciendo sólo lo que hizo Kronos; nunca toca `root`, las cuentas del sistema, las del laboratorio ni a los administradores (`sudo`, `wheel` y `admin`) (D-69). Todavía no se activa en el catálogo: falta probarlo en EP-SRV-01.
 
 ### Corregido
 

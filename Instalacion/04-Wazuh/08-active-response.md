@@ -144,6 +144,41 @@ Durante el aislamiento la cadena termina en `-j DROP`, `INPUT` empieza con `-j K
 - Las reglas viven en memoria: **un reinicio del equipo quita el aislamiento** (como los bloqueos de `kronos-bloquear-ip`, D-52).
 - Si el manager está configurado por nombre, se deja pasar la IP que tenía al aislar. Si el agente necesita resolver el nombre otra vez (por ejemplo, al reconectarse), el DNS está bloqueado y puede perder el canal. En la PyME simulada el manager se configura por IP.
 - No deja pasar DHCP. Si vence el préstamo durante el aislamiento, el equipo puede perder la IP.
+### 2.7 `kronos-deshabilitar-cuenta` en Linux
+
+Script: `infra/wazuh/active-response/linux/kronos-deshabilitar-cuenta` (Python 3, sin dependencias externas). Todavía no está activo en el catálogo (`actuadores_v1`): se activa después de probarlo en EP-SRV-01.
+
+- Recibe exactamente dos argumentos, `aplicar <cuenta>` o `habilitar <cuenta>`. La cuenta debe calzar con `^[A-Za-z0-9._-]{1,32}$` y existir como cuenta local.
+- **Aplicar** bloquea la contraseña (`usermod -L`) y vence la cuenta (`chage -E 0`), para que tampoco entre con llave SSH. **Habilitar** hace lo contrario (`usermod -U` y `chage -E -1`).
+- Sólo hace lo que falta, y responde «sin cambios» si la cuenta ya estaba deshabilitada o habilitada. El estado lo lee con `passwd -S` y con la fecha de vencimiento de `getent shadow`.
+- **Nunca toca** `root`, `labadmin`, `wazuh`, `kronos`, `nobody` ni las cuentas con UID menor que 1000: responde `cuenta protegida`, código 1.
+- **Nunca deshabilita ni habilita a un administrador**: un miembro de `sudo`, `wheel` o `admin`, o una cuenta que tenga uno de ellos como grupo primario. Responde `cuenta protegida: <cuenta> (administrador)`, código 1, para no dejar al equipo sin quien lo administre. Los grupos que no existen en el equipo se ignoran.
+- **Sólo revierte lo que hizo Kronos.** Lo anota en `/var/ossec/active-response/kronos-cuentas.json` (`root:wazuh 640`), con una entrada por cuenta: `{"bloqueo": …, "vencio": …, "desde": "<hora UTC>"}`.
+  - `aplicar` marca cada paso **antes** de hacerlo (`bloqueo` si corre `usermod -L`, `vencio` si corre `chage -E 0`) y lo desmarca si el comando falla. Si no hace nada, no crea entrada.
+  - `habilitar` deshace sólo los pasos marcados y borra la entrada. Sin entrada responde «sin cambios: no la deshabilitó Kronos» y no toca la cuenta: una contraseña que bloqueó otra persona sigue bloqueada.
+  - El archivo se escribe en un temporal de la misma carpeta y se cambia con `os.replace`, así que nunca queda a medio escribir. Si no es JSON válido, el script registra `ERROR` y sale con 1 sin tocar la cuenta. Si no puede guardarlo, tampoco toca la cuenta.
+- Si un comando falla, registra `ERROR` con su código y sale con 1. Los comandos van siempre como lista, sin shell.
+
+**[agente Linux]** se instala igual que `kronos-bloquear-ip` (sección 2.2), con dueño `root`, grupo `wazuh` y permisos `750`:
+
+```bash
+sudo install -o root -g wazuh -m 750 /tmp/kronos-deshabilitar-cuenta /var/ossec/active-response/bin/kronos-deshabilitar-cuenta
+sudo rm /tmp/kronos-deshabilitar-cuenta
+ls -l /var/ossec/active-response/bin/kronos-deshabilitar-cuenta
+sha256sum /var/ossec/active-response/bin/kronos-deshabilitar-cuenta | cut -c1-16
+```
+
+La huella corta de esta versión es `9c935ac289ef66ce`. Para probarlo a mano, con una cuenta local de prueba que no sea de administración ni miembro de `sudo`:
+
+```bash
+echo '{"parameters":{"extra_args":["aplicar","usuario.demo"]}}' | sudo /var/ossec/active-response/bin/kronos-deshabilitar-cuenta
+sudo passwd -S usuario.demo; sudo chage -l usuario.demo | grep -i expir
+sudo cat /var/ossec/active-response/kronos-cuentas.json; sudo ls -l /var/ossec/active-response/kronos-cuentas.json
+echo '{"parameters":{"extra_args":["habilitar","usuario.demo"]}}' | sudo /var/ossec/active-response/bin/kronos-deshabilitar-cuenta
+sudo tail -n 2 /var/ossec/logs/active-responses.log
+```
+
+Después de aplicar, `passwd -S` muestra `L`, la cuenta vence el 01-01-1970 y el archivo de marcas (`-rw-r----- root wazuh`) tiene la entrada de `usuario.demo` con `"bloqueo": true` y `"vencio": true`. Después de habilitar, vuelve a `P` y `never`, la entrada desaparece y el registro tiene `aplicar usuario.demo OK` y `habilitar usuario.demo OK`.
 
 ## 3. Crear el usuario de API `kronos-execute`
 
