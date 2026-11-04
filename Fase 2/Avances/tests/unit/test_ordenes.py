@@ -48,8 +48,9 @@ class Construir(unittest.TestCase):
         self.assertEqual(construir("aislar_equipo", alerta(), sistema="windows").argumentos, ("aplicar",))
 
     def test_terminar_proceso(self):
-        orden = construir("terminar_proceso", windows(processId="4312"), sistema="windows")
-        self.assertEqual(orden.argumentos, ("aplicar", "4312"))
+        ruta = "C:\\Users\\Public\\upd.exe"
+        orden = construir("terminar_proceso", windows(processId="4312", image=ruta), sistema="windows")
+        self.assertEqual(orden.argumentos, ("aplicar", "4312", ruta))
 
     def test_servicio(self):
         orden = construir("detener_servicio", windows(serviceName="Spooler"), sistema="windows")

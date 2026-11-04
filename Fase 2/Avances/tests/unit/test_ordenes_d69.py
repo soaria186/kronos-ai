@@ -236,6 +236,33 @@ class RevertirTarea(unittest.TestCase):
             construir("revertir_tarea", linux(data={"srcip": "198.51.100.9"}), sistema="linux")
 
 
+class TerminarProceso(unittest.TestCase):
+    def test_lleva_el_pid_y_el_ejecutable(self):
+        ruta = "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe"
+        orden = construir("terminar_proceso", win(processId="4312", image=ruta), sistema="windows")
+        # Un programa de C:\Windows se puede terminar, aunque no se ponga en cuarentena.
+        self.assertEqual(orden.argumentos, ("aplicar", "4312", ruta))
+
+    def test_linux_desde_auditd(self):
+        alerta = linux(data={"audit": {"pid": "2211", "exe": "/tmp/.x/minero"}})
+        self.assertEqual(construir("terminar_proceso", alerta, sistema="linux").argumentos, ("aplicar", "2211", "/tmp/.x/minero"))
+
+    def test_no_usa_syscheck(self):
+        alerta = win(processId="4312")
+        alerta["syscheck"] = {"path": "C:\\Users\\Public\\upd.exe"}
+        with self.assertRaises(ArgumentoFaltante):
+            construir("terminar_proceso", alerta, sistema="windows")
+
+    def test_sin_ejecutable_es_argumento_faltante(self):
+        with self.assertRaises(ArgumentoFaltante):
+            construir("terminar_proceso", win(processId="4312"), sistema="windows")
+
+    def test_ejecutable_invalido(self):
+        for ruta in ("C:\\a;b.exe", "C:\\PROGRA~1\\x.exe", "/tmp/x", "powershell.exe"):
+            with self.subTest(ruta=ruta), self.assertRaises(OrdenInvalida):
+                construir("terminar_proceso", win(processId="4312", image=ruta), sistema="windows")
+
+
 class ArgumentoFaltanteEnTodas(unittest.TestCase):
     def test_sin_campo_es_argumento_faltante(self):
         for accion in (

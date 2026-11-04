@@ -58,6 +58,9 @@ _CAMPOS_CUENTA = (
     ("data", "srcuser"),
 )
 _CAMPOS_PID = (("data", "win", "eventdata", "processId"), ("data", "audit", "pid"))
+# Ejecutable del proceso a terminar (Sysmon y auditd): el script confirma que el PID siga
+# siendo ese programa antes de terminarlo, para no matar otro proceso que heredó el PID.
+_CAMPOS_IMAGEN = (("data", "win", "eventdata", "image"), ("data", "audit", "exe"))
 _CAMPOS_SERVICIO = (("data", "win", "eventdata", "serviceName"),)
 # IP de destino (F4): Linux y Sysmon (evento 3).
 _CAMPOS_IP_DESTINO = (("data", "dstip"), ("data", "win", "eventdata", "destinationIp"))
@@ -284,13 +287,13 @@ def _objetivo(
     if accion == "bloquear_destino":
         return (_ip(alerta, _CAMPOS_IP_DESTINO, ip_protegidas),)
     if accion == "cuarentena":
-        return (_ruta(alerta, sistema),)
+        return (_ruta(alerta, sistema, _CAMPOS_RUTA, protegidas=True),)
     if accion == "revertir_tarea":
         return (_tarea(alerta, sistema),)
     if accion in ("deshabilitar_cuenta", "cerrar_sesion"):
         return (_cuenta(alerta),)
     if accion == "terminar_proceso":
-        return (_pid(alerta),)
+        return (_pid(alerta), _ruta(alerta, sistema, _CAMPOS_IMAGEN, protegidas=False))
     if accion == "detener_servicio":
         return (_validado(alerta, _CAMPOS_SERVICIO, _SERVICIO, "servicio"),)
     return ()  # aislar_equipo: actúa sobre el propio equipo
@@ -337,25 +340,35 @@ def _normalizada(ip: ipaddress.IPv4Address | ipaddress.IPv6Address) -> str:
     return str(ip)
 
 
-def _ruta(alerta: Mapping[str, Any], sistema: str) -> str:
-    """Ruta absoluta del archivo, con la forma del sistema del agente y fuera de las
-    carpetas protegidas. Nunca se normaliza: lo que no calza se rechaza."""
-    ruta = _primero(alerta, _CAMPOS_RUTA, "la ruta del archivo")
+def _ruta(
+    alerta: Mapping[str, Any],
+    sistema: str,
+    campos: tuple[tuple[str, ...], ...],
+    *,
+    protegidas: bool,
+) -> str:
+    """Ruta absoluta del archivo, con la forma del sistema del agente y, si ``protegidas``,
+    fuera de las carpetas protegidas (cuarentena). Para terminar un proceso la ruta sólo
+    identifica el programa: un powershell.exe de C:\\Windows se puede terminar, pero no
+    poner en cuarentena. Nunca se normaliza: lo que no calza se rechaza."""
+    ruta = _primero(alerta, campos, "la ruta del archivo")
     if sistema == "windows":
         if len(ruta) > LARGO_RUTA_WINDOWS or not _RUTA_WINDOWS.match(ruta):
             raise OrdenInvalida(f"ruta de Windows no permitida: {ruta!r}")
         _sin_puntos(ruta.split("\\")[1:], ruta)
         minuscula = ruta.lower()
-        protegidas = CARPETAS_PROTEGIDAS_WINDOWS
+        carpetas = CARPETAS_PROTEGIDAS_WINDOWS
         separador = "\\"
     else:
         if len(ruta) > LARGO_RUTA_LINUX or not _RUTA_LINUX.match(ruta):
             raise OrdenInvalida(f"ruta de Linux no permitida: {ruta!r}")
         _sin_puntos(ruta.split("/")[1:], ruta)
         minuscula = ruta
-        protegidas = CARPETAS_PROTEGIDAS_LINUX
+        carpetas = CARPETAS_PROTEGIDAS_LINUX
         separador = "/"
-    for carpeta in protegidas:
+    if not protegidas:
+        return ruta
+    for carpeta in carpetas:
         if minuscula == carpeta or minuscula.startswith(carpeta + separador):
             raise OrdenInvalida(f"{ruta!r} está en una carpeta protegida ({carpeta})")
     return ruta

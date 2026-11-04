@@ -47,7 +47,7 @@ Cada agente necesita un script por comando, que recibe la operación y el objeti
 | `kronos-deshabilitar-cuenta` | `aplicar <cuenta>` | `habilitar <cuenta>` | Windows, en la v1.0 (#55) |
 | `kronos-detener-servicio` | `aplicar <servicio>` | `iniciar <servicio>` | Fuera de la v1.0 |
 | `kronos-cerrar-sesion` | `aplicar <cuenta>` | — (la persona vuelve a entrar) | Fuera de la v1.0 |
-| `kronos-terminar-proceso` | `aplicar <pid>` | — | Fuera de la v1.0 |
+| `kronos-terminar-proceso` | `aplicar <pid> <ejecutable>` | — | D-69 |
 | `kronos-cuarentena` | `aplicar <ruta>` | `restaurar <ruta>` | D-69 |
 | `kronos-bloquear-destino` | `aplicar <ip>` | `quitar <ip>` | D-69 |
 | `kronos-limitar-conexiones` | `aplicar <ip>` | `quitar <ip>` | D-69 (en Windows, bloqueo de 10 min, D-71) |
@@ -67,7 +67,7 @@ Se toma el primero que exista, en este orden. Si no hay ninguno, `ARGUMENTO_FALT
 | `bloquear_destino` | `data.dstip`, `data.win.eventdata.destinationIp` | Igual que la anterior |
 | `deshabilitar_cuenta`, `cerrar_sesion` | `data.dstuser`, `data.win.eventdata.targetUserName`, `data.srcuser` | `[A-Za-z0-9._-]`, sin cuentas protegidas |
 | `detener_servicio` | `data.win.eventdata.serviceName` | `[A-Za-z0-9._@-]` |
-| `terminar_proceso` | `data.win.eventdata.processId`, `data.audit.pid` | Número, 5 o más |
+| `terminar_proceso` | PID: `data.win.eventdata.processId`, `data.audit.pid`. Ejecutable: `data.win.eventdata.image`, `data.audit.exe` | PID: número, 5 o más. Ejecutable: la misma forma de ruta que la cuarentena, pero **sin** las carpetas protegidas (un `powershell.exe` se puede terminar). El script confirma que el PID siga siendo ese programa |
 | `cuarentena` | `syscheck.path`, `data.win.eventdata.image`, `data.audit.exe` (el orden de la categoría «programa» de la lista de exclusión) | Ruta absoluta con la forma del sistema del agente (`C:\…` o `/…`), sin `.` ni `..`, sin `~`, sin caracteres de shell ni comodines, y fuera de `C:\Windows`, las carpetas del agente, de NetBird y de Kronos, o de `/bin`, `/boot`, `/dev`, `/etc`, `/lib*`, `/proc`, `/run`, `/sbin`, `/sys`, `/usr`, `/var/lib` y `/var/ossec` |
 | `revertir_tarea` | Windows: `data.win.eventdata.taskName`. Linux: `syscheck.path` | Windows: `\carpeta\tarea`, con la misma lista de caracteres. Linux: un archivo de `/etc/crontab`, `/etc/cron.*/`, `/var/spool/cron/` o un `.timer` de `/etc/systemd/system/` |
 

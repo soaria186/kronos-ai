@@ -232,7 +232,8 @@ class ContratoConExecute(unittest.TestCase):
         repo = RepoFalso()
         registrar(repo, 1, alerta)
         orden = construir("terminar_proceso", repo.llamadas[0]["detalle"]["alerta"], sistema="windows")
-        self.assertEqual((orden.agente, orden.argumentos), ("007", ("aplicar", "4312")))
+        imagen = "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe"
+        self.assertEqual((orden.agente, orden.argumentos), ("007", ("aplicar", "4312", imagen)))
 
 
 class EjecutarSoloLoQueSeRevisó(unittest.TestCase):
