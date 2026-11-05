@@ -1,7 +1,8 @@
 """Servicio SOAR-VALIDATE: ``python -m validacion``.
 
 Lee alerts.json de Wazuh (en sólo lectura) y, por cada alerta que pasó por una regla de
-sobre, corre el ciclo de validacion.ciclo. Una alerta a la vez.
+sobre, corre el ciclo de validacion.ciclo. Una alerta a la vez, y antes de cada una vuelve
+a leer el archivo (validacion.bucle) para que el cortacircuito cuente lo que va llegando.
 
 Variables de entorno:
     KRONOS_DSN                  conexión a SOAR-AUDIT como kronos_worker, SIN contraseña
@@ -26,7 +27,6 @@ import logging
 import os
 import sys
 import time
-from collections import Counter
 from pathlib import Path
 
 from psycopg.conninfo import make_conninfo
@@ -37,6 +37,7 @@ from decision.ollama import URL_POR_DEFECTO, ClienteOllama
 from decision.plantillas import Plantillas
 from persistencia.repositorio import ACTOR_VALIDATE, Decision, Repositorio
 from validacion import posicion
+from validacion.bucle import Bucle
 from validacion.catalogo import cargar_catalogo
 from validacion.ciclo import PLAZO_POR_OMISION, Validador
 from validacion.configuracion import cargar_configuracion
@@ -104,28 +105,18 @@ def main() -> int:
         )
 
     registro.info("en marcha para el inquilino %s", inquilino)
+    # Se vuelve a leer alerts.json antes de cada alerta (validacion.bucle): lo que llega
+    # mientras el modelo decide se cuenta para el cortacircuito en la vuelta siguiente,
+    # no al terminar todo el lote (hallazgo H2).
+    bucle = Bucle(
+        lector,
+        validador,
+        inquilino,
+        (lambda p: posicion.guardar(archivo_posicion, p)) if archivo_posicion else None,
+    )
     while True:
-        alertas = lector.leer()
-        resumen: Counter[str] = Counter()
-        # El cortacircuito mide las alertas que llegan, no las que alcanzan a procesarse:
-        # el lote se cuenta completo antes de llamar al modelo con la primera.
-        validador.anotar_llegadas(inquilino, alertas)
-        for alerta in alertas:
-            try:
-                resultado = validador.procesar(inquilino, alerta)
-            except Exception:  # noqa: BLE001 - una alerta con error no detiene a las demás
-                registro.exception("error al procesar la alerta %s", alerta.get("id"))
-                resumen["error"] += 1
-                continue
-            resumen[resultado.motivo or resultado.destino.value] += 1
-        if alertas:
-            registro.info("lote de %d alertas: %s", len(alertas), dict(resumen))
-            if archivo_posicion:
-                try:
-                    posicion.guardar(archivo_posicion, lector.posicion)
-                except OSError:
-                    registro.exception("no se pudo guardar la posición de lectura")
-        time.sleep(intervalo)
+        if not bucle.vuelta():
+            time.sleep(intervalo)
 
 
 if __name__ == "__main__":

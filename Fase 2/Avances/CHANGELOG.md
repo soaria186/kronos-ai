@@ -28,6 +28,7 @@ Milestone [«v1.0: cierre»](https://github.com/soaria186/kronos-ai/milestone/1)
 ### Corregido
 
 - Coherencia entre el código, la configuración y la documentación: `.env.example` con todas las variables, la imagen de servicios se construye una sola vez y los textos que seguían «pendientes» de cosas ya resueltas (#76).
+- El cortacircuito se abría tarde en una ráfaga (H2 de la prueba integral del 03-11): VALIDATE leía un lote y no volvía a leer `alerts.json` hasta procesarlo entero, así que lo que llegaba mientras el modelo decidía no se contaba. Ahora relee el archivo antes de cada alerta (`validacion/bucle.py`) y la ráfaga de E6 abre el cortacircuito con la segunda alerta, no con la decimocuarta.
 
 ### Documentación
 

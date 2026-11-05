@@ -16,6 +16,8 @@ Orden de cada alerta de alerts.json (``Validador.procesar``):
     completo antes de procesar la primera, y el cortacircuito toma el MAYOR entre esas
     llegadas y lo que SOAR-AUDIT tiene registrado en la ventana (tickets más alertas
     agrupadas). Se usa el máximo y no la suma para no contar dos veces una misma alerta.
+    El servicio relee alerts.json antes de cada alerta (validacion.bucle), así que lo que
+    llega mientras el modelo decide se anota en la vuelta siguiente (hallazgo H2).
     Limitación: las llegadas viven en memoria; si VALIDATE se reinicia se pierden y sólo
     queda lo registrado en la base. Una alerta releída tras una rotación del archivo
     también cuenta como llegada.
