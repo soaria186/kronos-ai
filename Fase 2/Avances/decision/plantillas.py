@@ -71,10 +71,21 @@ class Plantillas:
     def prompt_familia(self, alerta: str) -> str:
         return self.paso1.replace("{{alerta}}", alerta)
 
+    def candidatos(self, familia: str, excluir: frozenset[str] = frozenset()) -> tuple[str, ...]:
+        """Candidatos del paso 2 sin los de ``excluir``; si no queda ninguno, todos."""
+        todos = self.familias[familia].candidatos
+        quedan = tuple(c for c in todos if c not in excluir)
+        return quedan or todos
+
     def prompt_playbook(
         self, familia: str, alerta: str, ambito_ip: str | None = None
     ) -> str:
-        """Prompt del paso 2. ``ambito_ip`` es «interna», «externa» o None (se ignora)."""
+        """Prompt del paso 2. ``ambito_ip`` es «interna», «externa» o None (se ignora).
+
+        El texto no cambia con ``candidatos(excluir)``: las medidas excluidas se quitan sólo
+        del esquema de la respuesta (decision.inferencia). Así, si el modelo iba a elegir una
+        medida posible, con temperature = 0 elige la misma que con el prompt medido.
+        """
         datos = self.familias[familia]
         condiciones = datos.condiciones
         if ambito_ip in NOTA_AMBITO:
