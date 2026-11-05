@@ -3,7 +3,7 @@
   "version": "1.0",
   "estado": "aprobado",
   "fuente": "Anexo — Catálogo de medidas de Kronos AI, borrador 0.1 (08-10-2026)",
-  "nota": "Versión 1.0 para la entrega (D-60). Las 25 medidas siguen en el catálogo y el modelo puede elegir cualquiera, pero en la v1.0 sólo tres acciones tienen script de Active Response (actuadores_v1). Si el modelo elige otra, Kronos no toca el equipo: el ticket termina en FAILED con ACCION_NO_IMPLEMENTADA y se avisa por Telegram, salvo en el nivel 0, que no avisa (D-50). Los 60 minutos del nivel 1 (D-45) y los playbooks de un solo paso (D-44) ya están decididos.",
+  "nota": "Versión 1.0 para la entrega. Las 25 medidas tienen actuador en Linux y Windows (D-69, reemplaza a D-60): la consulta de nivel 0 se hace por la API de Wazuh desde el servidor (D-72) y las demás acciones por Active Response; en Windows, limitar conexiones es un bloqueo de entrada de 10 minutos (D-71). actuadores_v1 dice qué acciones están activas en cada sistema operativo: cada una se agrega ahí después de probar su script en el laboratorio. Si el modelo elige una que todavía no está activa, Kronos no toca el equipo: el ticket termina en FAILED con ACCION_NO_IMPLEMENTADA y se avisa por Telegram, salvo en el nivel 0, que no avisa (D-50). Los 60 minutos del nivel 1 (D-45) y los playbooks de un solo paso (D-44) ya están decididos.",
   "acciones": {
     "consulta": {
       "descripcion": "Consulta de sólo lectura",
@@ -51,7 +51,7 @@
     }
   },
   "actuadores_v1": {
-    "nota": "Acciones con script de Active Response en la versión 1.0, según el sistema operativo del agente (D-60). Las demás acciones, o éstas en otro sistema operativo, no se aplican",
+    "nota": "Acciones activas en la versión 1.0, según el sistema operativo del agente (D-69). Una acción se agrega aquí después de probar su script en EP-SRV-01 (Linux) o EP-WKS-01 (Windows). Las demás, o éstas en otro sistema operativo, terminan en ACCION_NO_IMPLEMENTADA sin tocar el equipo",
     "linux": [
       "bloquear_ip"
     ],
@@ -62,9 +62,9 @@
     ]
   },
   "puntos_abiertos": [
-    "Comandos que faltan: consultas de sólo lectura (nivel 0), cuarentena, cerrar sesión, terminar proceso y detener servicio, y las tres acciones adicionales (bloquear destino, limitar conexiones y revertir tarea) o su reemplazo por una de las siete básicas",
-    "deshabilitar_cuenta y aislar_equipo en Linux",
-    "Carpeta de cuarentena y plazo de conservación de lo que se guarda en ella; si la cuarentena y la reversión de tareas se restauran solas al vencer un plazo o sólo a mano",
+    "Activar en actuadores_v1 las acciones que faltan, después de probar cada script en EP-SRV-01 y EP-WKS-01 (prueba integral 2, 06-11)",
+    "Plazo de conservación de lo que queda en la carpeta de cuarentena, y si la cuarentena y la reversión de tareas se restauran solas al vencer un plazo o sólo a mano",
+    "PB-F4-01 bloquea la IP de destino de la alerta, no un dominio: un dominio que cambia de IP no queda bloqueado",
     "PB-F6-04 y PB-F6-05 (nivel 3) no se pueden aprobar: las reglas de sobre de F6 tienen severidad 7, y validate.json permite como máximo el nivel 1 con esa severidad",
     "Volver a aplicar las medidas vigentes cuando un equipo se reinicia o se reconecta (D-52; limitación documentada de la v1.0)"
   ],
@@ -87,9 +87,7 @@
         "plazo_minutos": null,
         "como": "No aplica"
       },
-      "pendiente": [
-        "Cómo se ejecutan las consultas de sólo lectura"
-      ]
+      "pendiente": []
     },
     {
       "id": "PB-F1-02",
@@ -171,9 +169,7 @@
         "plazo_minutos": null,
         "como": "Botón en la consola, a cargo de una persona autorizada; no se revierte sola"
       },
-      "pendiente": [
-        "Confirmar en EP-WKS-01 que no se borra ni se cambia la contraseña (#48)"
-      ]
+      "pendiente": []
     },
     {
       "id": "PB-F2-01",
@@ -193,9 +189,7 @@
         "plazo_minutos": null,
         "como": "No aplica"
       },
-      "pendiente": [
-        "Cómo se ejecutan las consultas de sólo lectura"
-      ]
+      "pendiente": []
     },
     {
       "id": "PB-F2-02",
@@ -216,7 +210,7 @@
         "como": "Se restaura desde la consola"
       },
       "pendiente": [
-        "Carpeta de cuarentena y su conservación",
+        "Plazo de conservación de lo que queda en la carpeta de cuarentena",
         "Nivel 1 sin reversión automática: decidir si se restaura sola al vencer un plazo"
       ]
     },
@@ -299,9 +293,7 @@
         "plazo_minutos": null,
         "como": "Se quitan las reglas desde la consola, por una persona autorizada"
       },
-      "pendiente": [
-        "Confirmar en EP-WKS-01 que el aislamiento deja abierto el canal con Kronos (#48)"
-      ]
+      "pendiente": []
     },
     {
       "id": "PB-F3-04",
@@ -341,8 +333,7 @@
         "como": "Se quita sola al vencer el plazo"
       },
       "pendiente": [
-        "Cómo se bloquea un dominio",
-        "Acción adicional: implementarla o reemplazarla por una de las siete"
+        "Bloquea la IP de destino de la alerta, no un dominio"
       ]
     },
     {
@@ -402,7 +393,7 @@
         "como": "Se restaura desde la consola"
       },
       "pendiente": [
-        "Carpeta de cuarentena y su conservación",
+        "Plazo de conservación de lo que queda en la carpeta de cuarentena",
         "Nivel 1 sin reversión automática: decidir si se restaura sola al vencer un plazo"
       ]
     },
@@ -426,8 +417,7 @@
       },
       "pendiente": [
         "Confirmar que se guarda la definición de la tarea",
-        "Nivel 1 sin reversión automática: decidir si se restaura sola al vencer un plazo",
-        "Acción adicional: implementarla o reemplazarla por una de las siete"
+        "Nivel 1 sin reversión automática: decidir si se restaura sola al vencer un plazo"
       ]
     },
     {
@@ -449,7 +439,7 @@
         "como": "Se restaura desde la consola, por una persona autorizada"
       },
       "pendiente": [
-        "Carpeta de cuarentena y su conservación"
+        "Plazo de conservación de lo que queda en la carpeta de cuarentena"
       ]
     },
     {
@@ -508,9 +498,7 @@
         "plazo_minutos": null,
         "como": "No aplica"
       },
-      "pendiente": [
-        "Cómo se ejecutan las consultas de sólo lectura"
-      ]
+      "pendiente": []
     },
     {
       "id": "PB-F6-02",
@@ -550,10 +538,7 @@
         "plazo_minutos": 60,
         "como": "Se quita sola al vencer el plazo"
       },
-      "pendiente": [
-        "Confirmar cómo se limita con el firewall",
-        "Acción adicional: implementarla o reemplazarla por una de las siete"
-      ]
+      "pendiente": []
     },
     {
       "id": "PB-F6-04",
