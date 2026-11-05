@@ -83,8 +83,13 @@ def clasificar(
     plazo: float,
     reloj: Callable[[], float] = time.monotonic,
     ambito_ip: str | None = None,
+    excluir: frozenset[str] = frozenset(),
 ) -> Clasificacion | FallaSegura:
-    """``ambito_ip`` («interna», «externa» o None) sólo llega al prompt del paso 2."""
+    """``ambito_ip`` («interna», «externa» o None) sólo llega al prompt del paso 2.
+
+    ``excluir``: playbooks que el paso 2 no acepta como respuesta (ver
+    ``Plantillas.candidatos``). El prompt no cambia: sólo el esquema JSON de la respuesta.
+    """
     if plazo <= 0:
         raise ValueError("el plazo debe ser positivo")
     limite = reloj() + plazo
@@ -102,7 +107,7 @@ def clasificar(
         return resultado
     familia = resultado
 
-    candidatos = plantillas.familias[familia.familia].candidatos
+    candidatos = plantillas.candidatos(familia.familia, excluir)
     resultado = _paso(
         2,
         modelo,

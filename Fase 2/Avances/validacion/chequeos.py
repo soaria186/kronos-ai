@@ -62,6 +62,9 @@ class Playbook:
     # «externa» o «interna» si la medida sólo vale para una IP de ese ámbito (bloquear la
     # IP externa de un ataque, o la de otro equipo de la organización); None si no aplica.
     ambito_ip: str | None = None
+    # Acción del catálogo (bloquear_ip, cuarentena...). Con ella VALIDATE no acepta del
+    # modelo una medida cuyo dato no viene en la alerta (validacion.ciclo).
+    accion: str | None = None
 
     def __post_init__(self) -> None:
         if self.familia not in FAMILIAS:

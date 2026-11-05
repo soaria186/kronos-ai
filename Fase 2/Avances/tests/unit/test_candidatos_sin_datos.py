@@ -1,0 +1,212 @@
+"""El paso 2 no acepta medidas cuyo dato no viene en la alerta (hallazgo de E4, 04-11).
+
+Con la alerta real de E4 (registro de auditoría borrado en un puesto, sin archivo ni
+tarea), el modelo eligió las 5 veces la cuarentena (PB-F5-03), que EXECUTE termina en
+ARGUMENTO_FALTANTE. VALIDATE ahora quita esas medidas del esquema de la respuesta del paso 2
+(el texto del prompt no cambia).
+"""
+
+import json
+import unittest
+from collections import namedtuple
+from dataclasses import dataclass
+
+from decision.inferencia import clasificar
+from decision.plantillas import Plantillas
+from ejecucion.ordenes import falta_argumento
+from validacion.catalogo import cargar_catalogo
+from validacion.ciclo import Destino, Validador
+from validacion.configuracion import cargar_configuracion
+
+PLANTILLAS = Plantillas.cargar()
+CATALOGO = cargar_catalogo()
+CONFIG = cargar_configuracion()
+
+Ticket = namedtuple("Ticket", "ticket_id nuevo")
+
+
+def alerta(regla, nivel, grupos, agente, datos, ubicacion):
+    return {
+        "timestamp": "2026-11-04T20:00:00.000+0000",
+        "rule": {"level": nivel, "description": "prueba", "id": regla, "firedtimes": 1,
+                 "groups": grupos},
+        "agent": agente,
+        "id": f"prueba-{regla}",
+        "location": ubicacion,
+        "data": datos,
+    }
+
+
+PUESTO = {"id": "002", "name": "EP-WKS-01", "ip": "192.0.2.20"}
+
+
+def e4():
+    """Registro de auditoría borrado en EP-WKS-01: no trae archivo ni tarea."""
+    return alerta(
+        "100113", 12, ["windows", "kronos", "kronos_f5"], PUESTO,
+        {"win": {"system": {"eventID": "1102", "channel": "Security"},
+                 "eventdata": {"subjectUserName": "usuario.ejemplo"}}},
+        "EventChannel",
+    )
+
+
+def con_archivo():
+    """Un ejecutable sospechoso en un puesto, con su ruta (Sysmon)."""
+    return alerta(
+        "100112", 10, ["windows", "kronos", "kronos_f5"], PUESTO,
+        {"win": {"system": {"eventID": "11"},
+                 "eventdata": {"image": "C:\\Users\\usuario01\\Downloads\\factura.exe",
+                               "targetFilename": "C:\\Users\\usuario01\\Downloads\\factura.exe"}}},
+        "EventChannel",
+    )
+
+
+class FaltaArgumento(unittest.TestCase):
+    def test_cuarentena_sin_ruta(self):
+        self.assertTrue(falta_argumento("cuarentena", e4()))
+
+    def test_cuarentena_con_ruta(self):
+        self.assertFalse(falta_argumento("cuarentena", con_archivo()))
+
+    def test_revertir_tarea_sin_nombre(self):
+        self.assertTrue(falta_argumento("revertir_tarea", e4()))
+
+    def test_aislar_no_necesita_datos(self):
+        self.assertFalse(falta_argumento("aislar_equipo", e4()))
+
+    def test_un_valor_invalido_no_es_un_dato_faltante(self):
+        # Una ruta del sistema la rechaza EXECUTE (ORDEN_INVALIDA), como siempre: aquí no.
+        a = con_archivo()
+        a["data"]["win"]["eventdata"]["targetFilename"] = "C:\\Windows\\System32\\cmd.exe"
+        a["data"]["win"]["eventdata"]["image"] = "C:\\Windows\\System32\\cmd.exe"
+        self.assertFalse(falta_argumento("cuarentena", a))
+
+    def test_sin_sistema_operativo_conocido_no_excluye(self):
+        a = e4()
+        del a["data"]["win"]
+        a["location"] = "desconocida"
+        self.assertFalse(falta_argumento("cuarentena", a))
+
+    def test_la_consulta_y_las_acciones_sin_comando_no_se_excluyen(self):
+        self.assertFalse(falta_argumento("consulta", e4()))
+        self.assertFalse(falta_argumento("no_existe", e4()))
+
+
+class CandidatosDelPaso2(unittest.TestCase):
+    def test_sin_exclusiones_quedan_todos(self):
+        self.assertEqual(PLANTILLAS.candidatos("F5"), PLANTILLAS.familias["F5"].candidatos)
+
+    def test_se_quitan_de_los_candidatos(self):
+        quedan = PLANTILLAS.candidatos("F5", frozenset({"PB-F5-03"}))
+        self.assertNotIn("PB-F5-03", quedan)
+        self.assertIn("PB-F5-04", quedan)
+
+    def test_si_se_excluyen_todos_se_ofrecen_todos(self):
+        todos = frozenset(PLANTILLAS.familias["F5"].candidatos)
+        self.assertEqual(PLANTILLAS.candidatos("F5", todos), PLANTILLAS.familias["F5"].candidatos)
+
+    def test_las_exclusiones_de_otra_familia_no_cambian_nada(self):
+        self.assertEqual(
+            PLANTILLAS.candidatos("F5", frozenset({"PB-F1-02"})),
+            PLANTILLAS.familias["F5"].candidatos,
+        )
+
+
+class ModeloQueGuarda:
+    def __init__(self, *respuestas):
+        self.respuestas = list(respuestas)
+        self.prompts = []
+        self.esquemas = []
+
+    def generar(self, prompt, esquema, plazo):
+        self.prompts.append(prompt)
+        self.esquemas.append(esquema)
+        return self.respuestas.pop(0)
+
+
+def modelo(familia, playbook):
+    return ModeloQueGuarda(
+        json.dumps({"familia": familia, "confianza": 0.9}),
+        json.dumps({"playbook_id": playbook, "confianza": 0.85}),
+    )
+
+
+class ClasificarConExclusiones(unittest.TestCase):
+    def test_el_modelo_no_puede_elegir_un_excluido(self):
+        m = modelo("F5", "PB-F5-03")
+        resultado = clasificar("ALERTA", m, PLANTILLAS, 60, excluir=frozenset({"PB-F5-03"}))
+        self.assertNotIn("PB-F5-03", json.dumps(m.esquemas[1]))
+        self.assertFalse(hasattr(resultado, "playbook_id"))  # falla segura: fuera del esquema
+
+    def test_el_prompt_es_el_mismo_que_sin_exclusiones(self):
+        # Sólo cambia el esquema: si el modelo iba a elegir una medida posible, elige la misma.
+        con, sin = modelo("F5", "PB-F5-04"), modelo("F5", "PB-F5-04")
+        clasificar("ALERTA", con, PLANTILLAS, 60, excluir=frozenset({"PB-F5-03"}))
+        clasificar("ALERTA", sin, PLANTILLAS, 60)
+        self.assertEqual(con.prompts, sin.prompts)
+
+
+@dataclass(frozen=True)
+class DecisionFalsa:
+    familia: str | None
+    playbook_id: str | None
+    confianza: float | None
+    nivel: int | None
+    motivo: str | None = None
+    detalle: str = ""
+    equipo: str | None = None
+
+
+class AlmacenFalso:
+    def __init__(self):
+        self.registradas = []
+        self.decisiones = []
+
+    def registrar_alerta(self, tenant_id, alerta_ref, titulo, severidad, detalle=None):
+        self.registradas.append(alerta_ref)
+        return Ticket(len(self.registradas), True)
+
+    def agrupar_alerta(self, tenant_id, ticket_id, detalle):
+        pass
+
+    def registrar_decision(self, tenant_id, ticket_id, decision):
+        self.decisiones.append(decision)
+        return len(self.decisiones)
+
+    def usos(self, tenant_id, definiciones, equipo=None, playbook_id=None):
+        return {c.nombre: 0 for c in CONFIG.contadores}
+
+    def alertas_en_ventana(self, tenant_id, ventana_minutos):
+        return 1
+
+    def cortacircuito_abierto(self, tenant_id):
+        return False
+
+    def abrir_cortacircuito(self, tenant_id, motivo):
+        return True
+
+
+class ValidadorConLaAlertaDeE4(unittest.TestCase):
+    def procesar(self, alerta_wazuh, familia, playbook):
+        m = modelo(familia, playbook)
+        almacen = AlmacenFalso()
+        v = Validador(almacen, m, PLANTILLAS, CATALOGO, CONFIG, DecisionFalsa)
+        return v.procesar(1, alerta_wazuh), m, almacen
+
+    def test_e4_no_acepta_cuarentena_ni_revertir_tarea(self):
+        resultado, m, almacen = self.procesar(e4(), "F5", "PB-F5-04")
+        esquema = json.dumps(m.esquemas[1])
+        for excluido in ("PB-F5-01", "PB-F5-02", "PB-F5-03"):
+            self.assertNotIn(excluido, esquema)
+        self.assertIn("PB-F5-04", esquema)
+        self.assertIn("- PB-F5-03 (", m.prompts[1])  # el texto del prompt no cambia
+        self.assertEqual(resultado.destino, Destino.APROBADA)
+        self.assertEqual(almacen.decisiones[0].playbook_id, "PB-F5-04")
+
+    def test_con_archivo_la_cuarentena_sigue_disponible(self):
+        _, m, _ = self.procesar(con_archivo(), "F5", "PB-F5-03")
+        self.assertIn("PB-F5-03", json.dumps(m.esquemas[1]))
+
+
+if __name__ == "__main__":
+    unittest.main()
