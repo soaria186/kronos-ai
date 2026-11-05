@@ -13,6 +13,7 @@ el script `.ps1` que hace el trabajo. Compatibles con Windows PowerShell 5.1.
 | `kronos-aislar-equipo` | `kronos-aislar-equipo.cmd` + `.ps1` | `aplicar`: corta todo el tráfico del equipo **salvo el canal del agente con el manager** | `quitar`: deja el firewall exactamente como estaba |
 | `kronos-cerrar-sesion` | `kronos-cerrar-sesion.cmd` + `.ps1` | `aplicar <cuenta>`: cierra todas las sesiones de la cuenta **local** (`quser` + `logoff`) | No se revierte: la persona puede volver a entrar |
 | `kronos-bloquear-destino` | `kronos-bloquear-destino.cmd` + `.ps1` | `aplicar <ip>`: regla de **salida** `Kronos-destino-<ip>` con `netsh advfirewall` | `quitar <ip>`: borra esa regla |
+| `kronos-limitar-conexiones` | `kronos-limitar-conexiones.cmd` + `.ps1` | `aplicar <ip>`: bloquea la **entrada** desde la IP por **10 minutos** (regla y tarea programada `Kronos-limite-<ip>`, D-71) | `quitar <ip>`: quita el bloqueo antes de tiempo |
 | `kronos-detener-servicio` | `kronos-detener-servicio.cmd` + `.ps1` | `aplicar <servicio>`: detiene el servicio (`Stop-Service`, sin `-Force`) | `iniciar <servicio>`: lo vuelve a poner en marcha, **sólo si lo detuvo Kronos** |
 | `kronos-cuarentena` | `kronos-cuarentena.cmd` + `.ps1` | `aplicar <ruta>`: mueve el archivo a `C:\ProgramData\Kronos\cuarentena\` (sólo Administradores y SYSTEM), con su huella y sus permisos | `restaurar <ruta>`: lo devuelve, si la huella sigue igual y la ruta está libre |
 
@@ -55,6 +56,17 @@ Son una segunda línea de defensa: EXECUTE (`ejecucion/ordenes.py`) ya valida lo
 - Además nunca bloquea sus **servidores DNS**, la red de **NetBird** (`100.64.0.0/10`) ni
   el **manager de Wazuh** (la dirección de `<server>` en `ossec.conf`, que se resuelve si
   es un nombre). Si no puede leer esa dirección, sale con 1 sin tocar el firewall.
+
+### `kronos-limitar-conexiones`
+
+- El firewall de Windows no limita la cantidad de conexiones por IP. Por eso (D-71) bloquea
+  la **entrada** desde la IP por **10 minutos** (PB-F6-03): regla `Kronos-limite-<ip>` y una
+  tarea programada `\Kronos\Kronos-limite-<ip>` (cuenta SYSTEM) que la borra al vencer y
+  luego se borra sola. Si la tarea no se puede crear, borra la regla y sale con 1: nunca
+  queda un bloqueo sin vencimiento.
+- Las mismas barreras de `kronos-bloquear-destino`: nunca el propio equipo, la puerta de
+  enlace, los DNS, la red de NetBird ni el manager de Wazuh.
+- `quitar` borra la regla y la tarea. Las dos órdenes son idempotentes.
 
 ### `kronos-terminar-proceso`
 
