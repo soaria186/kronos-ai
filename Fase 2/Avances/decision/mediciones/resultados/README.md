@@ -114,3 +114,45 @@ sus 6 commits en [`../experimentos/prompt-v2.patch`](../experimentos/prompt-v2.p
 
 Para revisar el prompt v2 sin tocar el proyecto: `git apply --stat ../experimentos/prompt-v2.patch` muestra qué
 cambia, y `git am` en una rama aparte lo aplica con sus autores y fechas.
+
+## Paso 2 sólo con medidas aplicables (propuesta del 04-11)
+
+Desde E4 con la alerta real (#67), el modelo elegía la cuarentena (PB-F5-03) para un registro de auditoría borrado,
+y esa alerta no trae archivo: EXECUTE la terminaba en `ARGUMENTO_FALTANTE`. La propuesta es que VALIDATE quite del
+**esquema de la respuesta** del paso 2 las medidas cuyo dato no viene en la alerta (`ejecucion.ordenes.falta_argumento`).
+El texto del prompt no cambia. Con temperature = 0, si el modelo iba a elegir una medida posible, elige la misma.
+
+Medido el 04-11 desde el PC de Patricio contra el Ollama de SOAR-CORE-01 (qwen2.5:7b). Se usaron los 71 casos de
+`casos_150` en los que cambia el esquema (`tools/medir_sin_datos.py`), una vez en `develop` y otra con el cambio:
+`sin_datos_antes_qwen2.5_7b_20261104.csv` y `sin_datos_despues_qwen2.5_7b_20261104.csv`.
+
+| | Antes | Después |
+| :--- | :-: | :-: |
+| Medida elegida sin su dato (`ARGUMENTO_FALTANTE`) | 32 de 71 | **0 de 71** |
+| Casos con otra respuesta | — | 32, justo los que antes eran imposibles |
+
+| Antes → después | Casos | Qué cambia |
+| :--- | :-: | :--- |
+| PB-F5-03 → PB-F5-05 | 10 | De una cuarentena sin archivo a aislar un servidor (nivel 3). 8 son la regla 100111, cuenta nueva o usuario en sudo |
+| PB-F3-01 → PB-F3-03 / PB-F3-04 | 8 / 4 | Movimiento lateral sin IP de origen: de bloquear la IP a aislar el equipo (nivel 3) |
+| PB-F5-01 → PB-F5-02 | 5 | Persistencia sin archivo: de la cuarentena a revertir la tarea (nivel 1) |
+| PB-F4-01 → PB-F4-02 | 3 | Salida sin IP de destino: de bloquear el destino a aislar el equipo (nivel 3) |
+| PB-F2-03 → PB-F2-01 | 1 | Proceso sin PID: de terminarlo a reunir contexto (nivel 0) |
+| PB-F5-01 → PB-F5-05 | 1 | Persistencia sin archivo: a aislar un servidor (nivel 3) |
+
+Con las alertas reales, E3 sigue en PB-F1-05 (5/5). E4 pasa de PB-F5-03, que fallaba, a **PB-F5-05**, aislar un
+servidor (5/5, nivel 3, con script en Windows). Los tiempos no cambian: unos 50 s la primera vez y 8 s las demás.
+
+14. **Ninguna medida imposible, sin efectos laterales:** los 39 casos con una medida posible no cambiaron. Una primera
+    versión quitaba las medidas también del texto del prompt. Esa versión acertaba E4 (PB-F5-04), pero 8 casos de F2
+    bajaban de la cuarentena, que sí era posible, a una consulta de nivel 0. Por eso se descartó.
+15. **Lo que sube de nivel pide aprobación:** 16 casos pasan de una medida de nivel 1 que fallaba (no hacía nada) a
+    aislar el equipo, que es de nivel 3 y espera la aprobación del encargado de TI. En F3 coincide con lo que la
+    conclusión 11 decía que correspondía.
+16. **Puesto o servidor:** el modelo no distingue el tipo de equipo. E4 ocurre en un puesto (EP-WKS-01) y elige
+    PB-F5-05 (servidor) en vez de PB-F5-04 (puesto). Las dos medidas ejecutan lo mismo (`aislar_equipo` sobre el equipo de la alerta),
+    así que el efecto es el correcto. Lo que queda mal es el nombre de la medida en el ticket y en el aviso. Los
+    arquetipos del catálogo (`puesto` y `servidor`) permitirían filtrar también por tipo de equipo, con un mapa de
+    equipos por PyME. Queda como mejora.
+17. **Vacío del catálogo:** para una cuenta nueva o un usuario agregado a sudo (regla 100111), F5 no tiene una medida
+    proporcionada. Hoy se propone aislar el servidor, con aprobación.
