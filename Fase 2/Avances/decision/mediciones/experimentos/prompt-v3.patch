@@ -1,0 +1,17 @@
+diff --git a/Fase 2/Avances/decision/prompts/paso2_plantilla.txt b/Fase 2/Avances/decision/prompts/paso2_plantilla.txt
+index 03c7d23..aeeaea7 100644
+--- a/Fase 2/Avances/decision/prompts/paso2_plantilla.txt	
++++ b/Fase 2/Avances/decision/prompts/paso2_plantilla.txt	
+@@ -49,8 +49,10 @@ CÓMO ELEGIR
+ 
+ 1. Compara lo observado en la alerta con la condición de uso de cada playbook candidato y elige el que mejor encaje.
+ 2. Elige solo entre los identificadores de la lista de candidatos. No inventes identificadores ni uses playbooks de otra familia.
+-3. Decide por el comportamiento observado, no por los nombres de cuentas, equipos o procesos que aparezcan.
+-4. Si la alerta no aporta datos suficientes para distinguir entre candidatos, elige el primero de la lista (los candidatos van de menos a más intrusivo) y baja la confianza.
++3. Decide por el comportamiento observado, no por los nombres de cuentas o procesos que aparezcan.
++4. Cada medida necesita un dato de la alerta para poder aplicarse: poner en cuarentena necesita la ruta del archivo; revertir una tarea, el nombre de la tarea; bloquear una IP o un destino, esa dirección; terminar un proceso, su identificador (PID); cerrar la sesión o deshabilitar una cuenta, el nombre de la cuenta. Si la alerta no trae el dato que necesita un candidato, no lo elijas.
++5. Cuando haya un candidato para EQUIPO DE TRABAJO y otro para SERVIDOR, mira el equipo de la alerta (Agent). Si su nombre indica un servidor (por ejemplo srv, server, dc o db), elige el de SERVIDOR; si no, elige el de EQUIPO DE TRABAJO.
++6. Si la alerta no aporta datos suficientes para distinguir entre candidatos, elige el primero de la lista (los candidatos van de menos a más intrusivo) y baja la confianza.
+ 
+ CONFIANZA
+ 
