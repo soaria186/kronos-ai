@@ -6,8 +6,8 @@
   La familia es una pista: la clasificación final la hace el paso 1 del modelo y la
   valida SOAR-VALIDATE.
 
-  Rango de identificadores: 100101 a 100121 (rango reservado para reglas propias). Las 100116 a
-  100121 se agregaron el 10-11-2026 para cubrir los 25 playbooks (prueba integral 2).
+  Rango de identificadores: 100101 a 100122 (rango reservado para reglas propias). Las 100116 a
+  100122 se agregaron el 10-11-2026 para cubrir los 25 playbooks (prueba integral 2).
   Los niveles son una propuesta: se ajustan cuando se fije el mapa de severidad.
   Los números de las reglas nativas se verificaron en el manager el 14-10-2026.
 
@@ -130,6 +130,15 @@
     <if_sid>60228, 2832, 2833, 92301, 92303</if_sid>
     <description>Kronos F5: persistencia programada (tarea, cron o arranque automático)</description>
     <group>kronos_f5,</group>
+  </rule>
+
+  <!-- Tareas que crea el propio Windows (\Microsoft\..., \SoftLanding\...): se descartan para que
+       Kronos no las deshabilite (prueba integral 2, tickets 142 y 143). Un atacante podría
+       esconder una tarea en esas carpetas: queda como límite conocido. -->
+  <rule id="100122" level="0">
+    <if_sid>100112</if_sid>
+    <field name="win.eventdata.taskName" type="pcre2">(?i)^\\\\(Microsoft|SoftLanding)\\\\</field>
+    <description>Kronos: tarea programada propia de Windows (se descarta)</description>
   </rule>
 
   <rule id="100113" level="12">
