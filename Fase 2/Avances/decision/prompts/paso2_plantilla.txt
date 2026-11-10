@@ -29,9 +29,9 @@ PB-F4-02 | Aislar un equipo de trabajo | Exfiltración o canal encubierto activo
 PB-F4-03 | Aislar un servidor | Exfiltración o canal encubierto activo desde un SERVIDOR, donde bloquear el destino no basta.
 
 [F5] Alteración de integridad o persistencia
-PB-F5-01 | Poner en cuarentena el archivo de persistencia | Un archivo nuevo provoca el arranque automático (clave de arranque, cron, servicio) y es el mecanismo de persistencia.
+PB-F5-01 | Poner en cuarentena el archivo de persistencia | Un archivo nuevo provoca el arranque automático (carpeta de Inicio de Windows, clave de arranque, cron, servicio) y es el mecanismo de persistencia.
 PB-F5-02 | Revertir la tarea programada nueva | Se creó una tarea programada nueva y sospechosa.
-PB-F5-03 | Poner en cuarentena un archivo de sistema o de aplicación alterado | Un archivo del sistema o de una aplicación fue modificado o sustituido sin explicación.
+PB-F5-03 | Poner en cuarentena un archivo de sistema o de aplicación alterado | Un archivo del sistema o de una aplicación que ya existía fue modificado o sustituido sin explicación.
 PB-F5-04 | Aislar un equipo de trabajo | Cifrado o borrado masivo de archivos, o registros de auditoría borrados, en un EQUIPO DE TRABAJO.
 PB-F5-05 | Aislar un servidor | Cifrado o borrado masivo de archivos, o registros de auditoría borrados, en un SERVIDOR.
 
@@ -49,8 +49,8 @@ CÓMO ELEGIR
 
 1. Compara lo observado en la alerta con la condición de uso de cada playbook candidato y elige el que mejor encaje.
 2. Elige solo entre los identificadores de la lista de candidatos. No inventes identificadores ni uses playbooks de otra familia.
-3. Decide por el comportamiento observado, no por los nombres de cuentas, equipos o procesos que aparezcan.
-4. Si la alerta no aporta datos suficientes para distinguir entre candidatos, elige el primero de la lista (los candidatos van de menos a más intrusivo) y baja la confianza.
+3. Decide por el comportamiento observado. No supongas que algo es legítimo o malicioso sólo por el nombre de una cuenta, un equipo o un proceso; sí cuentan los hechos técnicos de la alerta, como un comando codificado, un archivo en una carpeta temporal o una dirección de origen.
+4. Reunir contexto es para las alertas ambiguas. Si lo observado coincide con la condición de uso de otro candidato, elige ese aunque sea más intrusivo: Kronos aplica después sus propios límites (nivel, severidad y aprobación de una persona). Sólo si la alerta no aporta datos suficientes para distinguir entre candidatos, elige el primero de la lista (van de menos a más intrusivo) y baja la confianza.
 
 CONFIANZA
 

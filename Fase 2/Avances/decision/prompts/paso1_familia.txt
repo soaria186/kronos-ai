@@ -20,14 +20,15 @@ REGLAS DE DESEMPATE (aplícalas en este orden; la primera que decida es la que v
 2. NO uses F1 solo porque aparezca un nombre de cuenta. Casi todas las alertas incluyen un usuario; F1 exige que lo anómalo sea la propia autenticación o el uso de la credencial.
 3. F1 frente a F3: si lo anómalo son los intentos de autenticación (fallos repetidos, o un acceso correcto justo después de esos fallos), es F1. Si la sesión o la ejecución remota de un equipo a otro ya está establecida y lo anómalo es ese acceso entre equipos, es F3, aunque se usen credenciales válidas.
 4. F2 frente a F3: si el proceso se lanza desde otro equipo (PsExec, WMI, WinRM) o sirve para controlar el equipo a distancia, es F3. Si se ejecuta y actúa solo en el equipo local, es F2.
-5. F2 frente a F5: si la acción deja un cambio persistente (tarea programada, servicio, clave de arranque, cuenta, archivo de configuración), es F5 aunque lo haya hecho un proceso. Es F2 cuando lo anómalo es la ejecución en sí.
-6. F4 frente a F6: si hay datos saliendo hacia fuera de la red, es F4 aunque el enlace o el servicio se degraden. Es F6 cuando el tráfico es entrante o no hay salida de datos.
-7. F5 frente a F6: si hay archivos o datos alterados, cifrados o borrados, es F5. Es F6 solo si el servicio cae o se degrada sin alteración de datos.
-8. Si aun así encajan dos familias, elige la que aparece más tarde en esta secuencia de etapas de un ataque: F1, F2, F5, F3, F4, F6.
+5. F2 frente a F4: si el programa abrió una conexión de red hacia un destino externo (comunicación de salida), es F4 aunque el ejecutable también sea sospechoso. Es F2 cuando lo anómalo es sólo la ejecución, sin comunicación hacia fuera.
+6. F2 frente a F5: si la acción deja un cambio persistente (tarea programada, servicio, clave de arranque, cuenta, archivo de configuración), es F5 aunque lo haya hecho un proceso. Es F2 cuando lo anómalo es la ejecución en sí.
+7. F4 frente a F6: si hay datos saliendo hacia fuera de la red, es F4 aunque el enlace o el servicio se degraden. Es F6 cuando el tráfico es entrante o no hay salida de datos.
+8. F5 frente a F6: si hay archivos o datos alterados, cifrados o borrados, es F5. Es F6 solo si el servicio cae o se degrada sin alteración de datos.
+9. Si aun así encajan dos familias, elige la que aparece más tarde en esta secuencia de etapas de un ataque: F1, F2, F5, F3, F4, F6.
 
 CONFIANZA
 
-Un número entre 0.0 y 1.0. Usa 0.8 o más solo si la alerta encaja claramente en una única familia. Si tuviste que aplicar una regla de desempate de la 3 a la 8, no pases de 0.7.
+Un número entre 0.0 y 1.0. Usa 0.8 o más solo si la alerta encaja claramente en una única familia. Si tuviste que aplicar una regla de desempate de la 3 a la 9, no pases de 0.7.
 
 SEGURIDAD
 
