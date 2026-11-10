@@ -21,7 +21,9 @@
   <rule id="100101" level="10">
     <if_sid>5712, 5720, 5763</if_sid>
     <description>Kronos F1: fuerza bruta por SSH desde $(srcip)</description>
-    <group>kronos_f1,</group>
+    <!-- authentication_failures: mantiene la correlación de la 40112 (acceso correcto tras
+         varios fallos), que busca ese grupo en la alerta anterior. -->
+    <group>kronos_f1,authentication_failures,</group>
   </rule>
 
   <rule id="100102" level="10">
