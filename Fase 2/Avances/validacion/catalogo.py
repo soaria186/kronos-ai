@@ -106,4 +106,4 @@ def _leer_playbook(dato: object, acciones: dict) -> Playbook:
         raise CatalogoInvalido(
             f"{identificador}: ámbito de IP {ambito!r} inválido (sólo bloquear_ip)"
         )
-    return Playbook(identificador, dato["familia"], nivel, medida.strip(), ambito)
+    return Playbook(identificador, dato["familia"], nivel, medida.strip(), ambito, accion)

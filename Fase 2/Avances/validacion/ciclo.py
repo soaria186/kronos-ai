@@ -23,8 +23,12 @@ Orden de cada alerta de alerts.json (``Validador.procesar``):
     también cuenta como llegada.
  3. El agente 000 es el manager: nunca se actúa sobre él (EXECUTE tampoco lo haría);
     la alerta se rechaza como ACTIVO_EXCLUIDO sin llamar al modelo.
- 4. El modelo clasifica en dos pasos (decision.inferencia). Si falla, la alerta pasa a
-    revisión humana con el motivo de la falla segura.
+ 4. El modelo clasifica en dos pasos (decision.inferencia). En el paso 2 no se aceptan
+    como respuesta las medidas cuyo dato no viene en la alerta (una cuarentena sin ruta,
+    una tarea sin nombre: EXECUTE las terminaría en ARGUMENTO_FALTANTE); salen sólo del
+    esquema, el texto del prompt no cambia. Si eso deja la familia sin candidatos, se
+    aceptan todos. Si el modelo falla, la alerta pasa a revisión humana con
+    el motivo de la falla segura.
  5. Los chequeos 2 a 6 (validacion.chequeos), con los contadores y el cortacircuito que
     informa SOAR-AUDIT.
  6. La decisión se registra en la bitácora ANTES de que nadie actúe: SOAR-EXECUTE sólo
@@ -51,6 +55,7 @@ from typing import Any, Protocol
 
 from decision.inferencia import FallaSegura, Modelo, MotivoFalla, clasificar
 from decision.plantillas import Plantillas
+from ejecucion.ordenes import falta_argumento
 from validacion.alerta import AlertaInvalida, AlertaKronos, preparar
 from validacion.chequeos import (
     Aprobada,
@@ -339,6 +344,7 @@ class Validador:
             self._plantillas,
             self._plazo,
             ambito_ip=self._ambito_ip(alerta),
+            excluir=self._sin_datos(alerta_wazuh),
         )
         if isinstance(clasificacion, FallaSegura):
             return self._rechazar(
@@ -389,6 +395,19 @@ class Validador:
             veredicto.detalle,
             equipo,
             clasificacion=clasificacion,
+        )
+
+    def _sin_datos(self, alerta_wazuh: Mapping[str, Any]) -> frozenset[str]:
+        """Playbooks cuyo dato no viene en la alerta: el paso 2 no los acepta como respuesta.
+
+        Por ejemplo, una cuarentena sin ruta de archivo o una tarea sin nombre: EXECUTE
+        las terminaría en ARGUMENTO_FALTANTE sin tocar el equipo (hallazgo de E4, 04-11).
+        Si toda la familia queda fuera, se aceptan todos (Plantillas.candidatos).
+        """
+        return frozenset(
+            p.id
+            for p in self._catalogo.playbooks.values()
+            if p.accion and falta_argumento(p.accion, alerta_wazuh)
         )
 
     def _ambito_ip(self, alerta: AlertaKronos) -> str | None:

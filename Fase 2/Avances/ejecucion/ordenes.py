@@ -235,6 +235,28 @@ def leer_mapa_agentes(texto: str) -> dict[str, str]:
     return mapa
 
 
+def falta_argumento(accion: str, alerta: Mapping[str, Any]) -> bool:
+    """True si la alerta no trae el campo que la medida necesita (ARGUMENTO_FALTANTE).
+
+    Lo usa VALIDATE para no aceptar del modelo medidas que EXECUTE no podría aplicar con
+    esta alerta. Sólo cuenta la falta del campo: un valor que está pero no es válido (una
+    IP protegida, una ruta del sistema) no se decide aquí, sino en EXECUTE, como siempre.
+    Si no se sabe el sistema operativo, o la acción no tiene comando, responde False.
+    """
+    if accion not in COMANDOS:
+        return False
+    sistema = _deducir_sistema(alerta)
+    if sistema is None:
+        return False
+    try:
+        _objetivo(accion, alerta, sistema, frozenset())
+    except ArgumentoFaltante:
+        return True
+    except OrdenInvalida:
+        return False
+    return False
+
+
 def sistema_operativo(
     alerta: Mapping[str, Any], mapa: Mapping[str, str]
 ) -> str | None:
