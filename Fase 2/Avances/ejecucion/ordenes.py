@@ -274,18 +274,20 @@ def no_aplicable(accion: str, alerta: Mapping[str, Any]) -> bool:
     Lo usa VALIDATE para no ofrecer al modelo medidas que terminarían en
     ARGUMENTO_FALTANTE u ORDEN_INVALIDA (prueba integral 2, tickets 147 y 148). Las IP
     protegidas de la configuración de EXECUTE no se conocen aquí: ésas las sigue
-    rechazando EXECUTE. Si no se sabe el sistema operativo, responde False.
+    rechazando EXECUTE. Si la alerta no dice el sistema operativo (por ejemplo, la 592 de
+    logcollector), la medida es imposible sólo si lo es en Linux y en Windows (ticket 162).
     """
     if accion not in COMANDOS:
         return False
     sistema = _deducir_sistema(alerta)
-    if sistema is None:
+    sistemas = (sistema,) if sistema is not None else ("linux", "windows")
+    for candidato in sistemas:
+        try:
+            _objetivo(accion, alerta, candidato, frozenset())
+        except OrdenInvalida:  # incluye ArgumentoFaltante
+            continue
         return False
-    try:
-        _objetivo(accion, alerta, sistema, frozenset())
-    except OrdenInvalida:  # incluye ArgumentoFaltante
-        return True
-    return False
+    return True
 
 
 def sistema_operativo(

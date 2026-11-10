@@ -22,6 +22,9 @@ from pathlib import Path
 
 from validacion.chequeos import AMBITOS_IP, NIVELES, Catalogo, Playbook
 
+# Acciones sobre una IP de origen cuyo playbook puede fijar el ámbito (externa o interna).
+ACCIONES_CON_AMBITO = frozenset({"bloquear_ip", "limitar_conexiones"})
+
 RUTA_CATALOGO = (
     Path(__file__).resolve().parent.parent / "decision" / "catalogo" / "kro-cat-01.json"
 )
@@ -102,8 +105,9 @@ def _leer_playbook(dato: object, acciones: dict) -> Playbook:
     if not isinstance(medida, str) or not medida.strip():
         raise CatalogoInvalido(f"{identificador}: sin nombre de la medida")
     ambito = dato.get("ambito_ip")
-    if ambito is not None and (ambito not in AMBITOS_IP or accion != "bloquear_ip"):
+    if ambito is not None and (ambito not in AMBITOS_IP or accion not in ACCIONES_CON_AMBITO):
         raise CatalogoInvalido(
-            f"{identificador}: ámbito de IP {ambito!r} inválido (sólo bloquear_ip)"
+            f"{identificador}: ámbito de IP {ambito!r} inválido "
+            "(sólo bloquear_ip y limitar_conexiones)"
         )
     return Playbook(identificador, dato["familia"], nivel, medida.strip(), ambito, accion)

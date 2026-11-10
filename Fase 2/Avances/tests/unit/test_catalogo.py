@@ -45,6 +45,9 @@ class CatalogoVersionado(unittest.TestCase):
                 "PB-F1-03": "interna",
                 "PB-F3-01": "externa",
                 "PB-F3-02": "interna",
+                # Una inundación de un equipo propio se limita; una externa se bloquea (10-11).
+                "PB-F6-02": "externa",
+                "PB-F6-03": "interna",
             },
         )
 
