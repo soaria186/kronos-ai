@@ -104,10 +104,11 @@
   </rule>
 
   <!-- Hija de la 100110: Wazuh la evalúa después de que ésta coincide y, si la ruta es de la
-       aplicación web, la alerta queda con la más específica (prueba integral 2, ticket 117). -->
+       aplicación web, la alerta queda con la más específica (prueba integral 2, ticket 117).
+       En las reglas, la ruta de integridad de archivos se llama «file», no syscheck.path. -->
   <rule id="100121" level="12">
     <if_sid>100110</if_sid>
-    <field name="syscheck.path" type="pcre2">^/var/www/</field>
+    <field name="file" type="pcre2">^/var/www/</field>
     <description>Kronos F5: archivo de una aplicación publicada modificado o agregado</description>
     <group>kronos_f5,</group>
   </rule>
