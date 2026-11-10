@@ -147,7 +147,7 @@
 
   <rule id="100118" level="10">
     <if_sid>31151</if_sid>
-    <description>Kronos F6: muchas peticiones con error a un servicio web desde la misma IP</description>
+    <description>Kronos F6: inundación de peticiones contra el servicio web desde la misma IP (posible denegación de servicio)</description>
     <group>kronos_f6,</group>
   </rule>
 
