@@ -378,7 +378,7 @@
       "id": "PB-F5-01",
       "familia": "F5",
       "medida": "Poner en cuarentena el archivo de persistencia",
-      "condicion_de_uso": "Un archivo nuevo provoca el arranque automático (clave de arranque, cron, servicio) y es el mecanismo de persistencia.",
+      "condicion_de_uso": "Un archivo nuevo provoca el arranque automático (carpeta de Inicio de Windows, clave de arranque, cron, servicio) y es el mecanismo de persistencia.",
       "accion": "cuarentena",
       "nivel": 1,
       "arquetipos": [
@@ -424,7 +424,7 @@
       "id": "PB-F5-03",
       "familia": "F5",
       "medida": "Poner en cuarentena un archivo de sistema o de aplicación alterado",
-      "condicion_de_uso": "Un archivo del sistema o de una aplicación fue modificado o sustituido sin explicación.",
+      "condicion_de_uso": "Un archivo del sistema o de una aplicación que ya existía fue modificado o sustituido sin explicación.",
       "accion": "cuarentena",
       "nivel": 3,
       "arquetipos": [

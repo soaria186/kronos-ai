@@ -29,9 +29,9 @@ PB-F4-02 | Aislar un equipo de trabajo | Exfiltración o canal encubierto activo
 PB-F4-03 | Aislar un servidor | Exfiltración o canal encubierto activo desde un SERVIDOR, donde bloquear el destino no basta.
 
 [F5] Alteración de integridad o persistencia
-PB-F5-01 | Poner en cuarentena el archivo de persistencia | Un archivo nuevo provoca el arranque automático (clave de arranque, cron, servicio) y es el mecanismo de persistencia.
+PB-F5-01 | Poner en cuarentena el archivo de persistencia | Un archivo nuevo provoca el arranque automático (carpeta de Inicio de Windows, clave de arranque, cron, servicio) y es el mecanismo de persistencia.
 PB-F5-02 | Revertir la tarea programada nueva | Se creó una tarea programada nueva y sospechosa.
-PB-F5-03 | Poner en cuarentena un archivo de sistema o de aplicación alterado | Un archivo del sistema o de una aplicación fue modificado o sustituido sin explicación.
+PB-F5-03 | Poner en cuarentena un archivo de sistema o de aplicación alterado | Un archivo del sistema o de una aplicación que ya existía fue modificado o sustituido sin explicación.
 PB-F5-04 | Aislar un equipo de trabajo | Cifrado o borrado masivo de archivos, o registros de auditoría borrados, en un EQUIPO DE TRABAJO.
 PB-F5-05 | Aislar un servidor | Cifrado o borrado masivo de archivos, o registros de auditoría borrados, en un SERVIDOR.
 
