@@ -38,8 +38,13 @@
     <group>kronos_f1,</group>
   </rule>
 
-  <rule id="100116" level="10">
-    <if_sid>40112</if_sid>
+  <!-- Correlación propia: un acceso correcto desde la misma IP que, en los 4 minutos anteriores,
+       ya había disparado la fuerza bruta (100101). La 40112 nativa no se activó con la 100101
+       por medio (prueba integral 2, 10-11-2026). -->
+  <rule id="100116" level="10" timeframe="240">
+    <if_group>authentication_success</if_group>
+    <if_matched_sid>100101</if_matched_sid>
+    <same_source_ip />
     <description>Kronos F1: inicio de sesión correcto después de varios fallos desde el mismo origen</description>
     <group>kronos_f1,</group>
   </rule>
