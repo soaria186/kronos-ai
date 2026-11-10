@@ -100,11 +100,13 @@ $corte = $tarea.LastIndexOf('\')
 $carpeta = $tarea.Substring(0, $corte + 1)
 $hoja = $tarea.Substring($corte + 1)
 # El patron ya excluye * ? [ ], asi que el nombre no se interpreta como comodin.
-try { $estado = Estado-Tarea $carpeta $hoja } catch { Terminar 1 "ERROR no existe la tarea programada: $tarea" }
+# $estadoTarea y no $estado: PowerShell no distingue mayusculas y $estado pisaria $ESTADO
+# (la carpeta de las marcas), que quedaria como "Ready" o "Disabled".
+try { $estadoTarea = Estado-Tarea $carpeta $hoja } catch { Terminar 1 "ERROR no existe la tarea programada: $tarea" }
 $marca = Ruta-Marca $tarea
 
 if ($operacion -ceq 'aplicar') {
-    if ($estado -eq 'Disabled') {
+    if ($estadoTarea -eq 'Disabled') {
         if (Test-Path -LiteralPath $marca) { Terminar 0 "aplicar $tarea sin cambios (ya la habia deshabilitado Kronos)" }
         Terminar 0 "aplicar $tarea sin cambios (ya estaba deshabilitada; no la deshabilito Kronos)"
     }
@@ -127,7 +129,7 @@ if ($operacion -ceq 'aplicar') {
     Terminar 0 "aplicar $tarea OK"
 } else {
     if (-not (Test-Path -LiteralPath $marca)) { Terminar 0 "habilitar $tarea sin cambios (no la deshabilito Kronos; se deja como esta)" }
-    if ($estado -eq 'Disabled') {
+    if ($estadoTarea -eq 'Disabled') {
         try { Enable-ScheduledTask -TaskPath $carpeta -TaskName $hoja -ErrorAction Stop | Out-Null }
         catch { Terminar 1 "ERROR no se pudo habilitar $($tarea): $($_.Exception.Message)" }
         if ((Estado-Tarea $carpeta $hoja) -eq 'Disabled') { Terminar 1 "ERROR $tarea sigue deshabilitada despues de habilitarla" }
