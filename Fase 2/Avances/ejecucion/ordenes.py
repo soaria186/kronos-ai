@@ -62,6 +62,13 @@ _CAMPOS_PID = (("data", "win", "eventdata", "processId"), ("data", "audit", "pid
 # siendo ese programa antes de terminarlo, para no matar otro proceso que heredó el PID.
 _CAMPOS_IMAGEN = (("data", "win", "eventdata", "image"), ("data", "audit", "exe"))
 _CAMPOS_SERVICIO = (("data", "win", "eventdata", "serviceName"),)
+# Sin serviceName, el servicio se obtiene de otra parte de la alerta (cobertura de F6, 10-11-2026):
+# - Windows, eventos 7031/7034 del Service Control Manager: param1 es el nombre que se muestra
+#   (traducido, con espacios); el nombre real viene en «binary», en UTF-16LE y en hexadecimal.
+# - Linux: el registro de acceso del servidor web dice qué servicio es (/var/log/nginx/...).
+_CAMPO_BINARIO = ("data", "win", "eventdata", "binary")
+_SERVICIOS_WEB_LINUX = frozenset({"nginx", "apache2", "httpd", "lighttpd"})
+_REGISTRO_WEB = re.compile(r"^/var/log/([a-z0-9]+)/[^/]+$")
 # IP de destino (F4): Linux y Sysmon (evento 3).
 _CAMPOS_IP_DESTINO = (("data", "dstip"), ("data", "win", "eventdata", "destinationIp"))
 # Archivo a poner en cuarentena: el mismo orden que la categoría «programa» de la lista
@@ -317,7 +324,7 @@ def _objetivo(
     if accion == "terminar_proceso":
         return (_pid(alerta), _ruta(alerta, sistema, _CAMPOS_IMAGEN, protegidas=False))
     if accion == "detener_servicio":
-        return (_validado(alerta, _CAMPOS_SERVICIO, _SERVICIO, "servicio"),)
+        return (_servicio(alerta, sistema),)
     return ()  # aislar_equipo: actúa sobre el propio equipo
 
 
@@ -424,6 +431,33 @@ def _sin_puntos(tramos: list[str], original: str) -> None:
     for tramo in tramos:
         if tramo in (".", "..") or tramo != tramo.strip() or tramo.endswith("."):
             raise OrdenInvalida(f"ruta con tramos no permitidos: {original!r}")
+
+
+def _servicio(alerta: Mapping[str, Any], sistema: str) -> str:
+    if any(_valor(alerta, ruta) is not None for ruta in _CAMPOS_SERVICIO):
+        return _validado(alerta, _CAMPOS_SERVICIO, _SERVICIO, "servicio")
+    if sistema == "windows":
+        binario = _valor(alerta, _CAMPO_BINARIO)
+        if binario is not None:
+            nombre = _nombre_desde_binario(binario)
+            if nombre is None or not _SERVICIO.match(nombre):
+                raise OrdenInvalida(f"servicio no válido en el evento: {binario[:80]!r}")
+            return nombre
+    else:
+        registro = _REGISTRO_WEB.match(_valor(alerta, ("location",)) or "")
+        if registro and registro.group(1) in _SERVICIOS_WEB_LINUX:
+            return registro.group(1)
+    raise ArgumentoFaltante("la alerta no trae servicio")
+
+
+def _nombre_desde_binario(texto: str) -> str | None:
+    """Nombre del servicio en el campo «binary» de 7031/7034 (hexadecimal de UTF-16LE)."""
+    try:
+        nombre = bytes.fromhex(texto).decode("utf-16-le")
+    except ValueError:
+        return None
+    nombre = nombre.rstrip("\x00")
+    return nombre or None
 
 
 def _cuenta(alerta: Mapping[str, Any]) -> str:
