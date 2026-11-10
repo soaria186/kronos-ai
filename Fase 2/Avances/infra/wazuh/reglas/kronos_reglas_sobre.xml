@@ -6,8 +6,8 @@
   La familia es una pista: la clasificación final la hace el paso 1 del modelo y la
   valida SOAR-VALIDATE.
 
-  Rango de identificadores: 100101 a 100123 (rango reservado para reglas propias). Las 100116 a
-  100123 se agregaron el 10-11-2026 para cubrir los 25 playbooks (prueba integral 2).
+  Rango de identificadores: 100101 a 100124 (rango reservado para reglas propias). Las 100116 a
+  100124 se agregaron el 10-11-2026 para cubrir los 25 playbooks (prueba integral 2).
   Los niveles son una propuesta: se ajustan cuando se fije el mapa de severidad.
   Los números de las reglas nativas se verificaron en el manager el 14-10-2026.
 
@@ -99,6 +99,15 @@
     <field name="win.eventdata.destinationIp" type="pcre2" negate="yes">^(10\.|127\.|192\.168\.|172\.(1[6-9]|2[0-9]|3[01])\.|169\.254\.|::1|fe80)</field>
     <options>no_full_log</options>
     <description>Kronos F4: programa en una carpeta de usuario abrió una conexión hacia un destino externo</description>
+    <group>kronos_f4,</group>
+  </rule>
+
+  <!-- Linux (auditd): una herramienta de transferencia abrió una conexión. La clave la pone la
+       regla de auditd del equipo (guía 07): -S connect -F exe=/usr/bin/curl -k kronos_salida. -->
+  <rule id="100124" level="12">
+    <if_sid>80700</if_sid>
+    <field name="audit.key">kronos_salida</field>
+    <description>Kronos F4: herramienta de transferencia en el servidor abrió una conexión hacia fuera</description>
     <group>kronos_f4,</group>
   </rule>
 
