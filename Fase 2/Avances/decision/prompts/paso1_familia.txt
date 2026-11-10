@@ -22,7 +22,7 @@ REGLAS DE DESEMPATE (aplícalas en este orden; la primera que decida es la que v
 4. F2 frente a F3: si el proceso se lanza desde otro equipo (PsExec, WMI, WinRM) o sirve para controlar el equipo a distancia, es F3. Si se ejecuta y actúa solo en el equipo local, es F2.
 5. F2 frente a F4: si el programa abrió una conexión de red hacia un destino externo (comunicación de salida), es F4 aunque el ejecutable también sea sospechoso. Es F2 cuando lo anómalo es sólo la ejecución, sin comunicación hacia fuera.
 6. F2 frente a F5: si la acción deja un cambio persistente (tarea programada, servicio, clave de arranque, cuenta, archivo de configuración), es F5 aunque lo haya hecho un proceso. Es F2 cuando lo anómalo es la ejecución en sí.
-7. F4 frente a F6: si hay datos saliendo hacia fuera de la red, es F4 aunque el enlace o el servicio se degraden. Es F6 cuando el tráfico es entrante o no hay salida de datos: una petición que intenta leer un archivo del servidor sin que salga nada es F6.
+7. F4 frente a F6: F4 exige que el propio equipo envíe datos hacia fuera de la red, aunque el enlace o el servicio se degraden. Las peticiones que LLEGAN a un servicio publicado (las líneas de acceso de un servidor web, con la IP de quien pide, la URL y el código de respuesta) son tráfico entrante: si son ataques, escaneos o una inundación, es F6, aunque la URL pida archivos o datos.
 8. F5 frente a F6: si hay archivos o datos alterados, cifrados o borrados, es F5. Es F6 solo si el servicio cae o se degrada sin alteración de datos.
 9. Si aun así encajan dos familias, elige la que aparece más tarde en esta secuencia de etapas de un ataque: F1, F2, F5, F3, F4, F6.
 
