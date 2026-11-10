@@ -6,7 +6,8 @@
   La familia es una pista: la clasificación final la hace el paso 1 del modelo y la
   valida SOAR-VALIDATE.
 
-  Rango de identificadores: 100101 a 100115 (rango reservado para reglas propias).
+  Rango de identificadores: 100101 a 100121 (rango reservado para reglas propias). Las 100116 a
+  100121 se agregaron el 10-11-2026 para cubrir los 25 playbooks (prueba integral 2).
   Los niveles son una propuesta: se ajustan cuando se fije el mapa de severidad.
   Los números de las reglas nativas se verificaron en el manager el 14-10-2026.
 
@@ -32,6 +33,12 @@
   <rule id="100103" level="10">
     <if_sid>60204, 60115</if_sid>
     <description>Kronos F1: fallos repetidos de inicio de sesión en Windows o cuenta bloqueada</description>
+    <group>kronos_f1,</group>
+  </rule>
+
+  <rule id="100116" level="10">
+    <if_sid>40112</if_sid>
+    <description>Kronos F1: inicio de sesión correcto después de varios fallos desde el mismo origen</description>
     <group>kronos_f1,</group>
   </rule>
 
@@ -77,7 +84,26 @@
     <group>kronos_f4,</group>
   </rule>
 
+  <!-- Sysmon (evento 3): un programa que vive en una carpeta de usuario conecta hacia fuera.
+       La 92104 nativa sólo cubre el truco del carácter RLO en el nombre. -->
+  <rule id="100117" level="12">
+    <if_group>sysmon_event3</if_group>
+    <field name="win.eventdata.image" type="pcre2">(?i)\\\\(Users\\\\Public|Downloads|AppData\\\\Local\\\\Temp)\\\\</field>
+    <field name="win.eventdata.destinationIp" type="pcre2" negate="yes">^(10\.|127\.|192\.168\.|172\.(1[6-9]|2[0-9]|3[01])\.|169\.254\.|::1|fe80)</field>
+    <options>no_full_log</options>
+    <description>Kronos F4: programa en una carpeta de usuario abrió una conexión hacia un destino externo</description>
+    <group>kronos_f4,</group>
+  </rule>
+
   <!-- F5 - Alteración de integridad o persistencia -->
+
+  <!-- Va antes de la 100110: para el mismo cambio, gana la regla más específica. -->
+  <rule id="100121" level="12">
+    <if_sid>550, 554</if_sid>
+    <field name="syscheck.path" type="pcre2">^/var/www/</field>
+    <description>Kronos F5: archivo de una aplicación publicada modificado o agregado</description>
+    <group>kronos_f5,</group>
+  </rule>
 
   <rule id="100110" level="7">
     <if_sid>550, 553, 554</if_sid>
@@ -114,6 +140,24 @@
   <rule id="100115" level="7">
     <if_sid>504, 506</if_sid>
     <description>Kronos F6: agente de Wazuh desconectado o detenido</description>
+    <group>kronos_f6,</group>
+  </rule>
+
+  <rule id="100118" level="10">
+    <if_sid>31151</if_sid>
+    <description>Kronos F6: muchas peticiones con error a un servicio web desde la misma IP</description>
+    <group>kronos_f6,</group>
+  </rule>
+
+  <rule id="100119" level="12">
+    <if_sid>31152, 31153</if_sid>
+    <description>Kronos F6: ataques web repetidos contra un servicio público desde la misma IP</description>
+    <group>kronos_f6,</group>
+  </rule>
+
+  <rule id="100120" level="12">
+    <if_sid>61107</if_sid>
+    <description>Kronos F6: un servicio de Windows terminó de forma inesperada</description>
     <group>kronos_f6,</group>
   </rule>
 
