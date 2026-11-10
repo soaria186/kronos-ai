@@ -97,17 +97,18 @@
 
   <!-- F5 - Alteración de integridad o persistencia -->
 
-  <!-- Va antes de la 100110: para el mismo cambio, gana la regla más específica. -->
-  <rule id="100121" level="12">
-    <if_sid>550, 554</if_sid>
-    <field name="syscheck.path" type="pcre2">^/var/www/</field>
-    <description>Kronos F5: archivo de una aplicación publicada modificado o agregado</description>
-    <group>kronos_f5,</group>
-  </rule>
-
   <rule id="100110" level="7">
     <if_sid>550, 553, 554</if_sid>
     <description>Kronos F5: archivo vigilado modificado, agregado o borrado</description>
+    <group>kronos_f5,</group>
+  </rule>
+
+  <!-- Hija de la 100110: Wazuh la evalúa después de que ésta coincide y, si la ruta es de la
+       aplicación web, la alerta queda con la más específica (prueba integral 2, ticket 117). -->
+  <rule id="100121" level="12">
+    <if_sid>100110</if_sid>
+    <field name="syscheck.path" type="pcre2">^/var/www/</field>
+    <description>Kronos F5: archivo de una aplicación publicada modificado o agregado</description>
     <group>kronos_f5,</group>
   </rule>
 
