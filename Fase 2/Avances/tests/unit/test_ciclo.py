@@ -325,9 +325,11 @@ class Ciclo(unittest.TestCase):
 class AmbitoDeLaIp(unittest.TestCase):
     """Con el catálogo real: el modelo no sabe si una IP es externa o interna."""
 
-    def procesar(self, familia, playbook, ip):
+    def procesar(self, familia, playbook, ip, severidad=None):
         alerta = alerta_ssh()
         alerta["data"]["srcip"] = ip
+        if severidad is not None:
+            alerta["rule"]["level"] = severidad
         almacen = AlmacenFalso()
         validador_real = Validador(
             almacen,
@@ -353,7 +355,8 @@ class AmbitoDeLaIp(unittest.TestCase):
         self.assertEqual(resultado.motivo, "PLAYBOOK_FUERA_DE_CATALOGO")
 
     def test_una_consulta_no_mira_la_ip(self):
-        resultado, _ = self.procesar("F1", "PB-F1-01", "10.1.2.3")
+        # Severidad 9: desde 10 la consulta no se ofrece si hay otra medida (SEVERIDAD_SIN_CONSULTA).
+        resultado, _ = self.procesar("F1", "PB-F1-01", "10.1.2.3", severidad=9)
         self.assertEqual(resultado.destino, Destino.APROBADA)
 
 

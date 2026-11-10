@@ -208,5 +208,41 @@ class ValidadorConLaAlertaDeE4(unittest.TestCase):
         self.assertIn("PB-F5-03", json.dumps(m.esquemas[1]))
 
 
+def f2_codificado(nivel):
+    """PowerShell codificado en un puesto (Sysmon), con PID e imagen."""
+    return alerta(
+        "100104", nivel, ["windows", "kronos", "kronos_f2"], PUESTO,
+        {"win": {"system": {"eventID": "1"},
+                 "eventdata": {"processId": "5480",
+                               "image": "C:\\Users\\Public\\upd.exe"}}},
+        "EventChannel",
+    )
+
+
+class SinConsultaDesdeSeveridad10(unittest.TestCase):
+    """Desde severidad 10, reunir contexto no se ofrece si hay otra medida aplicable."""
+
+    def esquema(self, alerta_wazuh, familia, playbook):
+        m = modelo(familia, playbook)
+        Validador(AlmacenFalso(), m, PLANTILLAS, CATALOGO, CONFIG, DecisionFalsa).procesar(
+            1, alerta_wazuh
+        )
+        return json.dumps(m.esquemas[1])
+
+    def test_severidad_alta_quita_la_consulta(self):
+        esquema = self.esquema(f2_codificado(12), "F2", "PB-F2-03")
+        self.assertNotIn("PB-F2-01", esquema)
+        self.assertIn("PB-F2-03", esquema)
+
+    def test_severidad_baja_mantiene_la_consulta(self):
+        self.assertIn("PB-F2-01", self.esquema(f2_codificado(7), "F2", "PB-F2-01"))
+
+    def test_sin_otra_medida_posible_la_consulta_queda(self):
+        # Sin PID, imagen ni ruta, F2 sólo tiene la consulta: no se deja a la familia vacía.
+        a = f2_codificado(12)
+        a["data"]["win"]["eventdata"] = {}
+        self.assertIn("PB-F2-01", self.esquema(a, "F2", "PB-F2-01"))
+
+
 if __name__ == "__main__":
     unittest.main()

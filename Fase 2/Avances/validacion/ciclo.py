@@ -197,6 +197,10 @@ class _Grupo:
     vence: float  # instante (del reloj del validador) en que se cierra el grupo
 
 
+# Severidad de Wazuh desde la que reunir contexto deja de ofrecerse si hay otra medida posible.
+SEVERIDAD_SIN_CONSULTA = 10
+
+
 class Validador:
     def __init__(
         self,
@@ -344,7 +348,7 @@ class Validador:
             self._plantillas,
             self._plazo,
             ambito_ip=self._ambito_ip(alerta),
-            excluir=self._sin_datos(alerta_wazuh),
+            excluir=self._excluidos(alerta_wazuh, alerta.severidad),
         )
         if isinstance(clasificacion, FallaSegura):
             return self._rechazar(
@@ -396,6 +400,28 @@ class Validador:
             equipo,
             clasificacion=clasificacion,
         )
+
+    def _excluidos(self, alerta_wazuh: Mapping[str, Any], severidad: int) -> frozenset[str]:
+        """Playbooks que el paso 2 no acepta: los que no tienen su dato y, desde la severidad
+        SEVERIDAD_SIN_CONSULTA, reunir contexto (nivel 0) cuando en su familia queda una medida
+        aplicable.
+
+        Con qwen2.5:7b la consulta, que es la primera candidata de F1, F2 y F6, se elegía casi
+        siempre, aunque la alerta encajara con otra medida (prueba integral 2, 10-11-2026). Los
+        demás frenos no cambian: nivel máximo por severidad, contadores, cortacircuito y
+        aprobación de nivel 3.
+        """
+        sin_datos = self._sin_datos(alerta_wazuh)
+        if severidad < SEVERIDAD_SIN_CONSULTA:
+            return sin_datos
+        excluir = set(sin_datos)
+        por_familia: dict[str, list] = {}
+        for p in self._catalogo.playbooks.values():
+            por_familia.setdefault(p.familia, []).append(p)
+        for playbooks in por_familia.values():
+            if any(p.accion != "consulta" and p.id not in sin_datos for p in playbooks):
+                excluir.update(p.id for p in playbooks if p.accion == "consulta")
+        return frozenset(excluir)
 
     def _sin_datos(self, alerta_wazuh: Mapping[str, Any]) -> frozenset[str]:
         """Playbooks cuyo dato no viene en la alerta: el paso 2 no los acepta como respuesta.

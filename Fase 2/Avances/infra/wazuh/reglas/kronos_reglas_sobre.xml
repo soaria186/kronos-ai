@@ -160,7 +160,7 @@
 
   <rule id="100119" level="12">
     <if_sid>31152, 31153</if_sid>
-    <description>Kronos F6: ataques web repetidos contra un servicio público desde la misma IP</description>
+    <description>Kronos F6: el servicio web publicado recibe ataques repetidos desde la misma IP (tráfico entrante)</description>
     <group>kronos_f6,</group>
   </rule>
 
