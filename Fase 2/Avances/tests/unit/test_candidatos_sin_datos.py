@@ -13,7 +13,7 @@ from dataclasses import dataclass
 
 from decision.inferencia import clasificar
 from decision.plantillas import Plantillas
-from ejecucion.ordenes import falta_argumento
+from ejecucion.ordenes import falta_argumento, no_aplicable
 from validacion.catalogo import cargar_catalogo
 from validacion.ciclo import Destino, Validador
 from validacion.configuracion import cargar_configuracion
@@ -290,6 +290,44 @@ class RutaDelArchivoCreado(unittest.TestCase):
         )
         orden = construir("cuarentena", a, sistema="windows")
         self.assertEqual(orden.argumentos[1], "C:\\Users\\Public\\svc-update2.exe")
+
+
+class InundacionYRegistroVaciado(unittest.TestCase):
+    """Prueba integral 2 (10-11): F6-02/F6-03 según el origen y la 592 sin sistema operativo."""
+
+    def esquema(self, alerta_wazuh, familia, playbook):
+        m = modelo(familia, playbook)
+        Validador(AlmacenFalso(), m, PLANTILLAS, CATALOGO, CONFIG, DecisionFalsa).procesar(
+            1, alerta_wazuh
+        )
+        return json.dumps(m.esquemas[1])
+
+    def inundacion(self, ip):
+        return alerta(
+            "100118", 12, ["web", "kronos", "kronos_f6"],
+            {"id": "001", "name": "EP-SRV-01", "ip": "192.0.2.30"},
+            {"srcip": ip, "url": "/admin1", "id": "404"}, "/var/log/nginx/access.log",
+        )
+
+    def test_equipo_interno_se_limita(self):
+        esquema = self.esquema(self.inundacion("192.168.50.30"), "F6", "PB-F6-03")
+        self.assertNotIn("PB-F6-02", esquema)
+        self.assertIn("PB-F6-03", esquema)
+
+    def test_origen_externo_se_bloquea(self):
+        esquema = self.esquema(self.inundacion("198.51.100.29"), "F6", "PB-F6-02")
+        self.assertIn("PB-F6-02", esquema)
+        self.assertNotIn("PB-F6-03", esquema)
+
+    def test_registro_vaciado_sin_sistema_no_ofrece_cuarentena(self):
+        a = alerta(
+            "100113", 12, ["ossec", "kronos", "kronos_f5"],
+            {"id": "001", "name": "EP-SRV-01", "ip": "192.0.2.30"},
+            {}, "ossec-logcollector",
+        )
+        self.assertTrue(no_aplicable("cuarentena", a))
+        self.assertTrue(no_aplicable("revertir_tarea", a))
+        self.assertFalse(no_aplicable("aislar_equipo", a))
 
 
 if __name__ == "__main__":

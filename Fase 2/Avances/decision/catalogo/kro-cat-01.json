@@ -505,6 +505,7 @@
       "familia": "F6",
       "medida": "Bloquear la IP de origen del tráfico abusivo",
       "condicion_de_uso": "Inundación de peticiones o tráfico abusivo desde una o pocas direcciones identificables.",
+      "ambito_ip": "externa",
       "accion": "bloquear_ip",
       "nivel": 1,
       "arquetipos": [
@@ -525,6 +526,7 @@
       "familia": "F6",
       "medida": "Limitar las conexiones por origen",
       "condicion_de_uso": "Volumen alto de conexiones desde un origen muy activo al que no conviene bloquear del todo.",
+      "ambito_ip": "interna",
       "accion": "limitar_conexiones",
       "nivel": 1,
       "arquetipos": [

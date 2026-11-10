@@ -6,8 +6,8 @@
   La familia es una pista: la clasificación final la hace el paso 1 del modelo y la
   valida SOAR-VALIDATE.
 
-  Rango de identificadores: 100101 a 100122 (rango reservado para reglas propias). Las 100116 a
-  100122 se agregaron el 10-11-2026 para cubrir los 25 playbooks (prueba integral 2).
+  Rango de identificadores: 100101 a 100123 (rango reservado para reglas propias). Las 100116 a
+  100123 se agregaron el 10-11-2026 para cubrir los 25 playbooks (prueba integral 2).
   Los niveles son una propuesta: se ajustan cuando se fije el mapa de severidad.
   Los números de las reglas nativas se verificaron en el manager el 14-10-2026.
 
@@ -170,6 +170,13 @@
   <rule id="100119" level="12">
     <if_sid>31152, 31153, 31154</if_sid>
     <description>Kronos F6: el servicio web publicado recibe ataques repetidos desde la misma IP (tráfico entrante)</description>
+    <group>kronos_f6,</group>
+  </rule>
+
+  <!-- Un ataque web que obtuvo respuesta 200: el servicio publicado podría estar comprometido. -->
+  <rule id="100123" level="12">
+    <if_sid>31106</if_sid>
+    <description>Kronos F6: un ataque contra el servicio web publicado tuvo éxito (respuesta 200): servicio comprometido</description>
     <group>kronos_f6,</group>
   </rule>
 
