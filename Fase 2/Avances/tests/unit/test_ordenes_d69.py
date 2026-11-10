@@ -86,7 +86,7 @@ class Cuarentena(unittest.TestCase):
             "C:/Users/x.exe",
             "\\\\servidor\\c$\\x.exe",
             "C:\\",
-            "C:\\Users\\\\x.exe",
+            "C:\\\\Users\\\\\\\\x.exe",  # separador doble, tal como lo entrega Wazuh
             "C:\\Users\\x.exe\nC:\\otro.exe",
             "/tmp/x",  # ruta de Linux en un agente Windows
             "C:\\" + "a" * 300 + ".exe",
@@ -192,7 +192,7 @@ class RevertirTarea(unittest.TestCase):
         for tarea in (
             "Actualizador0",  # sin la barra inicial
             "\\..\\x",
-            "\\a\\\\b",
+            "\\\\a\\\\\\\\b",  # separador doble, tal como lo entrega Wazuh
             "\\a\\",
             "\\a&b",
             "\\a\"b",
@@ -308,3 +308,27 @@ class IpProtegidas(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class BarrasDuplicadasDeWazuh(unittest.TestCase):
+    """El decodificador eventchannel de Wazuh duplica las barras de los campos de Windows."""
+
+    def test_tarea_con_barras_duplicadas(self):
+        orden = construir("revertir_tarea", win(taskName="\\\\Actualizador"), sistema="windows")
+        self.assertEqual(orden.argumentos[1], "\\Actualizador")
+
+    def test_tarea_en_carpeta_con_barras_duplicadas(self):
+        orden = construir(
+            "revertir_tarea", win(taskName="\\\\Carpeta\\\\Actualizador"), sistema="windows"
+        )
+        self.assertEqual(orden.argumentos[1], "\\Carpeta\\Actualizador")
+
+    def test_ruta_con_barras_duplicadas(self):
+        orden = construir(
+            "cuarentena", win(image="C:\\\\Users\\\\Public\\\\b.exe"), sistema="windows"
+        )
+        self.assertEqual(orden.argumentos[1], "C:\\Users\\Public\\b.exe")
+
+    def test_barras_simples_no_cambian(self):
+        orden = construir("revertir_tarea", win(taskName="\\Actualizador"), sistema="windows")
+        self.assertEqual(orden.argumentos[1], "\\Actualizador")

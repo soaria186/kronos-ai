@@ -471,4 +471,9 @@ def _valor(alerta: Mapping[str, Any], ruta: tuple[str, ...]) -> str | None:
     if isinstance(actual, bool) or not isinstance(actual, (str, int)):
         return None
     texto = str(actual)
+    if ruta[:2] == ("data", "win"):
+        # El decodificador eventchannel de Wazuh duplica las barras invertidas de los
+        # campos de Windows: la tarea \Actualizador llega con dos barras al comienzo y la ruta
+        # C:\Users\x.exe con dos barras en cada separador (prueba integral 2, 10-11-2026, ticket 107).
+        texto = texto.replace("\\\\", "\\")
     return texto if texto else None
