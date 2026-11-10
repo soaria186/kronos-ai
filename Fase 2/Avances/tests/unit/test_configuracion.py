@@ -55,11 +55,13 @@ class ConfiguracionAprobada(unittest.TestCase):
 
     def test_niveles_que_permite_cada_regla_de_sobre(self):
         # Las 15 reglas de sobre (infra/wazuh) tienen niveles 7, 8, 10 y 12.
+        # El nivel 0 es de las reglas que descartan (100122): no generan alerta.
         niveles = {
             int(n)
             for n in re.findall(
                 r'<rule id="1001\d\d" level="(\d+)"', REGLAS_SOBRE.read_text()
             )
+            if int(n) > 0
         }
         self.assertEqual(niveles, {7, 8, 10, 12})
         self.assertEqual(
