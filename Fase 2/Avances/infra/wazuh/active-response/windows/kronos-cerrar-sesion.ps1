@@ -110,6 +110,10 @@ function Validar-No-Administrador($usuario) {
 # orden no: USUARIO, [SESION], ID, ESTADO... La primera columna puede traer '>' (sesion
 # actual) y quser corta el nombre a 20 caracteres. Sin sesiones, quser sale con codigo 1.
 function Sesiones([string]$cuenta) {
+    # Continue y no Stop: en Windows PowerShell 5.1, con Stop, el texto que quser escribe en
+    # stderr ("No existe un usuario" cuando ya no hay sesiones) se vuelve un error que corta el
+    # script antes de escribir el registro. Aqui solo importa el codigo de salida.
+    $ErrorActionPreference = 'Continue'
     $salida = @(& quser.exe $cuenta 2>$null)
     if ($LASTEXITCODE -ne 0) { return , @() }
     $ids = @()
@@ -124,6 +128,13 @@ function Sesiones([string]$cuenta) {
         }
     }
     return , $ids
+}
+
+function Cerrar-Sesion([int]$id) {
+    # Mismo motivo que en Sesiones: el stderr de logoff no debe cortar el script.
+    $ErrorActionPreference = 'Continue'
+    & logoff.exe $id 2>$null
+    return $LASTEXITCODE
 }
 
 # ------------------------------------------------------------------------------------
@@ -147,8 +158,7 @@ $ids = Sesiones $cuenta
 if ($ids.Count -eq 0) { Terminar 0 "aplicar $cuenta OK (sin cambios: no tenia sesiones abiertas)" }
 
 foreach ($id in $ids) {
-    & logoff.exe $id 2>$null
-    if ($LASTEXITCODE -ne 0) { Terminar 1 "ERROR logoff de la sesion $id de $cuenta (codigo $LASTEXITCODE)" }
+    if ((Cerrar-Sesion $id) -ne 0) { Terminar 1 "ERROR logoff de la sesion $id de $cuenta (codigo $LASTEXITCODE)" }
 }
 Start-Sleep -Seconds 2
 $quedan = Sesiones $cuenta
