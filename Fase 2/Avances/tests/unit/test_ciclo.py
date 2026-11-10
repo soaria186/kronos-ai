@@ -342,9 +342,11 @@ class AmbitoDeLaIp(unittest.TestCase):
         return validador_real.procesar(1, alerta), almacen
 
     def test_bloquear_una_ip_interna_como_si_fuera_externa_se_rechaza(self):
-        resultado, almacen = self.procesar("F1", "PB-F1-02", "10.1.2.3")
-        self.assertEqual(resultado.motivo, "PLAYBOOK_FUERA_DE_CATALOGO")
-        self.assertIn("interna", almacen.decisiones[0][2].detalle)
+        # Desde el 10-11 la medida de otro ámbito ya no está en el esquema del paso 2: un modelo
+        # que la devuelva igual queda en ESQUEMA_INVALIDO. El chequeo de ámbito
+        # (PLAYBOOK_FUERA_DE_CATALOGO) sigue como segunda barrera en validacion.chequeos.
+        resultado, _ = self.procesar("F1", "PB-F1-02", "10.1.2.3")
+        self.assertEqual(resultado.motivo, "ESQUEMA_INVALIDO")
 
     def test_bloquear_una_ip_externa_pasa(self):
         resultado, _ = self.procesar("F1", "PB-F1-02", "203.0.113.9")
@@ -352,7 +354,7 @@ class AmbitoDeLaIp(unittest.TestCase):
 
     def test_la_ip_ipv4_mapeada_se_trata_como_la_ipv4(self):
         resultado, _ = self.procesar("F1", "PB-F1-02", "::ffff:10.1.2.3")
-        self.assertEqual(resultado.motivo, "PLAYBOOK_FUERA_DE_CATALOGO")
+        self.assertEqual(resultado.motivo, "ESQUEMA_INVALIDO")
 
     def test_una_consulta_no_mira_la_ip(self):
         # Severidad 9: desde 10 la consulta no se ofrece si hay otra medida (SEVERIDAD_SIN_CONSULTA).

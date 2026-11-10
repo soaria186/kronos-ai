@@ -55,7 +55,7 @@ from typing import Any, Protocol
 
 from decision.inferencia import FallaSegura, Modelo, MotivoFalla, clasificar
 from decision.plantillas import Plantillas
-from ejecucion.ordenes import falta_argumento
+from ejecucion.ordenes import no_aplicable
 from validacion.alerta import AlertaInvalida, AlertaKronos, preparar
 from validacion.chequeos import (
     Aprobada,
@@ -348,7 +348,7 @@ class Validador:
             self._plantillas,
             self._plazo,
             ambito_ip=self._ambito_ip(alerta),
-            excluir=self._excluidos(alerta_wazuh, alerta.severidad),
+            excluir=self._excluidos(alerta_wazuh, alerta.severidad, self._ambito_ip(alerta)),
         )
         if isinstance(clasificacion, FallaSegura):
             return self._rechazar(
@@ -401,7 +401,9 @@ class Validador:
             clasificacion=clasificacion,
         )
 
-    def _excluidos(self, alerta_wazuh: Mapping[str, Any], severidad: int) -> frozenset[str]:
+    def _excluidos(
+        self, alerta_wazuh: Mapping[str, Any], severidad: int, ambito_ip: str | None = None
+    ) -> frozenset[str]:
         """Playbooks que el paso 2 no acepta: los que no tienen su dato y, desde la severidad
         SEVERIDAD_SIN_CONSULTA, reunir contexto (nivel 0) cuando en su familia queda una medida
         aplicable.
@@ -411,7 +413,16 @@ class Validador:
         demás frenos no cambian: nivel máximo por severidad, contadores, cortacircuito y
         aprobación de nivel 3.
         """
-        sin_datos = self._sin_datos(alerta_wazuh)
+        sin_datos = set(self._sin_datos(alerta_wazuh))
+        # La IP de otro ámbito: bloquear «la IP externa» con una IP interna, o al revés, lo
+        # rechazaría el chequeo de ámbito (prueba integral 2, ticket 145).
+        if ambito_ip in ("interna", "externa"):
+            sin_datos.update(
+                p.id
+                for p in self._catalogo.playbooks.values()
+                if p.ambito_ip and p.ambito_ip != ambito_ip
+            )
+        sin_datos = frozenset(sin_datos)
         if severidad < SEVERIDAD_SIN_CONSULTA:
             return sin_datos
         excluir = set(sin_datos)
@@ -433,7 +444,7 @@ class Validador:
         return frozenset(
             p.id
             for p in self._catalogo.playbooks.values()
-            if p.accion and falta_argumento(p.accion, alerta_wazuh)
+            if p.accion and no_aplicable(p.accion, alerta_wazuh)
         )
 
     def _ambito_ip(self, alerta: AlertaKronos) -> str | None:

@@ -75,6 +75,9 @@ _CAMPOS_IP_DESTINO = (("data", "dstip"), ("data", "win", "eventdata", "destinati
 # de exclusión (integridad de archivos en F5, Sysmon en F2 y auditd).
 _CAMPOS_RUTA = (
     ("syscheck", "path"),
+    # Sysmon 11 (archivo creado): el archivo es targetFilename; image es quien lo creó
+    # (prueba integral 2, ticket 147: se intentaba poner en cuarentena powershell.exe).
+    ("data", "win", "eventdata", "targetFilename"),
     ("data", "win", "eventdata", "image"),
     ("data", "audit", "exe"),
 )
@@ -261,6 +264,27 @@ def falta_argumento(accion: str, alerta: Mapping[str, Any]) -> bool:
         return True
     except OrdenInvalida:
         return False
+    return False
+
+
+def no_aplicable(accion: str, alerta: Mapping[str, Any]) -> bool:
+    """True si EXECUTE no podría aplicar la medida con esta alerta: le falta el dato o el
+    dato no es válido (una IP local, la del propio equipo, una ruta del sistema...).
+
+    Lo usa VALIDATE para no ofrecer al modelo medidas que terminarían en
+    ARGUMENTO_FALTANTE u ORDEN_INVALIDA (prueba integral 2, tickets 147 y 148). Las IP
+    protegidas de la configuración de EXECUTE no se conocen aquí: ésas las sigue
+    rechazando EXECUTE. Si no se sabe el sistema operativo, responde False.
+    """
+    if accion not in COMANDOS:
+        return False
+    sistema = _deducir_sistema(alerta)
+    if sistema is None:
+        return False
+    try:
+        _objetivo(accion, alerta, sistema, frozenset())
+    except OrdenInvalida:  # incluye ArgumentoFaltante
+        return True
     return False
 
 

@@ -244,5 +244,53 @@ class SinConsultaDesdeSeveridad10(unittest.TestCase):
         self.assertIn("PB-F2-01", self.esquema(a, "F2", "PB-F2-01"))
 
 
+class MedidasImposiblesNoSeOfrecen(unittest.TestCase):
+    """Prueba integral 2 (10-11): objetivos inválidos y medidas de otro ámbito de IP."""
+
+    def esquema(self, alerta_wazuh, familia, playbook):
+        m = modelo(familia, playbook)
+        Validador(AlmacenFalso(), m, PLANTILLAS, CATALOGO, CONFIG, DecisionFalsa).procesar(
+            1, alerta_wazuh
+        )
+        return json.dumps(m.esquemas[1])
+
+    def test_ip_local_no_se_ofrece_bloquear(self):
+        a = alerta(
+            "100103", 10, ["windows", "kronos", "kronos_f1"], PUESTO,
+            {"win": {"system": {"eventID": "4625"},
+                     "eventdata": {"ipAddress": "::1", "targetUserName": "usuario.demo"}}},
+            "EventChannel",
+        )
+        esquema = self.esquema(a, "F1", "PB-F1-05")
+        self.assertNotIn("PB-F1-02", esquema)
+        self.assertNotIn("PB-F1-03", esquema)
+        self.assertIn("PB-F1-05", esquema)
+
+    def test_ip_interna_no_ofrece_la_medida_externa(self):
+        a = alerta(
+            "100101", 10, ["sshd", "kronos", "kronos_f1"],
+            {"id": "001", "name": "EP-SRV-01", "ip": "192.0.2.30"},
+            {"srcip": "192.168.50.21", "srcuser": "prueba"}, "/var/log/auth.log",
+        )
+        esquema = self.esquema(a, "F1", "PB-F1-03")
+        self.assertNotIn("PB-F1-02", esquema)
+        self.assertIn("PB-F1-03", esquema)
+
+
+class RutaDelArchivoCreado(unittest.TestCase):
+    def test_sysmon_11_usa_target_filename(self):
+        from ejecucion.ordenes import construir
+
+        a = alerta(
+            "100106", 10, ["windows", "kronos", "kronos_f2"], PUESTO,
+            {"win": {"system": {"eventID": "11"},
+                     "eventdata": {"image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+                                   "targetFilename": "C:\\Users\\Public\\svc-update2.exe"}}},
+            "EventChannel",
+        )
+        orden = construir("cuarentena", a, sistema="windows")
+        self.assertEqual(orden.argumentos[1], "C:\\Users\\Public\\svc-update2.exe")
+
+
 if __name__ == "__main__":
     unittest.main()
