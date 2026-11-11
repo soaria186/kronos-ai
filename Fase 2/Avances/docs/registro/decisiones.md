@@ -128,3 +128,14 @@ Tomadas en la prueba integral, con Nicolás, Rodrigo y Patricio presentes.
 | D-71 | Limitar conexiones en Windows | El firewall de Windows no limita conexiones por origen; el equivalente es un bloqueo temporal del origen por 10 minutos | ✅ 03-11 | |
 | D-72 | Consulta de nivel 0 | Sin script en el agente: EXECUTE obtiene el inventario del agente por la API de Wazuh (syscollector) y lo guarda en el ticket como SUCCESS. Requiere el permiso syscollector:read para el usuario kronos-execute. Cumple D-50 | ✅ 03-11 | |
 | D-73 | Exportación del laboratorio | Las OVA de D-68 se exportan el viernes 06-11 en la noche, después de la prueba integral 2, porque los scripts nuevos cambian las VM | ✅ 03-11 | |
+
+## 6. Decisiones de los tres (10 y 11-11-2026)
+
+| C?digo | Tema | Decisi?n | Estado | Despu?s |
+| :---: | :--- | :--- | :---: | :--- |
+| D-74 | Escenario E4 | Opci?n B: el paso 2 no ofrece medidas cuyo dato no viene en la alerta (PR #68) | ? 10-11 | |
+| D-75 | Documentos DUOC de la Fase 2 | El diario 2.1, las gu?as 2.4 y 2.6 y la autoevaluaci?n de Nicol?s quedan como registro de lo entregado y salen del chequeo de la farmacia | ? 10-11 | |
+| D-76 | Alcance funcional | Las 25 medidas deben funcionar; los l?mites de qwen2.5:7b se documentan | ? 10-11 | D-79 |
+| D-77 | L?mites de tasa | Valores altos s?lo en la rama de pruebas `prueba/pi2`, que no se mezcla | ? 10-11 | |
+| D-78 | Reparto de F3 | 100107 ? PB-F3-02 y 100108 ? PB-F3-03; la 100107 suma la regla nativa 92652. Las medidas de persistencia (PB-F5-02, PB-F5-01 y PB-F2-02) no se revierten solas | ? 11-11 | |
+| D-79 | Cierre de la v1.0.0 | Se cierra con 24 de 25 playbooks demostrados; PB-F3-03 queda sin demostraci?n de punta a punta y se declara como limitaci?n | ? 11-11 | |
