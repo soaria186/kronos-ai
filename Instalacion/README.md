@@ -30,12 +30,12 @@ son consecutivas: la de Wazuh tiene las partes 04, 05 y 08, y la parte 08 se hac
 | [02](02-NetBird/02-netbird.md) | Red privada NetBird | `02-NetBird` | Nicolás | Rodrigo | Borrador |
 | [03](03-Docker/03-docker.md) | Docker | `03-Docker` | Nicolás | Rodrigo | Borrador |
 | [04](04-Wazuh/04-wazuh.md) | Wazuh 4.14.8: compose, puertos y certificados | `04-Wazuh` | Nicolás | Rodrigo | Borrador |
-| [05](04-Wazuh/05-reglas-de-sobre.md) | Reglas de sobre | `04-Wazuh` | Nicolás | Patricio | Borrador |
+| [05](04-Wazuh/05-reglas-de-sobre.md) | Reglas de sobre | `04-Wazuh` | Nicolás | Patricio | Vigente |
 | [06](05-IA-Ollama/06-ollama.md) | Ollama y el modelo | `05-IA-Ollama` | Patricio | Nicolás | Vigente |
 | [07](06-PostgreSQL-y-Servicios/07-base-y-servicios.md) | Base SOAR-AUDIT y servicios | `06-PostgreSQL-y-Servicios` | Rodrigo | Patricio | Vigente |
 | [08](04-Wazuh/08-active-response.md) | Active Response y usuario de API | `04-Wazuh` | Nicolás | Rodrigo | Vigente |
-| [09](07-Agentes/09-agente-linux.md) | Agente Linux | `07-Agentes` | Nicolás | Rodrigo | Borrador |
-| [10](07-Agentes/10-agente-windows.md) | Agente Windows | `07-Agentes` | Nicolás | Rodrigo | Borrador |
+| [09](07-Agentes/09-agente-linux.md) | Agente Linux | `07-Agentes` | Nicolás | Rodrigo | Vigente |
+| [10](07-Agentes/10-agente-windows.md) | Agente Windows | `07-Agentes` | Nicolás | Rodrigo | Vigente |
 | [11](08-Telegram/11-telegram.md) | Telegram | `08-Telegram` | Rodrigo | Patricio | Vigente |
 | [12](09-Respaldo-y-Retencion/12-respaldo-y-retencion.md) | Respaldo, restauración y retención | `09-Respaldo-y-Retencion` | Rodrigo | Patricio | Vigente |
 | [13](10-Operacion-y-Verificacion/13-alta-de-una-pyme.md) | Alta de una PyME | `10-Operacion-y-Verificacion` | Patricio y Nicolás | Rodrigo | Borrador |

@@ -5,7 +5,7 @@
 | Parte | 08 de 15 |
 | Versión de Wazuh | 4.14.8 |
 | Responsable | Nicolás Zamora (revisa: Rodrigo Riveros) |
-| Estado | Vigente. Script probado en EP-SRV-01 el 20-10-2026 y reversión automática confirmada el 21-10-2026 (a los 60 minutos y 3 segundos). La sección 3 se reconstruyó desde el historial: en una instalación nueva, seguirla paso a paso y corregirla si algo cambia |
+| Estado | Vigente. Script probado en EP-SRV-01 el 20-10-2026 y reversión automática confirmada el 21-10-2026 (a los 60 minutos y 3 segundos). Las 10 acciones se probaron por la API, aplicar y revertir, en Linux (10 de 10) y Windows (10 de 10) en la prueba integral 2 (10-11-2026). La sección 3 se reconstruyó desde el historial: en una instalación nueva, seguirla paso a paso y corregirla si algo cambia |
 
 > Esta guía no contiene contraseñas, tokens, llaves ni direcciones IP reales. La IP `203.0.113.50` pertenece al rango reservado para documentación y se usa sólo como ejemplo.
 
@@ -144,18 +144,21 @@ Script: `infra/wazuh/active-response/linux/kronos-aislar-equipo` (Python 3, sin 
 - Si algo falla a mitad, deshace lo que alcanzó a hacer y sale con 1.
 - `quitar` desengancha y borra sólo `KRONOS-AISLAR`, en IPv4 e IPv6; nunca toca otras reglas ni cadenas. Aplicar y quitar son idempotentes.
 
-**Direcciones de administración (opcional).** `/var/ossec/etc/kronos-aislar.permitidos`, una IP o red IPv4 por línea, con `#` para comentarios. Se permiten en los dos sentidos mientras dura el aislamiento. Una línea inválida, una red IPv6 o `0.0.0.0/0` impiden aislar. En el laboratorio, para no perder el SSH a EP-SRV-01:
+**Direcciones de administración (opcional).** `/var/ossec/etc/kronos-aislar.permitidos`, una IP o red IPv4 por línea, con `#` para comentarios. Se permiten en los dos sentidos mientras dura el aislamiento. Una línea inválida, una red IPv6 o `0.0.0.0/0` impiden aislar. En el laboratorio, para no perder el SSH a EP-SRV-01, va la dirección desde la que llega el reenvío de puertos de VirtualBox. Depende de la red de la VM:
 
 ```text
-10.0.2.2  # NAT de VirtualBox: SSH del laboratorio
+10.0.2.2   # VM en la NAT por defecto de VirtualBox
+10.0.50.1  # VM en la red NAT kronos-lab (EP-SRV-01 desde el 10-11-2026): puerta de enlace y origen del SSH por 2222
 ```
+
+Sin la línea de `10.0.50.1`, aislar EP-SRV-01 corta el SSH del laboratorio (hallazgo de la prueba integral 2). La puerta de enlace sigue protegida en `validate.json`: Kronos nunca la bloquea.
 
 **[agente Linux]** se instala igual que `kronos-bloquear-ip` (sección 2.2), con dueño `root`, grupo `wazuh` y permisos `750`, y el archivo de permitidos con `root:wazuh 640`:
 
 ```bash
 sudo install -o root -g wazuh -m 750 /tmp/kronos-aislar-equipo /var/ossec/active-response/bin/kronos-aislar-equipo
 sudo rm /tmp/kronos-aislar-equipo
-echo '10.0.2.2  # NAT de VirtualBox: SSH del laboratorio' | sudo tee /var/ossec/etc/kronos-aislar.permitidos >/dev/null
+printf '%s\n' '10.0.2.2  # NAT de VirtualBox' '10.0.50.1  # red NAT kronos-lab: SSH del laboratorio' | sudo tee /var/ossec/etc/kronos-aislar.permitidos >/dev/null
 sudo chown root:wazuh /var/ossec/etc/kronos-aislar.permitidos; sudo chmod 640 /var/ossec/etc/kronos-aislar.permitidos
 ls -l /var/ossec/active-response/bin/kronos-aislar-equipo /var/ossec/etc/kronos-aislar.permitidos
 sha256sum /var/ossec/active-response/bin/kronos-aislar-equipo | cut -c1-16
@@ -173,7 +176,7 @@ echo '{"parameters":{"extra_args":["quitar"]}}' | sudo /var/ossec/active-respons
 sudo tail -n 2 /var/ossec/logs/active-responses.log
 ```
 
-Durante el aislamiento la cadena termina en `-j DROP`, `INPUT` empieza con `-j KRONOS-AISLAR`, `curl` falla (código distinto de 0) y en el servidor el agente 001 sigue `Active` (`AGENTE=001 bash probar-ar-api.sh estado`). El registro tiene `aplicar OK; manager permitido: <ip> TCP/1514,1515; administracion: 10.0.2.2/32` y, al final, `quitar OK; aislamiento quitado`.
+Durante el aislamiento la cadena termina en `-j DROP`, `INPUT` empieza con `-j KRONOS-AISLAR`, `curl` falla (código distinto de 0) y en el servidor el agente 001 sigue `Active` (`AGENTE=001 bash probar-ar-api.sh estado`). El registro tiene `aplicar OK; manager permitido: <ip> TCP/1514,1515; administracion: …` con las dos direcciones del archivo y, al final, `quitar OK; aislamiento quitado`.
 
 **Limitaciones conocidas:**
 
@@ -428,6 +431,8 @@ sudo install -o root -g wazuh -m 750 kronos-revertir-tarea /var/ossec/active-res
 ## 4. Lista de comprobación
 
 - [ ] Script instalado con `root:wazuh 750` y huella `f6ed73769449e130`.
+- [ ] Los 10 scripts `kronos-*` instalados en cada agente (Linux sin extensión; Windows `.cmd` y `.ps1`), con las versiones de la etiqueta desplegada.
+- [ ] `kronos-aislar.permitidos` con la dirección de administración del laboratorio (`10.0.50.1` en `kronos-lab`).
 - [ ] Prueba manual: `aplicar` y `quitar` correctos.
 - [ ] Rol `kronos-execute` unido a la política `agents_commands_agents`.
 - [ ] Usuario `kronos-execute` creado, unido al rol y autenticando.

@@ -4,8 +4,8 @@
 | :--- | :--- |
 | Parte | 09 de 15 |
 | Responsable | Nicolás Zamora (revisa: Rodrigo Riveros) |
-| Versión | 0.9, 26-10-2026 |
-| Estado | Borrador para revisión: sale de la instalación de EP-SRV-01 (15-10-2026) y de la regeneración de su llave (21-10-2026). Nicolás lo compara con su historial y lo corrige |
+| Versión | 1.0, 11-11-2026 |
+| Estado | Vigente: instalación de EP-SRV-01 (15-10-2026), regeneración de su llave (21-10-2026) y configuración de la prueba integral 2 (10 y 11-11-2026) |
 | Requisitos | Partes 04 y 05; parte 08 para el script de Active Response |
 
 El agente de Wazuh 4.14.8 es SOAR-COLLECT en un servidor Linux de la PyME: envía sus eventos al manager por el
@@ -82,13 +82,67 @@ En un PC con Windows, en vez de `shred -u` se usa `Remove-Item llave-001`.
 **Debe mostrar:** `ID: 001, Name: EP-SRV-01, IP: any, Active` y, en el agente, `Connected to the server`.
 
 Con su configuración por defecto, el agente lee los registros del sistema (SSH, sudo, PAM) y vigila la
-integridad de archivos: alcanza para las reglas 100101, 100102, 100110 y 100111. La prueba de punta a punta está
-en la parte 15 (escenarios E1 y E2).
+integridad de archivos: alcanza para las reglas 100101, 100102, 100110, 100111, 100116, 100125 y 100127. Las
+demás reglas de Linux necesitan la sección 5. La prueba de punta a punta está en la parte 15.
 
-## 5. Script de Active Response
+## 5. Configuración para las reglas de sobre
 
-Instalar `kronos-bloquear-ip` como dice la parte 08, sección 2: dueño `root`, grupo `wazuh`, permiso 750, en
-`/var/ossec/active-response/bin/`. No hace falta reiniciar el agente.
+Cada bloque activa reglas de la parte 05. Los cambios a `/var/ossec/etc/ossec.conf` van dentro de `<ossec_config>`
+y se aplican con `sudo systemctl restart wazuh-agent`.
+
+### 5.1 Servicio web publicado (F5 y F6)
+
+En la PyME simulada, EP-SRV-01 publica un sitio con nginx (reglas 100118, 100119, 100121 y 100123).
+
+```
+[agente Linux] sudo apt-get install -y nginx
+```
+
+Que el agente lea el registro de acceso y vigile los archivos publicados:
+
+```xml
+<localfile>
+  <log_format>apache</log_format>
+  <location>/var/log/nginx/access.log</location>
+</localfile>
+
+<syscheck>
+  <directories realtime="yes" check_all="yes">/var/www</directories>
+</syscheck>
+```
+
+### 5.2 auditd (F3 y F4)
+
+Las reglas 100124 (herramienta de transferencia que conecta hacia fuera) y 100128 (salto por SSH a otro equipo)
+leen claves de auditd:
+
+```
+[agente Linux] sudo apt-get install -y auditd
+[agente Linux] echo '-a always,exit -F arch=b64 -S connect -F exe=/usr/bin/curl -k kronos_salida' | sudo tee /etc/audit/rules.d/kronos-salida.rules
+[agente Linux] echo '-w /usr/bin/ssh -p x -k kronos_salto_ssh' | sudo tee /etc/audit/rules.d/kronos-salto.rules
+[agente Linux] sudo augenrules --load
+[agente Linux] sudo auditctl -l | grep kronos
+```
+
+**Debe mostrar:** las dos reglas, con `kronos_salida` y `kronos_salto_ssh`. Al estar en `/etc/audit/rules.d/`,
+sobreviven al reinicio.
+
+Que el agente lea el registro de auditd:
+
+```xml
+<localfile>
+  <log_format>audit</log_format>
+  <location>/var/log/audit/audit.log</location>
+</localfile>
+```
+
+La clave de la 100128 no dice «salida» a propósito: con esa palabra la IA confundía el salto con F4.
+
+### 5.3 Scripts de Active Response
+
+Instalar los 10 scripts `kronos-*` de `infra/wazuh/active-response/linux/` como dice la parte 08: dueño `root`,
+grupo `wazuh`, permiso 750, en `/var/ossec/active-response/bin/`, y el archivo `kronos-aislar.permitidos`
+(parte 08, sección 2.8). No hace falta reiniciar el agente.
 
 ## 6. Regenerar la llave sin cambiar el número del agente
 
@@ -108,9 +162,14 @@ nueva, y se borra la antigua del gestor de contraseñas. Hecho así el 21-10-202
 
 ## 7. En el laboratorio
 
-- EP-SRV-01 es una máquina virtual de VirtualBox en el notebook de Nicolás, en la red NAT `kronos-lab`
-  (10.0.50.0/24). Su puerta de enlace, `10.0.50.1`, está en la lista de exclusión de `validate.json`: bloquearla
-  deja la VM sin red.
+- EP-SRV-01 es una máquina virtual de VirtualBox en el notebook de Nicolás, con la IP `10.0.50.7` en la red NAT
+  `kronos-lab` (10.0.50.0/24). Reenvíos del notebook: SSH en `127.0.0.1:2222` y el sitio web en
+  `127.0.0.1:8080`.
+- Su puerta de enlace, `10.0.50.1`, está en la lista de exclusión de `validate.json` (bloquearla deja la VM sin
+  red) y en `kronos-aislar.permitidos` (por ahí llega el SSH del laboratorio). La 100126 descarta el SSH que
+  llega desde ella.
+- Los ataques de la demostración salen de una VM Kali en la misma red: `10.0.50.5` en el notebook y `10.0.50.4`
+  en el PC de escritorio. Desde una IP interna, Kronos aplica las medidas de nivel 2 (PB-F1-03, PB-F3-02).
 - Si la VM se apaga cuando vence una reversión, ésta falla (`REVERSION_FALLIDA`) y no se reintenta: en las
   pruebas, el notebook va enchufado y sin suspensión.
 - Las reglas de `iptables` no sobreviven al reinicio de la VM (D-52).
@@ -120,4 +179,6 @@ nueva, y se borra la antigua del gestor de contraseñas. Hecho así el 21-10-202
 - [ ] `wazuh-agent` 4.14.8 instalado y retenido (`apt-mark hold`).
 - [ ] Registrado desde el servidor; llave importada sin pasar por un chat; copias temporales borradas.
 - [ ] Agente `Active` en el manager.
-- [ ] `kronos-bloquear-ip` instalado (parte 08).
+- [ ] nginx con su registro de acceso leído por el agente e integridad de archivos sobre `/var/www`.
+- [ ] auditd con las claves `kronos_salida` y `kronos_salto_ssh`, persistentes en `/etc/audit/rules.d/`.
+- [ ] Los 10 scripts `kronos-*` instalados y `kronos-aislar.permitidos` creado (parte 08).
