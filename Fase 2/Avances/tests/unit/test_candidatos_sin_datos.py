@@ -301,6 +301,27 @@ def sudo_root(equipo=SERVIDOR):
     return a
 
 
+def salto_ssh():
+    """El servidor ejecuta ssh hacia otro equipo (regla 100128, auditd), 11-11-2026."""
+    a = alerta("100128", 12, ["audit", "kronos", "kronos_f3"], SERVIDOR,
+               {"audit": {"type": "EXECVE", "key": "kronos_salto_ssh", "exe": "/usr/bin/ssh",
+                          "execve": {"a0": "ssh", "a1": "labadmin@10.0.50.5"}}},
+               "/var/log/audit/audit.log")
+    a["id"] = "prueba-salto"
+    return a
+
+
+class SaltoDesdeElServidor(unittest.TestCase):
+    def test_solo_ofrece_aislar_el_servidor(self):
+        m = modelo("F3", "PB-F3-04")
+        almacen = AlmacenFalso()
+        v = Validador(almacen, m, PLANTILLAS, CATALOGO, CONFIG, DecisionFalsa)
+        resultado = v.procesar(1, salto_ssh())
+        self.assertEqual(m.esquemas[1]["properties"]["playbook_id"]["enum"], ["PB-F3-04"])
+        self.assertEqual(resultado.destino, Destino.APROBADA)
+        self.assertEqual(almacen.decisiones[0].playbook_id, "PB-F3-04")
+
+
 class ContextoDeLaAlertaPrevia(unittest.TestCase):
     """La alerta de sudo (100127) llega al modelo con el SSH que la explica (ticket 194)."""
 
