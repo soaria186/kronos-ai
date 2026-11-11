@@ -4,8 +4,8 @@
 | :--- | :--- |
 | Parte | 10 de 15 |
 | Responsable | Nicolás Zamora (revisa: Rodrigo Riveros) |
-| Versión | 0.9, 26-10-2026 |
-| Estado | Borrador para revisión: sale de la instalación de EP-WKS-01 (21-10-2026), de `infra/wazuh/active-response/windows/README.md` y de la prueba de ese día. Nicolás lo compara con su historial y lo corrige |
+| Versión | 1.0, 11-11-2026 |
+| Estado | Vigente: instalación de EP-WKS-01 (21-10-2026), `infra/wazuh/active-response/windows/README.md` y configuración de la prueba integral 2 (10 y 11-11-2026) |
 | Requisitos | Partes 04, 05 y 08 |
 
 En la PyME simulada, **EP-WKS-01** es el puesto de trabajo: Windows 11 con el agente de Wazuh 4.14.8 (agente
@@ -17,10 +17,11 @@ En la PyME simulada, **EP-WKS-01** es el puesto de trabajo: Windows 11 con el ag
 
 | Dato | Valor |
 | :--- | :--- |
-| Dónde | VirtualBox 7.2 en el PC de escritorio de Nicolás |
+| Dónde | VirtualBox 7.2 en el PC de escritorio de Nicolás (`H:\Kronos-VM`) |
 | Sistema | Windows 11, ISO `es-mx`, build 26300 |
 | Recursos | 4 CPU, 8 GB de RAM, disco de 80 GB, EFI y TPM 2.0 |
-| Red | NAT de VirtualBox; SSH por el `127.0.0.1:2223` del PC |
+| Red | Red NAT `kronos-lab` con la IP `10.0.50.3` (SSH por el `127.0.0.1:2223` del PC) y red interna `kronos-ext` con `198.51.100.10`, que hace de internet en el laboratorio |
+| Acceso remoto | Escritorio remoto (RDP) activado, para los escenarios de F3 |
 | Instantáneas | `base-limpia` (sin agente), `con-agente` y `listo-demo` (para E3 y E4) |
 
 Para que VirtualBox corra Windows 11, el PC anfitrión tiene apagados la integridad de memoria (HVCI) y el
@@ -97,6 +98,12 @@ En la VM, como administrador:
   **Debe mostrar:** la subcategoría de inicio de sesión con «Error» (o «Failure») activado.
 - **E4, registro de auditoría borrado (evento 1102 → regla 100113).** Windows lo registra siempre; no hay que
   activar nada.
+- **Tareas programadas nuevas (evento 4698 → regla 100112, PB-F5-02).** Activar «Otros eventos de acceso a
+  objetos», también por su identificador:
+
+  ```
+  [agente Windows] auditpol /set /subcategory:"{0CCE9227-69AE-11D9-BED3-505054503030}" /success:enable
+  ```
 - **Cuenta de prueba para E3**, que nunca es la de administración ni `Administrator`. La contraseña se escribe
   en la ventana, no en el comando:
 
@@ -106,11 +113,20 @@ En la VM, como administrador:
 
 Con todo listo, tomar la instantánea `listo-demo`.
 
-## 6. Sysmon y PowerShell, para las reglas F2
+## 6. Sysmon, integridad de archivos y servicios
 
-Las reglas 100104 a 100106 (PowerShell codificado, ejecución sospechosa, ejecutables en carpetas temporales) y
-parte de F3 salen de eventos de **Sysmon** (reglas nativas 91xxx y 92xxx). Para que se disparen, instalar Sysmon
-con una configuración conocida y agregar su canal al `ossec.conf` del agente:
+Las reglas 100104 a 100109 y 100117 (PowerShell codificado, ejecución sospechosa, ejecutables en carpetas de
+usuario, acceso y ejecución remota, conexiones de salida) salen de eventos de **Sysmon** (reglas nativas 91xxx y
+92xxx). En EP-WKS-01 se instaló **Sysmon 15.22** con la configuración pública `sysmonconfig-export.xml` de
+SwiftOnSecurity, como administrador y desde la carpeta donde se descomprimió:
+
+```
+[agente Windows] .\Sysmon64.exe -accepteula -i sysmonconfig-export.xml
+[agente Windows] Get-Service Sysmon64
+```
+
+**Debe mostrar:** `Running`. Después, agregar su canal al `ossec.conf` del agente
+(`C:\Program Files (x86)\ossec-agent\ossec.conf`, guardando antes una copia `ossec.conf.bak`):
 
 ```xml
 <localfile>
@@ -119,11 +135,25 @@ con una configuración conocida y agregar su canal al `ossec.conf` del agente:
 </localfile>
 ```
 
-Los escenarios E3 y E4 de la demostración no lo necesitan.
+Para PB-F5-01 (persistencia en la carpeta Inicio, regla 100110), la integridad de archivos vigila esa carpeta:
+
+```xml
+<syscheck>
+  <directories realtime="yes" check_all="yes">C:\ProgramData\Microsoft\Windows\Start Menu\Programs\StartUp</directories>
+</syscheck>
+```
+
+La regla 100120 (servicio terminado de forma inesperada, evento 7031) no necesita nada: el agente ya lee el
+registro del sistema. Reiniciar el agente después de cambiar `ossec.conf`:
+
+```
+[agente Windows] Restart-Service -Name WazuhSvc
+```
 
 ## 7. Scripts de Active Response
 
-Los scripts de Windows son un lanzador `.cmd` más un `.ps1` por comando (`infra/wazuh/active-response/windows/`).
+Los scripts de Windows son un lanzador `.cmd` más un `.ps1` por cada una de las 10 acciones
+(`infra/wazuh/active-response/windows/`).
 Copiarlos a la VM y, como administrador, a la carpeta del agente:
 
 ```
@@ -144,6 +174,8 @@ launch command`; prueba del 21-10-2026, #43).
 
 - [ ] Agente 4.14.8 instalado, con firma válida, registrado desde el servidor y `Active`.
 - [ ] Llave importada sin pasar por un chat; copias temporales borradas.
-- [ ] Auditoría de fallos de inicio de sesión activada.
+- [ ] Auditoría de fallos de inicio de sesión y de «Otros eventos de acceso a objetos» activadas.
+- [ ] Sysmon 15.22 en marcha y su canal en `ossec.conf`; integridad de archivos sobre la carpeta Inicio.
+- [ ] RDP activado y la red interna `kronos-ext` configurada (escenarios de F3).
 - [ ] Cuenta `usuario.demo` creada; instantánea `listo-demo` tomada.
 - [ ] Scripts `kronos-*` en `active-response\bin`, probados a mano y por la API con `.cmd`.
