@@ -6,8 +6,9 @@
   La familia es una pista: la clasificación final la hace el paso 1 del modelo y la
   valida SOAR-VALIDATE.
 
-  Rango de identificadores: 100101 a 100124 (rango reservado para reglas propias). Las 100116 a
-  100124 se agregaron el 10-11-2026 para cubrir los 25 playbooks (prueba integral 2).
+  Rango de identificadores: 100101 a 100127 (rango reservado para reglas propias). Las 100116 a
+  100124 se agregaron el 10-11-2026 y las 100125 a 100127 el 11-11-2026 para cubrir los 25
+  playbooks (prueba integral 2).
   Los niveles son una propuesta: se ajustan cuando se fije el mapa de severidad.
   Los números de las reglas nativas se verificaron en el manager el 14-10-2026.
 
@@ -85,6 +86,36 @@
   <rule id="100108" level="12">
     <if_sid>92068, 92650, 92202, 92218, 92220, 92602, 92656</if_sid>
     <description>Kronos F3: ejecución remota o uso de recursos administrativos (PsExec, servicios, WinRM, Impacket)</description>
+    <group>kronos_f3,</group>
+  </rule>
+
+  <!-- F3 en Linux (11-11-2026), con el mismo reparto que en Windows:
+       - 100125: acceso por SSH desde otro equipo de la red interna (10.0.0.0/8). Trae la IP, así
+         que permite PB-F3-02 (bloquear la IP del otro equipo, nivel 2), como la 100107.
+       - 100126: excepción para los equipos de administración. En el laboratorio, 10.0.50.1 es la
+         puerta de enlace por la que entra el SSH del equipo; en cada PyME van aquí sus equipos de
+         administración. Al quedar en nivel 0, tampoco cuenta para la 100127.
+       - 100127: después de ese acceso, alguien usa sudo para ser root. La alerta de sudo no trae
+         IP, así que la única medida de F3 posible en un servidor es aislarlo (PB-F3-04, nivel 3,
+         con aprobación). Límites: no compara la cuenta del SSH con la del sudo, y otras redes
+         internas (172.16.0.0/12, 192.168.0.0/16) se agregan como la 100125 si la PyME las usa. -->
+  <rule id="100125" level="10">
+    <if_sid>5715</if_sid>
+    <srcip>10.0.0.0/8</srcip>
+    <description>Kronos F3: acceso por SSH desde otro equipo de la red interna</description>
+    <group>kronos_f3,kronos_ssh_interno,</group>
+  </rule>
+
+  <rule id="100126" level="0">
+    <if_sid>100125</if_sid>
+    <srcip>10.0.50.1</srcip>
+    <description>Kronos: SSH desde un equipo de administración (se descarta)</description>
+  </rule>
+
+  <rule id="100127" level="12" timeframe="600" ignore="300">
+    <if_sid>5402</if_sid>
+    <if_matched_group>kronos_ssh_interno</if_matched_group>
+    <description>Kronos F3: uso de sudo a root después de un acceso por SSH desde otro equipo interno</description>
     <group>kronos_f3,</group>
   </rule>
 

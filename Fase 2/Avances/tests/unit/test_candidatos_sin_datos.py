@@ -253,6 +253,23 @@ class SeveridadEnElEsquema(unittest.TestCase):
         self.assertNotIn("PB-F5-03", esquema)
         self.assertIn("PB-F5-01", esquema)
 
+    def test_ssh_interno_en_un_servidor_solo_ofrece_bloquear_la_ip(self):
+        # Regla 100125 (severidad 10): el SSH trae la IP del otro equipo.
+        servidor = {"id": "001", "name": "EP-SRV-01", "ip": "192.0.2.30"}
+        ssh = alerta("100125", 10, ["sshd", "kronos", "kronos_f3"], servidor,
+                     {"srcip": "10.0.50.5", "dstuser": "labadmin"}, "journald")
+        _, m, _ = self.procesar(ssh, "F3", "PB-F3-02")
+        self.assertEqual(m.esquemas[1]["properties"]["playbook_id"]["enum"], ["PB-F3-02"])
+
+    def test_sudo_despues_del_ssh_interno_solo_ofrece_aislar_el_servidor(self):
+        # Regla 100127 (severidad 12): la alerta de sudo no trae IP.
+        servidor = {"id": "001", "name": "EP-SRV-01", "ip": "192.0.2.30"}
+        sudo = alerta("100127", 12, ["sudo", "kronos", "kronos_f3"], servidor,
+                      {"srcuser": "labadmin", "dstuser": "root"}, "journald")
+        resultado, m, _ = self.procesar(sudo, "F3", "PB-F3-04")
+        self.assertEqual(m.esquemas[1]["properties"]["playbook_id"]["enum"], ["PB-F3-04"])
+        self.assertEqual(resultado.destino, Destino.APROBADA)
+
     def test_si_ninguna_medida_esta_permitida_el_chequeo_de_severidad_frena(self):
         # Severidad 7 (nivel máximo 1) con una IP interna: en F3 no queda ninguna medida
         # permitida, se ofrecen todas y el chequeo de severidad sigue siendo la barrera.
