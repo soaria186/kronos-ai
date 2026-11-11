@@ -54,7 +54,7 @@ class ConfiguracionAprobada(unittest.TestCase):
         self.assertEqual(usados["acciones_por_equipo"], (3, 3))
 
     def test_niveles_que_permite_cada_regla_de_sobre(self):
-        # Las 15 reglas de sobre (infra/wazuh) tienen niveles 7, 8, 10 y 12.
+        # Las reglas de sobre (infra/wazuh) tienen niveles 7, 10 y 12 (la 100107 pasó de 8 a 10 el 11-11).
         # El nivel 0 es de las reglas que descartan (100122): no generan alerta.
         niveles = {
             int(n)
@@ -63,10 +63,10 @@ class ConfiguracionAprobada(unittest.TestCase):
             )
             if int(n) > 0
         }
-        self.assertEqual(niveles, {7, 8, 10, 12})
+        self.assertEqual(niveles, {7, 10, 12})
         self.assertEqual(
             {n: self.conf.mapa.nivel_maximo(n) for n in sorted(niveles)},
-            {7: 1, 8: 1, 10: 2, 12: 3},
+            {7: 1, 10: 2, 12: 3},
         )
 
     def test_de_punta_a_punta_con_el_catalogo(self):
