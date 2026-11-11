@@ -404,7 +404,8 @@ class Validador:
     def _excluidos(
         self, alerta_wazuh: Mapping[str, Any], severidad: int, ambito_ip: str | None = None
     ) -> frozenset[str]:
-        """Playbooks que el paso 2 no acepta: los que no tienen su dato y, desde la severidad
+        """Playbooks que el paso 2 no acepta: los que no tienen su dato, los del otro ámbito de IP
+        o del otro tipo de equipo y, desde la severidad
         SEVERIDAD_SIN_CONSULTA, reunir contexto (nivel 0) cuando en su familia queda una medida
         aplicable.
 
@@ -421,6 +422,18 @@ class Validador:
                 p.id
                 for p in self._catalogo.playbooks.values()
                 if p.ambito_ip and p.ambito_ip != ambito_ip
+            )
+        # Medidas del otro tipo de equipo: aislar «un puesto» cuando el equipo es un servidor,
+        # o al revés (prueba integral 2, ticket 168: salida de datos desde EP-SRV-01).
+        agente = alerta_wazuh.get("agent")
+        arquetipo = self._config.arquetipo(
+            agente.get("name") if isinstance(agente, Mapping) else None
+        )
+        if arquetipo:
+            sin_datos.update(
+                p.id
+                for p in self._catalogo.playbooks.values()
+                if p.arquetipos and arquetipo not in p.arquetipos
             )
         sin_datos = frozenset(sin_datos)
         if severidad < SEVERIDAD_SIN_CONSULTA:

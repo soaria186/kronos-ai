@@ -130,6 +130,19 @@ class ConfiguracionDefectuosa(unittest.TestCase):
         conf = self.cargar_con(lambda d: d.pop("agrupacion"))
         self.assertEqual(conf.ventana_agrupacion_minutos, 0)
 
+    def test_tipo_de_cada_equipo(self):
+        conf = self.cargar_con(lambda d: None)
+        self.assertEqual(conf.arquetipo("EP-SRV-01"), "servidor")
+        self.assertEqual(conf.arquetipo("ep-wks-01"), "puesto")
+        self.assertIsNone(conf.arquetipo("otro"))
+        self.assertIsNone(conf.arquetipo(None))
+        sin = self.cargar_con(lambda d: d.pop("arquetipos_de_equipos"))
+        self.assertIsNone(sin.arquetipo("EP-SRV-01"))
+        with self.assertRaises(ConfiguracionInvalida):
+            self.cargar_con(
+                lambda d: d["arquetipos_de_equipos"]["equipos"].update({"X": "router"})
+            )
+
     def test_la_puerta_de_enlace_del_laboratorio_esta_excluida(self):
         conf = self.cargar_con(lambda d: None)
         self.assertEqual(conf.exclusion.coincidencia({"ip": "10.0.50.1"}), ("ip", "10.0.50.1"))

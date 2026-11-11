@@ -65,6 +65,8 @@ class Playbook:
     # Acción del catálogo (bloquear_ip, cuarentena...). Con ella VALIDATE no acepta del
     # modelo una medida cuyo dato no viene en la alerta (validacion.ciclo).
     accion: str | None = None
+    # Tipos de equipo para los que sirve («puesto», «servidor»); vacío = cualquiera.
+    arquetipos: frozenset[str] = frozenset()
 
     def __post_init__(self) -> None:
         if self.familia not in FAMILIAS:
