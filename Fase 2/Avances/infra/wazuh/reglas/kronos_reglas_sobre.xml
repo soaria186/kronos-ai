@@ -71,8 +71,13 @@
 
   <!-- F3 - Movimiento lateral o acceso remoto -->
 
-  <rule id="100107" level="8">
-    <if_sid>92653, 92657</if_sid>
+  <!-- 100107 en severidad 10 (11-11-2026): un acceso remoto desde una IP interna permite PB-F3-02
+       (bloquear la IP del otro equipo, nivel 2); desde una IP externa sigue PB-F3-01 (nivel 1).
+       Los niveles 3 de F3 (aislar) quedan para la 100108, la ejecución remota. Se suma la 92652
+       (inicio de sesión NTLM de red, posible pass-the-hash). Los equipos de administración de la
+       PyME van en la lista de exclusión, para que su RDP diario no bloquee a nadie. -->
+  <rule id="100107" level="10">
+    <if_sid>92652, 92653, 92657</if_sid>
     <description>Kronos F3: inicio de sesión remoto (RDP o NTLM de red)</description>
     <group>kronos_f3,</group>
   </rule>
@@ -141,12 +146,13 @@
     <group>kronos_f5,</group>
   </rule>
 
-  <!-- Tareas que crea el propio Windows (\Microsoft\..., \SoftLanding\...): se descartan para que
-       Kronos no las deshabilite (prueba integral 2, tickets 142 y 143). Un atacante podría
-       esconder una tarea en esas carpetas: queda como límite conocido. -->
+  <!-- Tareas que crea el propio Windows (\Microsoft\..., \SoftLanding\...) y las de OneDrive que
+       Windows crea por usuario al iniciar sesión: se descartan para que Kronos no las deshabilite
+       (prueba integral 2, tickets 142, 143 y 185). Un atacante podría esconder una tarea en esas
+       carpetas o con esos nombres: queda como límite conocido. -->
   <rule id="100122" level="0">
     <if_sid>100112</if_sid>
-    <field name="win.eventdata.taskName" type="pcre2">(?i)^\\\\(Microsoft|SoftLanding)\\\\</field>
+    <field name="win.eventdata.taskName" type="pcre2">(?i)^\\\\((Microsoft|SoftLanding)\\\\|OneDrive (Standalone Update|Reporting) Task-S-1-5-21-)</field>
     <description>Kronos: tarea programada propia de Windows (se descarta)</description>
   </rule>
 
