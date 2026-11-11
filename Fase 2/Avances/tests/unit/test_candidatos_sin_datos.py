@@ -13,7 +13,7 @@ from dataclasses import dataclass
 
 from decision.inferencia import clasificar
 from decision.plantillas import Plantillas
-from ejecucion.ordenes import falta_argumento
+from ejecucion.ordenes import falta_argumento, no_aplicable
 from validacion.catalogo import cargar_catalogo
 from validacion.ciclo import Destino, Validador
 from validacion.configuracion import cargar_configuracion
@@ -204,9 +204,324 @@ class ValidadorConLaAlertaDeE4(unittest.TestCase):
         self.assertEqual(almacen.decisiones[0].playbook_id, "PB-F5-04")
 
     def test_con_archivo_la_cuarentena_sigue_disponible(self):
-        _, m, _ = self.procesar(con_archivo(), "F5", "PB-F5-03")
+        # Severidad 12: la cuarentena de un archivo de sistema (PB-F5-03) es nivel 3.
+        con_sev_12 = con_archivo()
+        con_sev_12["rule"]["level"] = 12
+        _, m, _ = self.procesar(con_sev_12, "F5", "PB-F5-03")
         self.assertIn("PB-F5-03", json.dumps(m.esquemas[1]))
+
+
+def f3_rdp(nivel, ip="10.0.50.4"):
+    """Inicio de sesión remoto en EP-WKS-01 (regla 100107), como el ticket 190 del 11-11."""
+    return alerta(
+        "100107", nivel, ["windows", "kronos", "kronos_f3"], PUESTO,
+        {"win": {"system": {"eventID": "4624", "channel": "Security"},
+                 "eventdata": {"ipAddress": ip, "logonType": "3",
+                               "targetUserName": "labadmin"}}},
+        "EventChannel",
+    )
+
+
+class SeveridadEnElEsquema(unittest.TestCase):
+    """El paso 2 no ofrece medidas de un nivel mayor al que permite la severidad (11-11-2026).
+
+    Ticket 190: un RDP desde una IP interna (100107, severidad 10) terminó en aislar el puesto
+    (PB-F3-03, nivel 3) y VALIDATE lo frenó, en vez de bloquear la IP del otro equipo (PB-F3-02).
+    """
+
+    def procesar(self, alerta_wazuh, familia, playbook):
+        m = modelo(familia, playbook)
+        almacen = AlmacenFalso()
+        v = Validador(almacen, m, PLANTILLAS, CATALOGO, CONFIG, DecisionFalsa)
+        return v.procesar(1, alerta_wazuh), m, almacen
+
+    def test_ticket_190_solo_se_ofrece_bloquear_la_ip_del_otro_equipo(self):
+        resultado, m, almacen = self.procesar(f3_rdp(10), "F3", "PB-F3-02")
+        enum = m.esquemas[1]["properties"]["playbook_id"]["enum"]
+        self.assertEqual(enum, ["PB-F3-02"])
+        self.assertEqual(resultado.destino, Destino.APROBADA)
+        self.assertEqual(almacen.decisiones[0].playbook_id, "PB-F3-02")
+
+    def test_aislar_el_puesto_ya_no_se_ofrece_con_severidad_10(self):
+        resultado, m, _ = self.procesar(f3_rdp(10), "F3", "PB-F3-03")
+        self.assertNotIn("PB-F3-03", json.dumps(m.esquemas[1]))
+        self.assertEqual(resultado.motivo, "ESQUEMA_INVALIDO")
+
+    def test_archivo_de_sistema_con_severidad_10_queda_la_cuarentena_de_nivel_1(self):
+        _, m, _ = self.procesar(con_archivo(), "F5", "PB-F5-01")
+        esquema = json.dumps(m.esquemas[1])
+        self.assertNotIn("PB-F5-03", esquema)
+        self.assertIn("PB-F5-01", esquema)
+
+    def test_ssh_interno_en_un_servidor_solo_ofrece_bloquear_la_ip(self):
+        # Regla 100125 (severidad 10): el SSH trae la IP del otro equipo.
+        servidor = {"id": "001", "name": "EP-SRV-01", "ip": "192.0.2.30"}
+        ssh = alerta("100125", 10, ["sshd", "kronos", "kronos_f3"], servidor,
+                     {"srcip": "10.0.50.5", "dstuser": "labadmin"}, "journald")
+        _, m, _ = self.procesar(ssh, "F3", "PB-F3-02")
+        self.assertEqual(m.esquemas[1]["properties"]["playbook_id"]["enum"], ["PB-F3-02"])
+
+    def test_sudo_despues_del_ssh_interno_solo_ofrece_aislar_el_servidor(self):
+        # Regla 100127 (severidad 12): la alerta de sudo no trae IP.
+        servidor = {"id": "001", "name": "EP-SRV-01", "ip": "192.0.2.30"}
+        sudo = alerta("100127", 12, ["sudo", "kronos", "kronos_f3"], servidor,
+                      {"srcuser": "labadmin", "dstuser": "root"}, "journald")
+        resultado, m, _ = self.procesar(sudo, "F3", "PB-F3-04")
+        self.assertEqual(m.esquemas[1]["properties"]["playbook_id"]["enum"], ["PB-F3-04"])
+        self.assertEqual(resultado.destino, Destino.APROBADA)
+
+    def test_si_ninguna_medida_esta_permitida_el_chequeo_de_severidad_frena(self):
+        # Severidad 7 (nivel máximo 1) con una IP interna: en F3 no queda ninguna medida
+        # permitida, se ofrecen todas y el chequeo de severidad sigue siendo la barrera.
+        resultado, m, _ = self.procesar(f3_rdp(7), "F3", "PB-F3-02")
+        self.assertIn("PB-F3-02", json.dumps(m.esquemas[1]))
+        self.assertEqual(resultado.motivo, "NIVEL_NO_PERMITIDO_POR_SEVERIDAD")
+
+
+SERVIDOR = {"id": "001", "name": "EP-SRV-01", "ip": "192.0.2.30"}
+
+
+def ssh_interno(equipo=SERVIDOR):
+    """SSH aceptado desde otro equipo interno (regla 100125), como el ticket 195 del 11-11."""
+    a = alerta("100125", 10, ["sshd", "kronos", "kronos_f3", "kronos_ssh_interno"], equipo,
+               {"srcip": "10.0.50.5", "dstuser": "labadmin"}, "journald")
+    a["id"] = "prueba-ssh"
+    a["full_log"] = ("Nov 11 15:12:10 ep-srv-01 sshd[11500]: Accepted password for labadmin "
+                     "from 10.0.50.5 port 50000 ssh2")
+    return a
+
+
+def sudo_root(equipo=SERVIDOR):
+    """sudo a root después del SSH (regla 100127), como el ticket 196 del 11-11."""
+    a = alerta("100127", 12, ["sudo", "kronos", "kronos_f3"], equipo,
+               {"srcuser": "labadmin", "dstuser": "root", "command": "/bin/bash"}, "journald")
+    a["id"] = "prueba-sudo"
+    a["full_log"] = ("Nov 11 15:12:24 ep-srv-01 sudo[11560]: labadmin : TTY=pts/0 ; "
+                     "PWD=/root ; USER=root ; COMMAND=/bin/bash")
+    return a
+
+
+def salto_ssh():
+    """El servidor ejecuta ssh hacia otro equipo (regla 100128, auditd), 11-11-2026."""
+    a = alerta("100128", 12, ["audit", "kronos", "kronos_f3"], SERVIDOR,
+               {"audit": {"type": "EXECVE", "key": "kronos_salto_ssh", "exe": "/usr/bin/ssh",
+                          "execve": {"a0": "ssh", "a1": "labadmin@10.0.50.5"}}},
+               "/var/log/audit/audit.log")
+    a["id"] = "prueba-salto"
+    return a
+
+
+class SaltoDesdeElServidor(unittest.TestCase):
+    def test_solo_ofrece_aislar_el_servidor(self):
+        m = modelo("F3", "PB-F3-04")
+        almacen = AlmacenFalso()
+        v = Validador(almacen, m, PLANTILLAS, CATALOGO, CONFIG, DecisionFalsa)
+        resultado = v.procesar(1, salto_ssh())
+        self.assertEqual(m.esquemas[1]["properties"]["playbook_id"]["enum"], ["PB-F3-04"])
+        self.assertEqual(resultado.destino, Destino.APROBADA)
+        self.assertEqual(almacen.decisiones[0].playbook_id, "PB-F3-04")
+
+
+class ContextoDeLaAlertaPrevia(unittest.TestCase):
+    """La alerta de sudo (100127) llega al modelo con el SSH que la explica (ticket 194)."""
+
+    def setUp(self):
+        self.ahora = 1000.0
+        self.m = ModeloQueGuarda(
+            json.dumps({"familia": "F3", "confianza": 0.9}),
+            json.dumps({"playbook_id": "PB-F3-02", "confianza": 0.85}),
+            json.dumps({"familia": "F3", "confianza": 0.9}),
+            json.dumps({"playbook_id": "PB-F3-04", "confianza": 0.85}),
+        )
+        self.v = Validador(AlmacenFalso(), self.m, PLANTILLAS, CATALOGO, CONFIG,
+                           DecisionFalsa, reloj=lambda: self.ahora)
+
+    def test_el_sudo_llega_con_el_ssh_previo(self):
+        self.v.procesar(1, ssh_interno())
+        self.ahora += 14
+        resultado = self.v.procesar(1, sudo_root())
+        paso1_del_sudo = self.m.prompts[2]
+        self.assertIn("Contexto: alerta anterior en el mismo equipo", paso1_del_sudo)
+        self.assertIn("from 10.0.50.5", paso1_del_sudo)
+        self.assertEqual(resultado.destino, Destino.APROBADA)
+
+    def test_el_ssh_mismo_no_lleva_contexto(self):
+        self.v.procesar(1, ssh_interno())
+        self.assertNotIn("Contexto:", self.m.prompts[0])
+
+    def test_sin_contexto_despues_de_la_ventana(self):
+        self.v.procesar(1, ssh_interno())
+        self.ahora += 10 * 60 + 1
+        self.v.procesar(1, sudo_root())
+        self.assertNotIn("Contexto:", self.m.prompts[2])
+
+    def test_el_ssh_a_otro_equipo_no_sirve_de_contexto(self):
+        self.v.procesar(1, ssh_interno(PUESTO))
+        self.v.procesar(1, sudo_root())
+        self.assertNotIn("Contexto:", self.m.prompts[2])
+
+    def test_otro_inquilino_no_ve_el_contexto(self):
+        self.v.procesar(2, ssh_interno())
+        self.v.procesar(1, sudo_root())
+        self.assertNotIn("Contexto:", self.m.prompts[2])
+
+
+def f2_codificado(nivel):
+    """PowerShell codificado en un puesto (Sysmon), con PID e imagen."""
+    return alerta(
+        "100104", nivel, ["windows", "kronos", "kronos_f2"], PUESTO,
+        {"win": {"system": {"eventID": "1"},
+                 "eventdata": {"processId": "5480",
+                               "image": "C:\\Users\\Public\\upd.exe"}}},
+        "EventChannel",
+    )
+
+
+class SinConsultaDesdeSeveridad10(unittest.TestCase):
+    """Desde severidad 10, reunir contexto no se ofrece si hay otra medida aplicable."""
+
+    def esquema(self, alerta_wazuh, familia, playbook):
+        m = modelo(familia, playbook)
+        Validador(AlmacenFalso(), m, PLANTILLAS, CATALOGO, CONFIG, DecisionFalsa).procesar(
+            1, alerta_wazuh
+        )
+        return json.dumps(m.esquemas[1])
+
+    def test_severidad_alta_quita_la_consulta(self):
+        esquema = self.esquema(f2_codificado(12), "F2", "PB-F2-03")
+        self.assertNotIn("PB-F2-01", esquema)
+        self.assertIn("PB-F2-03", esquema)
+
+    def test_severidad_baja_mantiene_la_consulta(self):
+        self.assertIn("PB-F2-01", self.esquema(f2_codificado(7), "F2", "PB-F2-01"))
+
+    def test_sin_otra_medida_posible_la_consulta_queda(self):
+        # Sin PID, imagen ni ruta, F2 sólo tiene la consulta: no se deja a la familia vacía.
+        a = f2_codificado(12)
+        a["data"]["win"]["eventdata"] = {}
+        self.assertIn("PB-F2-01", self.esquema(a, "F2", "PB-F2-01"))
+
+
+class MedidasImposiblesNoSeOfrecen(unittest.TestCase):
+    """Prueba integral 2 (10-11): objetivos inválidos y medidas de otro ámbito de IP."""
+
+    def esquema(self, alerta_wazuh, familia, playbook):
+        m = modelo(familia, playbook)
+        Validador(AlmacenFalso(), m, PLANTILLAS, CATALOGO, CONFIG, DecisionFalsa).procesar(
+            1, alerta_wazuh
+        )
+        return json.dumps(m.esquemas[1])
+
+    def test_ip_local_no_se_ofrece_bloquear(self):
+        a = alerta(
+            "100103", 10, ["windows", "kronos", "kronos_f1"], PUESTO,
+            {"win": {"system": {"eventID": "4625"},
+                     "eventdata": {"ipAddress": "::1", "targetUserName": "usuario.demo"}}},
+            "EventChannel",
+        )
+        esquema = self.esquema(a, "F1", "PB-F1-05")
+        self.assertNotIn("PB-F1-02", esquema)
+        self.assertNotIn("PB-F1-03", esquema)
+        self.assertIn("PB-F1-05", esquema)
+
+    def test_ip_interna_no_ofrece_la_medida_externa(self):
+        a = alerta(
+            "100101", 10, ["sshd", "kronos", "kronos_f1"],
+            {"id": "001", "name": "EP-SRV-01", "ip": "192.0.2.30"},
+            {"srcip": "192.168.50.21", "srcuser": "prueba"}, "/var/log/auth.log",
+        )
+        esquema = self.esquema(a, "F1", "PB-F1-03")
+        self.assertNotIn("PB-F1-02", esquema)
+        self.assertIn("PB-F1-03", esquema)
+
+
+class RutaDelArchivoCreado(unittest.TestCase):
+    def test_sysmon_11_usa_target_filename(self):
+        from ejecucion.ordenes import construir
+
+        a = alerta(
+            "100106", 10, ["windows", "kronos", "kronos_f2"], PUESTO,
+            {"win": {"system": {"eventID": "11"},
+                     "eventdata": {"image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+                                   "targetFilename": "C:\\Users\\Public\\svc-update2.exe"}}},
+            "EventChannel",
+        )
+        orden = construir("cuarentena", a, sistema="windows")
+        self.assertEqual(orden.argumentos[1], "C:\\Users\\Public\\svc-update2.exe")
+
+
+class InundacionYRegistroVaciado(unittest.TestCase):
+    """Prueba integral 2 (10-11): F6-02/F6-03 según el origen y la 592 sin sistema operativo."""
+
+    def esquema(self, alerta_wazuh, familia, playbook):
+        m = modelo(familia, playbook)
+        Validador(AlmacenFalso(), m, PLANTILLAS, CATALOGO, CONFIG, DecisionFalsa).procesar(
+            1, alerta_wazuh
+        )
+        return json.dumps(m.esquemas[1])
+
+    def inundacion(self, ip):
+        return alerta(
+            "100118", 12, ["web", "kronos", "kronos_f6"],
+            {"id": "001", "name": "EP-SRV-01", "ip": "192.0.2.30"},
+            {"srcip": ip, "url": "/admin1", "id": "404"}, "/var/log/nginx/access.log",
+        )
+
+    def test_equipo_interno_se_limita(self):
+        esquema = self.esquema(self.inundacion("192.168.50.30"), "F6", "PB-F6-03")
+        self.assertNotIn("PB-F6-02", esquema)
+        self.assertIn("PB-F6-03", esquema)
+
+    def test_origen_externo_se_bloquea(self):
+        esquema = self.esquema(self.inundacion("198.51.100.29"), "F6", "PB-F6-02")
+        self.assertIn("PB-F6-02", esquema)
+        self.assertNotIn("PB-F6-03", esquema)
+
+    def test_registro_vaciado_sin_sistema_no_ofrece_cuarentena(self):
+        a = alerta(
+            "100113", 12, ["ossec", "kronos", "kronos_f5"],
+            {"id": "001", "name": "EP-SRV-01", "ip": "192.0.2.30"},
+            {}, "ossec-logcollector",
+        )
+        self.assertTrue(no_aplicable("cuarentena", a))
+        self.assertTrue(no_aplicable("revertir_tarea", a))
+        self.assertFalse(no_aplicable("aislar_equipo", a))
 
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class MedidasDelOtroTipoDeEquipo(unittest.TestCase):
+    """Prueba integral 2 (10-11, ticket 168): salida de datos desde un servidor, aislar puesto."""
+
+    def esquema(self, alerta_wazuh, familia, playbook):
+        m = modelo(familia, playbook)
+        Validador(AlmacenFalso(), m, PLANTILLAS, CATALOGO, CONFIG, DecisionFalsa).procesar(
+            1, alerta_wazuh
+        )
+        return json.dumps(m.esquemas[1])
+
+    def salida(self, agente):
+        return alerta(
+            "100124", 12, ["audit", "kronos", "kronos_f4"], agente,
+            {"audit": {"key": "kronos_salida", "exe": "/usr/bin/curl"}},
+            "/var/log/audit/audit.log",
+        )
+
+    def test_servidor_no_ofrece_aislar_puesto(self):
+        agente = {"id": "001", "name": "ep-srv-01", "ip": "192.0.2.30"}
+        esquema = self.esquema(self.salida(agente), "F4", "PB-F4-03")
+        self.assertNotIn("PB-F4-02", esquema)
+        self.assertIn("PB-F4-03", esquema)
+
+    def test_puesto_no_ofrece_aislar_servidor(self):
+        esquema = self.esquema(self.salida(PUESTO), "F4", "PB-F4-02")
+        self.assertIn("PB-F4-02", esquema)
+        self.assertNotIn("PB-F4-03", esquema)
+
+    def test_equipo_sin_tipo_recibe_todas(self):
+        agente = {"id": "009", "name": "otro-equipo", "ip": "192.0.2.40"}
+        esquema = self.esquema(self.salida(agente), "F4", "PB-F4-03")
+        self.assertIn("PB-F4-02", esquema)
+        self.assertIn("PB-F4-03", esquema)

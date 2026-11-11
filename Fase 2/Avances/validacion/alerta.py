@@ -249,6 +249,24 @@ def _texto_para_el_modelo(alerta: dict) -> str:
     return _limpio(" | ".join(partes), LARGO_TEXTO)
 
 
+def contexto_para_el_modelo(alerta: dict) -> str:
+    """Resumen de una alerta anterior que explica a otra (validacion.ciclo, CONTEXTO_PREVIO).
+
+    Lleva la hora, la IP de origen, la cuenta y la línea de registro, recortados como el resto
+    del texto. Son datos de la alerta: el prompt los sigue tratando como datos, no instrucciones.
+    """
+    datos = alerta.get("data") if isinstance(alerta.get("data"), dict) else {}
+    partes = []
+    if alerta.get("timestamp"):
+        partes.append(f"timestamp: {_limpio(alerta['timestamp'])}")
+    for clave in ("srcip", "dstuser", "srcuser"):
+        if datos.get(clave):
+            partes.append(f"data.{clave}: {_limpio(datos[clave])}")
+    if alerta.get("full_log"):
+        partes.append(f"full_log: {_limpio(alerta['full_log'])}")
+    return _limpio(" | ".join(partes), LARGO_CAMPO * 2)
+
+
 def _valor(alerta: dict, ruta: tuple[str, ...]) -> str | None:
     actual: object = alerta
     for clave in ruta:

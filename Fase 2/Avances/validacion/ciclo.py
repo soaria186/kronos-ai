@@ -55,8 +55,13 @@ from typing import Any, Protocol
 
 from decision.inferencia import FallaSegura, Modelo, MotivoFalla, clasificar
 from decision.plantillas import Plantillas
-from ejecucion.ordenes import falta_argumento
-from validacion.alerta import AlertaInvalida, AlertaKronos, preparar
+from ejecucion.ordenes import no_aplicable
+from validacion.alerta import (
+    AlertaInvalida,
+    AlertaKronos,
+    contexto_para_el_modelo,
+    preparar,
+)
 from validacion.chequeos import (
     Aprobada,
     Catalogo,
@@ -197,6 +202,21 @@ class _Grupo:
     vence: float  # instante (del reloj del validador) en que se cierra el grupo
 
 
+# Severidad de Wazuh desde la que reunir contexto deja de ofrecerse si hay otra medida posible.
+SEVERIDAD_SIN_CONSULTA = 10
+
+# Reglas de correlación cuya alerta no muestra lo que las explica (11-11-2026, ticket 194): la
+# alerta de sudo (100127) no trae el SSH desde otro equipo que vino antes, y el modelo la
+# clasificaba como F1. Regla de correlación → (grupo de la alerta previa, ventana en minutos);
+# la ventana es la del timeframe de la regla. VALIDATE recuerda, por inquilino y equipo, la
+# última alerta de ese grupo y se la agrega al texto del modelo. En memoria: tras un reinicio
+# no hay contexto y la alerta va sin él (a lo más, revisión manual por FAMILIA_NO_COINCIDE).
+CONTEXTO_PREVIO: dict[str, tuple[str, int]] = {
+    "100127": ("kronos_ssh_interno", 10),
+}
+_GRUPOS_DE_CONTEXTO = frozenset(grupo for grupo, _ in CONTEXTO_PREVIO.values())
+
+
 class Validador:
     def __init__(
         self,
@@ -224,6 +244,9 @@ class Validador:
         # Instantes de llegada de las alertas de cada inquilino, para el disparo del
         # cortacircuito. También en memoria: tras un reinicio manda lo que dice la base.
         self._llegadas: dict[int, deque[float]] = {}
+        # Última alerta de cada grupo de CONTEXTO_PREVIO, por inquilino y equipo:
+        # (inquilino, equipo, grupo) → (instante, resumen).
+        self._contexto: dict[tuple[int, str, str], tuple[float, str]] = {}
 
     def anotar_llegadas(self, tenant_id: int, alertas: Sequence[Mapping]) -> int:
         """Cuenta las alertas de un lote que llegaron, antes de procesar ninguna.
@@ -266,6 +289,7 @@ class Validador:
             return Resultado(Destino.OMITIDA)
 
         equipo = equipo_de(alerta)
+        self._recordar_contexto(tenant_id, equipo, alerta_wazuh)
         clave = self._clave_de_grupo(alerta, equipo)
         grupo = self._grupo_vigente(clave)
         try:
@@ -286,6 +310,36 @@ class Validador:
         )
         self._abrir_grupo(clave, resultado)
         return resultado
+
+    def _recordar_contexto(
+        self, tenant_id: int, equipo: str | None, alerta_wazuh: Mapping[str, Any]
+    ) -> None:
+        """Guarda la alerta si es de un grupo que explica a una regla de CONTEXTO_PREVIO."""
+        if equipo is None:
+            return
+        grupos = (alerta_wazuh.get("rule") or {}).get("groups") or []
+        presentes = {g for g in grupos if isinstance(g, str)}
+        for grupo in _GRUPOS_DE_CONTEXTO & presentes:
+            self._contexto[(tenant_id, equipo, grupo)] = (
+                self._reloj(),
+                contexto_para_el_modelo(dict(alerta_wazuh)),
+            )
+
+    def _texto_con_contexto(
+        self, tenant_id: int, equipo: str | None, alerta: AlertaKronos
+    ) -> str:
+        """El texto del modelo, con la alerta previa que la explica si es de CONTEXTO_PREVIO."""
+        previo = CONTEXTO_PREVIO.get(alerta.regla or "")
+        if previo is None or equipo is None:
+            return alerta.texto
+        grupo, minutos = previo
+        guardado = self._contexto.get((tenant_id, equipo, grupo))
+        if guardado is None or self._reloj() - guardado[0] > minutos * 60:
+            return alerta.texto
+        return (
+            f"{alerta.texto} | Contexto: alerta anterior en el mismo equipo, "
+            f"dentro de los {minutos} minutos previos: {guardado[1]}"
+        )
 
     def _clave_de_grupo(
         self, alerta: AlertaKronos, equipo: str | None
@@ -339,12 +393,12 @@ class Validador:
             )
 
         clasificacion = clasificar(
-            alerta.texto,
+            self._texto_con_contexto(tenant_id, equipo, alerta),
             self._modelo,
             self._plantillas,
             self._plazo,
             ambito_ip=self._ambito_ip(alerta),
-            excluir=self._sin_datos(alerta_wazuh),
+            excluir=self._excluidos(alerta_wazuh, alerta.severidad, self._ambito_ip(alerta)),
         )
         if isinstance(clasificacion, FallaSegura):
             return self._rechazar(
@@ -397,6 +451,57 @@ class Validador:
             clasificacion=clasificacion,
         )
 
+    def _excluidos(
+        self, alerta_wazuh: Mapping[str, Any], severidad: int, ambito_ip: str | None = None
+    ) -> frozenset[str]:
+        """Playbooks que el paso 2 no acepta: los que no tienen su dato, los del otro ámbito de IP
+        o del otro tipo de equipo; los de un nivel mayor al que permite la severidad, cuando en su
+        familia queda una medida permitida; y, desde la severidad SEVERIDAD_SIN_CONSULTA, reunir
+        contexto (nivel 0) cuando en su familia queda una medida aplicable.
+
+        Con qwen2.5:7b la consulta, que es la primera candidata de F1, F2 y F6, se elegía casi
+        siempre, aunque la alerta encajara con otra medida (prueba integral 2, 10-11-2026). Y un
+        acceso remoto desde una IP interna (regla 100107, severidad 10) terminaba en aislar el
+        puesto (nivel 3), que la severidad no permite, en vez de bloquear la IP del otro equipo
+        (ticket 190, 11-11-2026). El chequeo de severidad sigue como segunda barrera: si en la
+        familia ninguna medida está permitida, se ofrecen todas y el chequeo las frena. Los demás
+        frenos no cambian: contadores, cortacircuito y aprobación de nivel 3.
+        """
+        sin_datos = set(self._sin_datos(alerta_wazuh))
+        # La IP de otro ámbito: bloquear «la IP externa» con una IP interna, o al revés, lo
+        # rechazaría el chequeo de ámbito (prueba integral 2, ticket 145).
+        if ambito_ip in ("interna", "externa"):
+            sin_datos.update(
+                p.id
+                for p in self._catalogo.playbooks.values()
+                if p.ambito_ip and p.ambito_ip != ambito_ip
+            )
+        # Medidas del otro tipo de equipo: aislar «un puesto» cuando el equipo es un servidor,
+        # o al revés (prueba integral 2, ticket 168: salida de datos desde EP-SRV-01).
+        agente = alerta_wazuh.get("agent")
+        arquetipo = self._config.arquetipo(
+            agente.get("name") if isinstance(agente, Mapping) else None
+        )
+        if arquetipo:
+            sin_datos.update(
+                p.id
+                for p in self._catalogo.playbooks.values()
+                if p.arquetipos and arquetipo not in p.arquetipos
+            )
+        por_familia: dict[str, list] = {}
+        for p in self._catalogo.playbooks.values():
+            por_familia.setdefault(p.familia, []).append(p)
+        excluir = set(sin_datos)
+        maximo = self._config.mapa.nivel_maximo(severidad)
+        for playbooks in por_familia.values():
+            if any(p.nivel <= maximo and p.id not in sin_datos for p in playbooks):
+                excluir.update(p.id for p in playbooks if p.nivel > maximo)
+        if severidad >= SEVERIDAD_SIN_CONSULTA:
+            for playbooks in por_familia.values():
+                if any(p.accion != "consulta" and p.id not in excluir for p in playbooks):
+                    excluir.update(p.id for p in playbooks if p.accion == "consulta")
+        return frozenset(excluir)
+
     def _sin_datos(self, alerta_wazuh: Mapping[str, Any]) -> frozenset[str]:
         """Playbooks cuyo dato no viene en la alerta: el paso 2 no los acepta como respuesta.
 
@@ -407,7 +512,7 @@ class Validador:
         return frozenset(
             p.id
             for p in self._catalogo.playbooks.values()
-            if p.accion and falta_argumento(p.accion, alerta_wazuh)
+            if p.accion and no_aplicable(p.accion, alerta_wazuh)
         )
 
     def _ambito_ip(self, alerta: AlertaKronos) -> str | None:

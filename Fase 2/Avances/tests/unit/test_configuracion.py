@@ -54,17 +54,19 @@ class ConfiguracionAprobada(unittest.TestCase):
         self.assertEqual(usados["acciones_por_equipo"], (3, 3))
 
     def test_niveles_que_permite_cada_regla_de_sobre(self):
-        # Las 15 reglas de sobre (infra/wazuh) tienen niveles 7, 8, 10 y 12.
+        # Las reglas de sobre (infra/wazuh) tienen niveles 7, 10 y 12 (la 100107 pasó de 8 a 10 el 11-11).
+        # El nivel 0 es de las reglas que descartan (100122): no generan alerta.
         niveles = {
             int(n)
             for n in re.findall(
                 r'<rule id="1001\d\d" level="(\d+)"', REGLAS_SOBRE.read_text()
             )
+            if int(n) > 0
         }
-        self.assertEqual(niveles, {7, 8, 10, 12})
+        self.assertEqual(niveles, {7, 10, 12})
         self.assertEqual(
             {n: self.conf.mapa.nivel_maximo(n) for n in sorted(niveles)},
-            {7: 1, 8: 1, 10: 2, 12: 3},
+            {7: 1, 10: 2, 12: 3},
         )
 
     def test_de_punta_a_punta_con_el_catalogo(self):
@@ -127,6 +129,19 @@ class ConfiguracionDefectuosa(unittest.TestCase):
     def test_sin_la_seccion_de_agrupacion_no_se_agrupa(self):
         conf = self.cargar_con(lambda d: d.pop("agrupacion"))
         self.assertEqual(conf.ventana_agrupacion_minutos, 0)
+
+    def test_tipo_de_cada_equipo(self):
+        conf = self.cargar_con(lambda d: None)
+        self.assertEqual(conf.arquetipo("EP-SRV-01"), "servidor")
+        self.assertEqual(conf.arquetipo("ep-wks-01"), "puesto")
+        self.assertIsNone(conf.arquetipo("otro"))
+        self.assertIsNone(conf.arquetipo(None))
+        sin = self.cargar_con(lambda d: d.pop("arquetipos_de_equipos"))
+        self.assertIsNone(sin.arquetipo("EP-SRV-01"))
+        with self.assertRaises(ConfiguracionInvalida):
+            self.cargar_con(
+                lambda d: d["arquetipos_de_equipos"]["equipos"].update({"X": "router"})
+            )
 
     def test_la_puerta_de_enlace_del_laboratorio_esta_excluida(self):
         conf = self.cargar_con(lambda d: None)

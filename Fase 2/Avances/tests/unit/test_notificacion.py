@@ -203,6 +203,7 @@ class ClienteFalso:
         self.pedidos = []
         self.quitados = []
         self.falla_en = falla_en
+        self.falla_boton = False
 
     def enviar(self, chat, mensaje):
         if self.falla_en is not None and len(self.enviados) == self.falla_en:
@@ -211,6 +212,8 @@ class ClienteFalso:
         return 100 + len(self.enviados)
 
     def contestar_boton(self, callback_id, texto):
+        if self.falla_boton:
+            raise ErrorTelegram("answerCallbackQuery: URLError")
         self.botones.append(texto)
 
     def pedir_respuesta(self, chat, texto):
@@ -314,6 +317,15 @@ class Respuestas(unittest.TestCase):
         self.assertEqual(self.repo.aprobados, [(1, 7, "telegram:nicolas")])
         self.assertEqual(self.cliente.botones, ["Aprobado"])
         self.assertEqual(self.cliente.quitados, [55])
+
+    def test_aprobar_aunque_telegram_falle_al_contestar_el_boton(self):
+        # Ticket 199 (11-11): la aprobación vale y el aviso al grupo sale igual.
+        self.cliente.falla_boton = True
+        with self.assertLogs("soar-notify", level="WARNING"):
+            self.atendedor.procesar(boton(11, "a:1:7"))
+        self.assertEqual(self.repo.aprobados, [(1, 7, "telegram:nicolas")])
+        self.assertEqual(self.cliente.quitados, [55])
+        self.assertIn("aprobado por nicolas", str(self.cliente.enviados[-1][1]))
 
     def test_aprobar_dos_veces(self):
         self.atendedor.procesar(boton(11, "a:1:7"))
