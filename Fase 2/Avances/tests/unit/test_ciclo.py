@@ -35,6 +35,8 @@ ALERTAS_150 = (
 
 PLANTILLAS = Plantillas.cargar()
 CONFIG = cargar_configuracion()
+# Tope del contador por equipo según validate.json (50 desde D-80, 11-11).
+TOPE_EQUIPO = next(c.tope for c in CONFIG.contadores if c.nombre == "acciones_por_equipo")
 NIVEL = {"PB-F1-01": 2, "PB-F1-02": 1, "PB-F2-02": 1, "PB-F3-03": 3}
 
 Ticket = namedtuple("Ticket", "ticket_id nuevo")
@@ -230,7 +232,7 @@ class Ciclo(unittest.TestCase):
         self.rechazada(AlmacenFalso(), acierta(), "ACTIVO_EXCLUIDO", alerta, config)
 
     def test_contador_en_su_tope(self):
-        usos = {c.nombre: 0 for c in CONFIG.contadores} | {"acciones_por_equipo": 3}
+        usos = {c.nombre: 0 for c in CONFIG.contadores} | {"acciones_por_equipo": TOPE_EQUIPO}
         d = self.rechazada(AlmacenFalso(usos=usos), acierta(), "LIMITE_DE_TASA")
         self.assertIn("acciones_por_equipo", d.detalle)
 
@@ -572,7 +574,7 @@ class AgrupacionDeAlertas(unittest.TestCase):
                 self.assertEqual(almacen.agrupadas, [])
 
     def test_un_tope_pasajero_no_cierra_el_grupo(self):
-        usos = {c.nombre: 0 for c in CONFIG.contadores} | {"acciones_por_equipo": 3}
+        usos = {c.nombre: 0 for c in CONFIG.contadores} | {"acciones_por_equipo": TOPE_EQUIPO}
         almacen = AlmacenFalso(usos=usos)
         v = self.validador(almacen, ModeloFalso(*self.respuestas(2)))
         self.assertEqual(v.procesar(1, self.alerta()).motivo, "LIMITE_DE_TASA")
