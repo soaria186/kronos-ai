@@ -56,7 +56,12 @@ from typing import Any, Protocol
 from decision.inferencia import FallaSegura, Modelo, MotivoFalla, clasificar
 from decision.plantillas import Plantillas
 from ejecucion.ordenes import no_aplicable
-from validacion.alerta import AlertaInvalida, AlertaKronos, preparar
+from validacion.alerta import (
+    AlertaInvalida,
+    AlertaKronos,
+    contexto_para_el_modelo,
+    preparar,
+)
 from validacion.chequeos import (
     Aprobada,
     Catalogo,
@@ -200,6 +205,17 @@ class _Grupo:
 # Severidad de Wazuh desde la que reunir contexto deja de ofrecerse si hay otra medida posible.
 SEVERIDAD_SIN_CONSULTA = 10
 
+# Reglas de correlación cuya alerta no muestra lo que las explica (11-11-2026, ticket 194): la
+# alerta de sudo (100127) no trae el SSH desde otro equipo que vino antes, y el modelo la
+# clasificaba como F1. Regla de correlación → (grupo de la alerta previa, ventana en minutos);
+# la ventana es la del timeframe de la regla. VALIDATE recuerda, por inquilino y equipo, la
+# última alerta de ese grupo y se la agrega al texto del modelo. En memoria: tras un reinicio
+# no hay contexto y la alerta va sin él (a lo más, revisión manual por FAMILIA_NO_COINCIDE).
+CONTEXTO_PREVIO: dict[str, tuple[str, int]] = {
+    "100127": ("kronos_ssh_interno", 10),
+}
+_GRUPOS_DE_CONTEXTO = frozenset(grupo for grupo, _ in CONTEXTO_PREVIO.values())
+
 
 class Validador:
     def __init__(
@@ -228,6 +244,9 @@ class Validador:
         # Instantes de llegada de las alertas de cada inquilino, para el disparo del
         # cortacircuito. También en memoria: tras un reinicio manda lo que dice la base.
         self._llegadas: dict[int, deque[float]] = {}
+        # Última alerta de cada grupo de CONTEXTO_PREVIO, por inquilino y equipo:
+        # (inquilino, equipo, grupo) → (instante, resumen).
+        self._contexto: dict[tuple[int, str, str], tuple[float, str]] = {}
 
     def anotar_llegadas(self, tenant_id: int, alertas: Sequence[Mapping]) -> int:
         """Cuenta las alertas de un lote que llegaron, antes de procesar ninguna.
@@ -270,6 +289,7 @@ class Validador:
             return Resultado(Destino.OMITIDA)
 
         equipo = equipo_de(alerta)
+        self._recordar_contexto(tenant_id, equipo, alerta_wazuh)
         clave = self._clave_de_grupo(alerta, equipo)
         grupo = self._grupo_vigente(clave)
         try:
@@ -290,6 +310,36 @@ class Validador:
         )
         self._abrir_grupo(clave, resultado)
         return resultado
+
+    def _recordar_contexto(
+        self, tenant_id: int, equipo: str | None, alerta_wazuh: Mapping[str, Any]
+    ) -> None:
+        """Guarda la alerta si es de un grupo que explica a una regla de CONTEXTO_PREVIO."""
+        if equipo is None:
+            return
+        grupos = (alerta_wazuh.get("rule") or {}).get("groups") or []
+        presentes = {g for g in grupos if isinstance(g, str)}
+        for grupo in _GRUPOS_DE_CONTEXTO & presentes:
+            self._contexto[(tenant_id, equipo, grupo)] = (
+                self._reloj(),
+                contexto_para_el_modelo(dict(alerta_wazuh)),
+            )
+
+    def _texto_con_contexto(
+        self, tenant_id: int, equipo: str | None, alerta: AlertaKronos
+    ) -> str:
+        """El texto del modelo, con la alerta previa que la explica si es de CONTEXTO_PREVIO."""
+        previo = CONTEXTO_PREVIO.get(alerta.regla or "")
+        if previo is None or equipo is None:
+            return alerta.texto
+        grupo, minutos = previo
+        guardado = self._contexto.get((tenant_id, equipo, grupo))
+        if guardado is None or self._reloj() - guardado[0] > minutos * 60:
+            return alerta.texto
+        return (
+            f"{alerta.texto} | Contexto: alerta anterior en el mismo equipo, "
+            f"dentro de los {minutos} minutos previos: {guardado[1]}"
+        )
 
     def _clave_de_grupo(
         self, alerta: AlertaKronos, equipo: str | None
@@ -343,7 +393,7 @@ class Validador:
             )
 
         clasificacion = clasificar(
-            alerta.texto,
+            self._texto_con_contexto(tenant_id, equipo, alerta),
             self._modelo,
             self._plantillas,
             self._plazo,
