@@ -57,11 +57,18 @@ class Ticket:
 
 
 ALERTA = {"agent": {"id": "002"}, "data": {"srcip": "203.0.113.7"}}
-# Igual que actuadores_v1 del catálogo 1.0.
+# Subconjunto fijo para las pruebas del ejecutor (acciones con y sin script por sistema).
 ACTUADORES = {
     "linux": frozenset({"bloquear_ip"}),
     "windows": frozenset({"bloquear_ip", "deshabilitar_cuenta", "aislar_equipo"}),
 }
+# actuadores_v1 del catálogo 1.0: las 10 acciones, probadas en EP-SRV-01 y EP-WKS-01
+# (prueba integral 2, 10-11-2026).
+_TODAS_V1 = frozenset({
+    "bloquear_ip", "bloquear_destino", "limitar_conexiones", "deshabilitar_cuenta", "cerrar_sesion",
+    "terminar_proceso", "cuarentena", "detener_servicio", "revertir_tarea", "aislar_equipo",
+})
+ACTUADORES_CATALOGO = {"linux": _TODAS_V1, "windows": _TODAS_V1}
 AGENTES_SO = {"001": "linux", "002": "windows"}
 MEDIDAS = {
     "PB-F1-02": Medida("PB-F1-02", "bloquear_ip", 1, "automatica_al_vencer", 60),
@@ -365,7 +372,7 @@ class CatalogoReal(unittest.TestCase):
         self.assertEqual(medidas["PB-F1-02"].reversion, "automatica_al_vencer")
 
     def test_actuadores_v1_del_catalogo(self):
-        self.assertEqual(cargar_actuadores(), ACTUADORES)
+        self.assertEqual(cargar_actuadores(), ACTUADORES_CATALOGO)
 
 
 class ActuadoresInvalidos(unittest.TestCase):

@@ -53,11 +53,27 @@
   "actuadores_v1": {
     "nota": "Acciones activas en la versión 1.0, según el sistema operativo del agente (D-69). Una acción se agrega aquí después de probar su script en EP-SRV-01 (Linux) o EP-WKS-01 (Windows). Las demás, o éstas en otro sistema operativo, terminan en ACCION_NO_IMPLEMENTADA sin tocar el equipo",
     "linux": [
-      "bloquear_ip"
+      "bloquear_ip",
+      "bloquear_destino",
+      "limitar_conexiones",
+      "deshabilitar_cuenta",
+      "cerrar_sesion",
+      "terminar_proceso",
+      "cuarentena",
+      "detener_servicio",
+      "revertir_tarea",
+      "aislar_equipo"
     ],
     "windows": [
       "bloquear_ip",
+      "bloquear_destino",
+      "limitar_conexiones",
       "deshabilitar_cuenta",
+      "cerrar_sesion",
+      "terminar_proceso",
+      "cuarentena",
+      "detener_servicio",
+      "revertir_tarea",
       "aislar_equipo"
     ]
   },
