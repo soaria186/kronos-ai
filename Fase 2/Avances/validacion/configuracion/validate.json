@@ -24,10 +24,10 @@
     ]
   },
   "contadores": [
-    {"nombre": "acciones_por_inquilino", "descripcion": "Acciones automáticas de un cliente en la última hora", "ventana_minutos": 60, "tope": 10},
-    {"nombre": "acciones_por_equipo", "descripcion": "Acciones automáticas sobre un mismo equipo en la última hora", "ventana_minutos": 60, "tope": 3},
-    {"nombre": "acciones_por_playbook", "descripcion": "Ejecuciones automáticas de un mismo playbook en la última hora", "ventana_minutos": 60, "tope": 5},
-    {"nombre": "acciones_nivel_2", "descripcion": "Acciones de nivel 2 de un cliente en el último día", "ventana_minutos": 1440, "tope": 5}
+    {"nombre": "acciones_por_inquilino", "descripcion": "Acciones automáticas de un cliente en la última hora", "ventana_minutos": 60, "tope": 50},
+    {"nombre": "acciones_por_equipo", "descripcion": "Acciones automáticas sobre un mismo equipo en la última hora", "ventana_minutos": 60, "tope": 50},
+    {"nombre": "acciones_por_playbook", "descripcion": "Ejecuciones automáticas de un mismo playbook en la última hora", "ventana_minutos": 60, "tope": 50},
+    {"nombre": "acciones_nivel_2", "descripcion": "Acciones de nivel 2 de un cliente en el último día", "ventana_minutos": 1440, "tope": 50}
   ],
   "agrupacion": {
     "descripcion": "Alertas con la misma regla, la misma IP de origen y el mismo equipo dentro de esta ventana se resuelven con una sola decisión; las demás se anotan en la bitácora del ticket que decidió",

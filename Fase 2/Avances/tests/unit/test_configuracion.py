@@ -50,8 +50,9 @@ class ConfiguracionAprobada(unittest.TestCase):
     def test_contador_sin_dato_cuenta_como_en_su_tope(self):
         estado = self.conf.estado_operacion({"acciones_por_inquilino": 2}, False)
         usados = {c.nombre: (c.usados, c.tope) for c in estado.contadores}
-        self.assertEqual(usados["acciones_por_inquilino"], (2, 10))
-        self.assertEqual(usados["acciones_por_equipo"], (3, 3))
+        # Topes de la v1.0.0 (D-80, 11-11): los cuatro contadores en 50.
+        self.assertEqual(usados["acciones_por_inquilino"], (2, 50))
+        self.assertEqual(usados["acciones_por_equipo"], (50, 50))
 
     def test_niveles_que_permite_cada_regla_de_sobre(self):
         # Las reglas de sobre (infra/wazuh) tienen niveles 7, 10 y 12 (la 100107 pasó de 8 a 10 el 11-11).
