@@ -278,6 +278,73 @@ class SeveridadEnElEsquema(unittest.TestCase):
         self.assertEqual(resultado.motivo, "NIVEL_NO_PERMITIDO_POR_SEVERIDAD")
 
 
+SERVIDOR = {"id": "001", "name": "EP-SRV-01", "ip": "192.0.2.30"}
+
+
+def ssh_interno(equipo=SERVIDOR):
+    """SSH aceptado desde otro equipo interno (regla 100125), como el ticket 195 del 11-11."""
+    a = alerta("100125", 10, ["sshd", "kronos", "kronos_f3", "kronos_ssh_interno"], equipo,
+               {"srcip": "10.0.50.5", "dstuser": "labadmin"}, "journald")
+    a["id"] = "prueba-ssh"
+    a["full_log"] = ("Nov 11 15:12:10 ep-srv-01 sshd[11500]: Accepted password for labadmin "
+                     "from 10.0.50.5 port 50000 ssh2")
+    return a
+
+
+def sudo_root(equipo=SERVIDOR):
+    """sudo a root después del SSH (regla 100127), como el ticket 196 del 11-11."""
+    a = alerta("100127", 12, ["sudo", "kronos", "kronos_f3"], equipo,
+               {"srcuser": "labadmin", "dstuser": "root", "command": "/bin/bash"}, "journald")
+    a["id"] = "prueba-sudo"
+    a["full_log"] = ("Nov 11 15:12:24 ep-srv-01 sudo[11560]: labadmin : TTY=pts/0 ; "
+                     "PWD=/root ; USER=root ; COMMAND=/bin/bash")
+    return a
+
+
+class ContextoDeLaAlertaPrevia(unittest.TestCase):
+    """La alerta de sudo (100127) llega al modelo con el SSH que la explica (ticket 194)."""
+
+    def setUp(self):
+        self.ahora = 1000.0
+        self.m = ModeloQueGuarda(
+            json.dumps({"familia": "F3", "confianza": 0.9}),
+            json.dumps({"playbook_id": "PB-F3-02", "confianza": 0.85}),
+            json.dumps({"familia": "F3", "confianza": 0.9}),
+            json.dumps({"playbook_id": "PB-F3-04", "confianza": 0.85}),
+        )
+        self.v = Validador(AlmacenFalso(), self.m, PLANTILLAS, CATALOGO, CONFIG,
+                           DecisionFalsa, reloj=lambda: self.ahora)
+
+    def test_el_sudo_llega_con_el_ssh_previo(self):
+        self.v.procesar(1, ssh_interno())
+        self.ahora += 14
+        resultado = self.v.procesar(1, sudo_root())
+        paso1_del_sudo = self.m.prompts[2]
+        self.assertIn("Contexto: alerta anterior en el mismo equipo", paso1_del_sudo)
+        self.assertIn("from 10.0.50.5", paso1_del_sudo)
+        self.assertEqual(resultado.destino, Destino.APROBADA)
+
+    def test_el_ssh_mismo_no_lleva_contexto(self):
+        self.v.procesar(1, ssh_interno())
+        self.assertNotIn("Contexto:", self.m.prompts[0])
+
+    def test_sin_contexto_despues_de_la_ventana(self):
+        self.v.procesar(1, ssh_interno())
+        self.ahora += 10 * 60 + 1
+        self.v.procesar(1, sudo_root())
+        self.assertNotIn("Contexto:", self.m.prompts[2])
+
+    def test_el_ssh_a_otro_equipo_no_sirve_de_contexto(self):
+        self.v.procesar(1, ssh_interno(PUESTO))
+        self.v.procesar(1, sudo_root())
+        self.assertNotIn("Contexto:", self.m.prompts[2])
+
+    def test_otro_inquilino_no_ve_el_contexto(self):
+        self.v.procesar(2, ssh_interno())
+        self.v.procesar(1, sudo_root())
+        self.assertNotIn("Contexto:", self.m.prompts[2])
+
+
 def f2_codificado(nivel):
     """PowerShell codificado en un puesto (Sysmon), con PID e imagen."""
     return alerta(
