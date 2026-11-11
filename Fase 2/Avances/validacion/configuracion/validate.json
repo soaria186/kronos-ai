@@ -33,6 +33,10 @@
     "descripcion": "Alertas con la misma regla, la misma IP de origen y el mismo equipo dentro de esta ventana se resuelven con una sola decisión; las demás se anotan en la bitácora del ticket que decidió",
     "ventana_minutos": 10
   },
+  "arquetipos_de_equipos": {
+    "descripcion": "Tipo de cada equipo, por el nombre de su agente (sin distinguir mayúsculas): puesto de trabajo o servidor. VALIDATE no ofrece al paso 2 las medidas pensadas para el otro tipo, por ejemplo aislar un puesto cuando el equipo es un servidor. Un equipo que no está en la lista recibe todas. Se completa al dar de alta cada PyME.",
+    "equipos": {"EP-SRV-01": "servidor", "EP-WKS-01": "puesto"}
+  },
   "disparo_cortacircuito": {
     "nombre": "alertas_por_ventana",
     "descripcion": "Alertas de un cliente que llegan a VALIDATE; al alcanzar el tope se abre el cortacircuito y sólo una persona lo cierra",

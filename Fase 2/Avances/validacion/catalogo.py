@@ -110,4 +110,7 @@ def _leer_playbook(dato: object, acciones: dict) -> Playbook:
             f"{identificador}: ámbito de IP {ambito!r} inválido "
             "(sólo bloquear_ip y limitar_conexiones)"
         )
-    return Playbook(identificador, dato["familia"], nivel, medida.strip(), ambito, accion)
+    return Playbook(
+        identificador, dato["familia"], nivel, medida.strip(), ambito, accion,
+        frozenset(arquetipos),
+    )

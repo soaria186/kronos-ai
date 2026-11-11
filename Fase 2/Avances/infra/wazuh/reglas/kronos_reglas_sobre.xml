@@ -104,7 +104,7 @@
 
   <!-- Linux (auditd): una herramienta de transferencia abrió una conexión. La clave la pone la
        regla de auditd del equipo (guía 07): -S connect -F exe=/usr/bin/curl -k kronos_salida. -->
-  <rule id="100124" level="12">
+  <rule id="100124" level="12" ignore="300">
     <if_sid>80700</if_sid>
     <field name="audit.key">kronos_salida</field>
     <description>Kronos F4: herramienta de transferencia en el servidor abrió una conexión hacia fuera</description>

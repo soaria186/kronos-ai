@@ -332,3 +332,38 @@ class InundacionYRegistroVaciado(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class MedidasDelOtroTipoDeEquipo(unittest.TestCase):
+    """Prueba integral 2 (10-11, ticket 168): salida de datos desde un servidor, aislar puesto."""
+
+    def esquema(self, alerta_wazuh, familia, playbook):
+        m = modelo(familia, playbook)
+        Validador(AlmacenFalso(), m, PLANTILLAS, CATALOGO, CONFIG, DecisionFalsa).procesar(
+            1, alerta_wazuh
+        )
+        return json.dumps(m.esquemas[1])
+
+    def salida(self, agente):
+        return alerta(
+            "100124", 12, ["audit", "kronos", "kronos_f4"], agente,
+            {"audit": {"key": "kronos_salida", "exe": "/usr/bin/curl"}},
+            "/var/log/audit/audit.log",
+        )
+
+    def test_servidor_no_ofrece_aislar_puesto(self):
+        agente = {"id": "001", "name": "ep-srv-01", "ip": "192.0.2.30"}
+        esquema = self.esquema(self.salida(agente), "F4", "PB-F4-03")
+        self.assertNotIn("PB-F4-02", esquema)
+        self.assertIn("PB-F4-03", esquema)
+
+    def test_puesto_no_ofrece_aislar_servidor(self):
+        esquema = self.esquema(self.salida(PUESTO), "F4", "PB-F4-02")
+        self.assertIn("PB-F4-02", esquema)
+        self.assertNotIn("PB-F4-03", esquema)
+
+    def test_equipo_sin_tipo_recibe_todas(self):
+        agente = {"id": "009", "name": "otro-equipo", "ip": "192.0.2.40"}
+        esquema = self.esquema(self.salida(agente), "F4", "PB-F4-03")
+        self.assertIn("PB-F4-02", esquema)
+        self.assertIn("PB-F4-03", esquema)
