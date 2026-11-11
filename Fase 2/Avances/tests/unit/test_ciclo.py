@@ -249,12 +249,14 @@ class Ciclo(unittest.TestCase):
         self.rechazada(almacen, acierta(), "LIMITE_DE_TASA", alerta)
 
     def test_severidad_limita_el_nivel(self):
+        # Desde el 11-11 la medida que la severidad no permite ya no está en el esquema del
+        # paso 2 si en su familia queda otra permitida: el modelo que la devuelve igual queda en
+        # ESQUEMA_INVALIDO. El chequeo de severidad sigue como segunda barrera
+        # (test_candidatos_sin_datos.SeveridadEnElEsquema).
         alerta = alerta_ssh()
         alerta["rule"]["level"] = 8  # nivel máximo 1
         modelo = acierta("F1", "PB-F1-01")  # nivel 2
-        self.rechazada(
-            AlmacenFalso(), modelo, "NIVEL_NO_PERMITIDO_POR_SEVERIDAD", alerta
-        )
+        self.rechazada(AlmacenFalso(), modelo, "ESQUEMA_INVALIDO", alerta)
 
     def test_el_manager_nunca_se_toca_ni_se_consulta_al_modelo(self):
         for identificador in ("000", 0, " 0 "):

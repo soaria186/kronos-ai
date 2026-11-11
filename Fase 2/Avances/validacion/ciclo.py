@@ -405,14 +405,17 @@ class Validador:
         self, alerta_wazuh: Mapping[str, Any], severidad: int, ambito_ip: str | None = None
     ) -> frozenset[str]:
         """Playbooks que el paso 2 no acepta: los que no tienen su dato, los del otro ámbito de IP
-        o del otro tipo de equipo y, desde la severidad
-        SEVERIDAD_SIN_CONSULTA, reunir contexto (nivel 0) cuando en su familia queda una medida
-        aplicable.
+        o del otro tipo de equipo; los de un nivel mayor al que permite la severidad, cuando en su
+        familia queda una medida permitida; y, desde la severidad SEVERIDAD_SIN_CONSULTA, reunir
+        contexto (nivel 0) cuando en su familia queda una medida aplicable.
 
         Con qwen2.5:7b la consulta, que es la primera candidata de F1, F2 y F6, se elegía casi
-        siempre, aunque la alerta encajara con otra medida (prueba integral 2, 10-11-2026). Los
-        demás frenos no cambian: nivel máximo por severidad, contadores, cortacircuito y
-        aprobación de nivel 3.
+        siempre, aunque la alerta encajara con otra medida (prueba integral 2, 10-11-2026). Y un
+        acceso remoto desde una IP interna (regla 100107, severidad 10) terminaba en aislar el
+        puesto (nivel 3), que la severidad no permite, en vez de bloquear la IP del otro equipo
+        (ticket 190, 11-11-2026). El chequeo de severidad sigue como segunda barrera: si en la
+        familia ninguna medida está permitida, se ofrecen todas y el chequeo las frena. Los demás
+        frenos no cambian: contadores, cortacircuito y aprobación de nivel 3.
         """
         sin_datos = set(self._sin_datos(alerta_wazuh))
         # La IP de otro ámbito: bloquear «la IP externa» con una IP interna, o al revés, lo
@@ -435,16 +438,18 @@ class Validador:
                 for p in self._catalogo.playbooks.values()
                 if p.arquetipos and arquetipo not in p.arquetipos
             )
-        sin_datos = frozenset(sin_datos)
-        if severidad < SEVERIDAD_SIN_CONSULTA:
-            return sin_datos
-        excluir = set(sin_datos)
         por_familia: dict[str, list] = {}
         for p in self._catalogo.playbooks.values():
             por_familia.setdefault(p.familia, []).append(p)
+        excluir = set(sin_datos)
+        maximo = self._config.mapa.nivel_maximo(severidad)
         for playbooks in por_familia.values():
-            if any(p.accion != "consulta" and p.id not in sin_datos for p in playbooks):
-                excluir.update(p.id for p in playbooks if p.accion == "consulta")
+            if any(p.nivel <= maximo and p.id not in sin_datos for p in playbooks):
+                excluir.update(p.id for p in playbooks if p.nivel > maximo)
+        if severidad >= SEVERIDAD_SIN_CONSULTA:
+            for playbooks in por_familia.values():
+                if any(p.accion != "consulta" and p.id not in excluir for p in playbooks):
+                    excluir.update(p.id for p in playbooks if p.accion == "consulta")
         return frozenset(excluir)
 
     def _sin_datos(self, alerta_wazuh: Mapping[str, Any]) -> frozenset[str]:

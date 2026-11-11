@@ -204,8 +204,61 @@ class ValidadorConLaAlertaDeE4(unittest.TestCase):
         self.assertEqual(almacen.decisiones[0].playbook_id, "PB-F5-04")
 
     def test_con_archivo_la_cuarentena_sigue_disponible(self):
-        _, m, _ = self.procesar(con_archivo(), "F5", "PB-F5-03")
+        # Severidad 12: la cuarentena de un archivo de sistema (PB-F5-03) es nivel 3.
+        con_sev_12 = con_archivo()
+        con_sev_12["rule"]["level"] = 12
+        _, m, _ = self.procesar(con_sev_12, "F5", "PB-F5-03")
         self.assertIn("PB-F5-03", json.dumps(m.esquemas[1]))
+
+
+def f3_rdp(nivel, ip="10.0.50.4"):
+    """Inicio de sesión remoto en EP-WKS-01 (regla 100107), como el ticket 190 del 11-11."""
+    return alerta(
+        "100107", nivel, ["windows", "kronos", "kronos_f3"], PUESTO,
+        {"win": {"system": {"eventID": "4624", "channel": "Security"},
+                 "eventdata": {"ipAddress": ip, "logonType": "3",
+                               "targetUserName": "labadmin"}}},
+        "EventChannel",
+    )
+
+
+class SeveridadEnElEsquema(unittest.TestCase):
+    """El paso 2 no ofrece medidas de un nivel mayor al que permite la severidad (11-11-2026).
+
+    Ticket 190: un RDP desde una IP interna (100107, severidad 10) terminó en aislar el puesto
+    (PB-F3-03, nivel 3) y VALIDATE lo frenó, en vez de bloquear la IP del otro equipo (PB-F3-02).
+    """
+
+    def procesar(self, alerta_wazuh, familia, playbook):
+        m = modelo(familia, playbook)
+        almacen = AlmacenFalso()
+        v = Validador(almacen, m, PLANTILLAS, CATALOGO, CONFIG, DecisionFalsa)
+        return v.procesar(1, alerta_wazuh), m, almacen
+
+    def test_ticket_190_solo_se_ofrece_bloquear_la_ip_del_otro_equipo(self):
+        resultado, m, almacen = self.procesar(f3_rdp(10), "F3", "PB-F3-02")
+        enum = m.esquemas[1]["properties"]["playbook_id"]["enum"]
+        self.assertEqual(enum, ["PB-F3-02"])
+        self.assertEqual(resultado.destino, Destino.APROBADA)
+        self.assertEqual(almacen.decisiones[0].playbook_id, "PB-F3-02")
+
+    def test_aislar_el_puesto_ya_no_se_ofrece_con_severidad_10(self):
+        resultado, m, _ = self.procesar(f3_rdp(10), "F3", "PB-F3-03")
+        self.assertNotIn("PB-F3-03", json.dumps(m.esquemas[1]))
+        self.assertEqual(resultado.motivo, "ESQUEMA_INVALIDO")
+
+    def test_archivo_de_sistema_con_severidad_10_queda_la_cuarentena_de_nivel_1(self):
+        _, m, _ = self.procesar(con_archivo(), "F5", "PB-F5-01")
+        esquema = json.dumps(m.esquemas[1])
+        self.assertNotIn("PB-F5-03", esquema)
+        self.assertIn("PB-F5-01", esquema)
+
+    def test_si_ninguna_medida_esta_permitida_el_chequeo_de_severidad_frena(self):
+        # Severidad 7 (nivel máximo 1) con una IP interna: en F3 no queda ninguna medida
+        # permitida, se ofrecen todas y el chequeo de severidad sigue siendo la barrera.
+        resultado, m, _ = self.procesar(f3_rdp(7), "F3", "PB-F3-02")
+        self.assertIn("PB-F3-02", json.dumps(m.esquemas[1]))
+        self.assertEqual(resultado.motivo, "NIVEL_NO_PERMITIDO_POR_SEVERIDAD")
 
 
 def f2_codificado(nivel):
