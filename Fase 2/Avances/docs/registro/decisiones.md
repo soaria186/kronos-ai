@@ -139,3 +139,4 @@ Tomadas en la prueba integral, con Nicolás, Rodrigo y Patricio presentes.
 | D-77 | L?mites de tasa | Valores altos s?lo en la rama de pruebas `prueba/pi2`, que no se mezcla | ? 10-11 | |
 | D-78 | Reparto de F3 | 100107 ? PB-F3-02 y 100108 ? PB-F3-03; la 100107 suma la regla nativa 92652. Las medidas de persistencia (PB-F5-02, PB-F5-01 y PB-F2-02) no se revierten solas | ? 11-11 | |
 | D-79 | Cierre de la v1.0.0 | Se cierra con 24 de 25 playbooks demostrados; PB-F3-03 queda sin demostraci?n de punta a punta y se declara como limitaci?n | ? 11-11 | |
+| D-80 | L?mites de tasa de la v1.0.0 | Los cuatro contadores en 50: por PyME, por equipo y por playbook por hora, y de nivel 2 por d?a. Reemplaza los valores de D-65 (10, 3, 5 y 5) | ? 11-11 | |
