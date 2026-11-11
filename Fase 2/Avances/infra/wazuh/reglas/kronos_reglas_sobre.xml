@@ -6,8 +6,8 @@
   La familia es una pista: la clasificación final la hace el paso 1 del modelo y la
   valida SOAR-VALIDATE.
 
-  Rango de identificadores: 100101 a 100127 (rango reservado para reglas propias). Las 100116 a
-  100124 se agregaron el 10-11-2026 y las 100125 a 100127 el 11-11-2026 para cubrir los 25
+  Rango de identificadores: 100101 a 100128 (rango reservado para reglas propias). Las 100116 a
+  100124 se agregaron el 10-11-2026 y las 100125 a 100128 el 11-11-2026 para cubrir los 25
   playbooks (prueba integral 2).
   Los niveles son una propuesta: se ajustan cuando se fije el mapa de severidad.
   Los números de las reglas nativas se verificaron en el manager el 14-10-2026.
@@ -116,6 +116,22 @@
     <if_sid>5402</if_sid>
     <if_matched_group>kronos_ssh_interno</if_matched_group>
     <description>Kronos F3: uso de sudo a root después de un acceso por SSH desde otro equipo interno</description>
+    <group>kronos_f3,</group>
+  </rule>
+
+  <!-- Linux (auditd): el servidor se conecta por SSH a otro equipo, el salto clásico de un
+       atacante que ya entró al servidor. La clave la pone la regla de auditd del equipo (guía 07):
+       -w /usr/bin/ssh -p x -k kronos_salto_ssh. La alerta no trae IP de origen, así que en un
+       servidor la única medida de F3 posible es aislarlo (PB-F3-04, nivel 3, con aprobación).
+       La 100127 (sudo después del SSH) queda, pero el modelo la clasifica como F1 aun con el
+       SSH como contexto (tickets 194, 196 y 198): termina en revisión manual, sin actuar.
+       La clave no dice «salida»: con esa palabra el modelo la confundía con F4 (11-11-2026).
+       Límite: un administrador que salta por SSH desde el servidor también la dispara; por eso
+       pide aprobación. -->
+  <rule id="100128" level="12" ignore="300">
+    <if_sid>80700</if_sid>
+    <field name="audit.key">kronos_salto_ssh</field>
+    <description>Kronos F3: el servidor se conectó por SSH a otro equipo de la red interna (salto entre equipos)</description>
     <group>kronos_f3,</group>
   </rule>
 
