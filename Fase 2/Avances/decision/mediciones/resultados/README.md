@@ -217,3 +217,38 @@ servidor (5/5, nivel 3, con script en Windows). Los tiempos no cambian: unos 50 
     equipos por PyME. Queda como mejora.
 17. **Vacío del catálogo:** para una cuenta nueva o un usuario agregado a sudo (regla 100111), F5 no tiene una medida
     proporcionada. Hoy se propone aislar el servidor, con aprobación.
+
+## Prompt v5, medición final (11-11)
+
+El prompt v5 nació de las alertas reales de la prueba integral 2 (10 y 11-11). Agrega tres desempates en el paso 1
+(F2 frente a F4, los ataques web entrantes como F6 y el `sudo` dentro de una sesión abierta desde otro equipo como F3)
+y ajusta las condiciones de PB-F5-01 y PB-F5-03 en el catálogo. Por D-67, se midió antes de proponerlo para integrar.
+
+Medido el 11-11 desde el PC de Patricio contra el Ollama de SOAR-CORE-01 (qwen2.5:7b, por el túnel), con
+`tools/comparar_prompt.py`. «Antes» es `develop` en `eb0d9f4` (todo lo del 10 y 11-11, con el prompt anterior);
+«después» es ese mismo `develop` más el prompt v5. Así se mide sólo el efecto del prompt.
+CSV: `prompt_v5_antes_qwen2.5_7b_20261111.csv` y `prompt_v5_despues_qwen2.5_7b_20261111.csv`.
+
+| 150 casos | Antes | Después (v5) |
+| :--- | :-: | :-: |
+| Medida elegida sin su dato (`ARGUMENTO_FALTANTE`) | 0 | 0 |
+| Medida de puesto en un servidor, o al revés | 13 | **6** |
+| Casos con otra medida | — | 7 |
+| Casos que suben o bajan de nivel | — | 0 |
+| Aprobadas / rechazadas por VALIDATE | 114 / 36 | 114 / 36 (mismos motivos) |
+
+Los 7 cambios son todos PB-F3-03 → PB-F3-04: movimiento lateral en un servidor, que antes se aislaba como puesto.
+
+Con las alertas reales de la prueba integral del 03-11 (tickets #35 y #36), 5 repeticiones cada una
+(`escenarios_e3e4_v5_qwen2.5_7b_20261111.csv`):
+
+| Escenario | Esperada | Eligió | Coincide |
+| :-: | :-: | :-: | :-: |
+| E3, cuenta bloqueada en Windows (4740) | PB-F1-05 | PB-F1-05 | 5/5 |
+| E4, registro de seguridad borrado | PB-F5-04 | PB-F5-04 | 5/5 |
+
+E4 deja de ser PB-F5-05 (aislar un servidor, conclusión 16): con los arquetipos de equipo y el v5, EP-WKS-01 se aísla
+como puesto. Tiempos: unos 50 s la primera consulta (modelo frío) y 8,4 s las demás.
+
+21. **El prompt v5 se integra:** no cambia el nivel de ninguna medida, deja en 0 las medidas imposibles y corrige
+    más de la mitad de los errores de puesto o servidor (conclusión 20). Es la versión de la v1.0.0.
