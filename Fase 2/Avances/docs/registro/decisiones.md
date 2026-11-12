@@ -131,12 +131,12 @@ Tomadas en la prueba integral, con Nicolás, Rodrigo y Patricio presentes.
 
 ## 6. Decisiones de los tres (10 y 11-11-2026)
 
-| C?digo | Tema | Decisi?n | Estado | Despu?s |
+| Código | Tema | Decisión | Estado | Después |
 | :---: | :--- | :--- | :---: | :--- |
-| D-74 | Escenario E4 | Opci?n B: el paso 2 no ofrece medidas cuyo dato no viene en la alerta (PR #68) | ? 10-11 | |
-| D-75 | Documentos DUOC de la Fase 2 | El diario 2.1, las gu?as 2.4 y 2.6 y la autoevaluaci?n de Nicol?s quedan como registro de lo entregado y salen del chequeo de la farmacia | ? 10-11 | |
-| D-76 | Alcance funcional | Las 25 medidas deben funcionar; los l?mites de qwen2.5:7b se documentan | ? 10-11 | D-79 |
-| D-77 | L?mites de tasa | Valores altos s?lo en la rama de pruebas `prueba/pi2`, que no se mezcla | ? 10-11 | |
-| D-78 | Reparto de F3 | 100107 ? PB-F3-02 y 100108 ? PB-F3-03; la 100107 suma la regla nativa 92652. Las medidas de persistencia (PB-F5-02, PB-F5-01 y PB-F2-02) no se revierten solas | ? 11-11 | |
-| D-79 | Cierre de la v1.0.0 | Se cierra con 24 de 25 playbooks demostrados; PB-F3-03 queda sin demostraci?n de punta a punta y se declara como limitaci?n | ? 11-11 | |
-| D-80 | L?mites de tasa de la v1.0.0 | Los cuatro contadores en 50: por PyME, por equipo y por playbook por hora, y de nivel 2 por d?a. Reemplaza los valores de D-65 (10, 3, 5 y 5) | ? 11-11 | |
+| D-74 | Escenario E4 | Opción B: el paso 2 no ofrece medidas cuyo dato no viene en la alerta (PR #68) | ✅ 10-11 | |
+| D-75 | Documentos DUOC de la Fase 2 | El diario 2.1, las guías 2.4 y 2.6 y la autoevaluación de Nicolás quedan como registro de lo entregado y salen del chequeo de la farmacia | ✅ 10-11 | |
+| D-76 | Alcance funcional | Las 25 medidas deben funcionar; los límites de qwen2.5:7b se documentan | ✅ 10-11 | D-79 |
+| D-77 | Límites de tasa | Valores altos sólo en la rama de pruebas `prueba/pi2`, que no se mezcla | ✅ 10-11 | |
+| D-78 | Reparto de F3 | 100107 → PB-F3-02 y 100108 → PB-F3-03; la 100107 suma la regla nativa 92652. Las medidas de persistencia (PB-F5-02, PB-F5-01 y PB-F2-02) no se revierten solas | ✅ 11-11 | |
+| D-79 | Cierre de la v1.0.0 | Se cierra con 24 de 25 playbooks demostrados; PB-F3-03 queda sin demostración de punta a punta y se declara como limitación | ✅ 11-11 | |
+| D-80 | Límites de tasa de la v1.0.0 | Los cuatro contadores en 50: por PyME, por equipo y por playbook por hora, y de nivel 2 por día. Reemplaza los valores de D-65 (10, 3, 5 y 5) | ✅ 11-11 | |
