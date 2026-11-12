@@ -38,7 +38,16 @@ P = PROYECTO_DIR.relative_to(RAIZ).as_posix().rstrip("/") + "/" if PROYECTO_DIR 
 FASES = ("Fase 1", "Fase 2")
 CARPETAS_FASE = ("Avances", "Documentación Individual", "Documentación Grupal")
 # Históricos: pueden mencionar la farmacia.
-EXCLUIDAS = (P + "docs/archivo/", P + "docs/registro/")
+EXCLUIDAS = (
+    P + "docs/archivo/",
+    P + "docs/registro/",
+    # Documentos DUOC de la Fase 2 ya entregados (D-75, 10-11-2026): quedan como registro de lo
+    # entregado, aunque nombren al cliente anterior.
+    "Fase 2/Documentación Grupal/2.1_APT122_DiarioReflexionFase2.docx",
+    "Fase 2/Documentación Grupal/2.4_APT122_GuiaDesarrolloProyecto_Fase2.docx",
+    "Fase 2/Documentación Grupal/2.6_APT122_GuiaInformeFinal_Fase2.docx",
+    "Fase 2/Documentación Individual/Nicolás Zamora/2.2_APT122_AutoevaluacionAvance_Fase2_Nicolas_Zamora.docx",
+)
 # Nombran la farmacia para buscarla.
 PROPIOS = (P + "tools/verificar_entrega.py", P + "tools/README.md")
 TEXTO = (
