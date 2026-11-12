@@ -5,9 +5,9 @@ de punta a punta con los siete escenarios de prueba (E1 a E7).
 
 | Parte | Tema | Requisitos | Estado |
 | :-: | :--- | :--- | :--- |
-| [13](13-alta-de-una-pyme.md) | Alta de una PyME | Partes 01 a 12 | Borrador |
-| [14](14-retiro-y-desinstalacion.md) | Retiro de una PyME y desinstalación | Una PyME dada de alta (parte 13) | Borrador |
-| [15](15-verificacion-de-punta-a-punta.md) | Verificación de punta a punta (escenarios E1 a E7) | Partes 01 a 14; la versión candidata desplegada (parte 07, sección 8) | Borrador |
+| [13](13-alta-de-una-pyme.md) | Alta de una PyME | Partes 01 a 12 | Vigente |
+| [14](14-retiro-y-desinstalacion.md) | Retiro de una PyME y desinstalación | Una PyME dada de alta (parte 13) | Revisada, sin ejecutar |
+| [15](15-verificacion-de-punta-a-punta.md) | Verificación de punta a punta (escenarios E1 a E7) | Partes 01 a 14; la versión candidata desplegada (parte 07, sección 8) | Vigente |
 
 **En el repositorio:** la configuración de cada PyME en
 [`Fase 2/Avances/validacion/configuracion`](../../Fase%202/Avances/validacion/configuracion/) y las evidencias
