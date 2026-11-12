@@ -86,7 +86,7 @@ kronos-ai/
 
 | Paso | Qué hace Kronos |
 | :--- | :--- |
-| **Detecta** | Wazuh 4.14.8 con 15 reglas propias («reglas de sobre») que etiquetan seis familias de incidentes |
+| **Detecta** | Wazuh 4.14.8 con 28 reglas propias («reglas de sobre») que etiquetan seis familias de incidentes |
 | **Clasifica** | Un modelo local (qwen2.5:7b en Ollama) propone la familia y la medida. Los datos de la PyME no salen a una IA externa |
 | **Decide** | Seis chequeos deterministas. Si alguno falla, o el modelo no responde, Kronos no actúa: el caso pasa a revisión manual (falla segura) |
 | **Responde** | Medidas reversibles por Active Response de Wazuh, con un usuario de API que tiene un solo permiso |
@@ -151,15 +151,26 @@ El nivel lo fija el catálogo, nunca el modelo, y la severidad de la alerta le p
 
 | Qué | Evidencia |
 | :--- | :--- |
-| Flujo completo con alertas reales: ataque → Wazuh → IA → decisión → bloqueo → reversión | Ticket 20 (20-10) y reversión a los 60 minutos y 3 segundos (21-10) |
-| Clasificación: qwen2.5:7b acierta 19 de 20 casos originales; 18 de 18 alertas reales coinciden con su regla, y 0 de 10 inyecciones logran su objetivo | [Mediciones](Fase%202/Avances/decision/mediciones/resultados/) |
+| Flujo completo con alertas reales: ataque → Wazuh → IA → decisión → medida → reversión | Ticket 20 (20-10) y prueba integral 1 (03-11): escenarios E1 a E7, del ataque a la medida en 31 s (Linux) y 66 s (Windows) |
+| Las 25 medidas del catálogo tienen actuador; 24 se demostraron de punta a punta con ataques reales desde Kali | Prueba integral 2 (10 y 11-11): 20 de 20 acciones aplicadas y revertidas en Linux y Windows |
+| Clasificación: qwen2.5:7b acierta 19 de 20 casos originales y 150 de 150 en familia; 18 de 18 alertas reales coinciden con su regla, y 0 de 10 inyecciones logran su objetivo | [Mediciones](Fase%202/Avances/decision/mediciones/resultados/) |
 | Base multiinquilino con cadena de hash; respaldo cifrado y restauración probada | 2822 de 2822 eventos, 12 inquilinos y 0 cadenas rotas (15-10) |
 | Avisos y aprobación por Telegram; consola con contraseña y TOTP | Grupo del equipo con verificación en dos pasos (21-10) |
-| Calidad del código | 319 pruebas unitarias y 65 de integración, que el CI corre en cada cambio, y 4 pruebas SQL de la base |
+| Falla segura y cortacircuito | Con el modelo detenido, nada se ejecuta (E7); una ráfaga de 40 alertas abre el cortacircuito (E6) |
+| Calidad del código | 691 pruebas unitarias y 67 de integración, que el CI corre en cada cambio, y 4 pruebas SQL de la base |
 
-Medidas que se ejecutan de verdad en la v1.0: bloquear una IP (niveles 1 y 2, en Linux y Windows), deshabilitar
-una cuenta local (nivel 2, Windows) y aislar un puesto de trabajo (nivel 3, Windows). Si la IA elige otra medida
-del catálogo, Kronos no toca el equipo y el caso termina en falla segura con aviso.
+Límites conocidos de la v1.0.0:
+
+- **PB-F3-03** (aislar un puesto por ejecución remota) no se demostró con un ataque real; su regla y su actuador
+  están probados por separado.
+- Las medidas de persistencia (cuarentena y tarea deshabilitada) **no se revierten solas**: la reversión la
+  hace una persona desde la consola, para no reactivar lo malicioso.
+- Un nivel 1 que termina bien no avisa por Telegram: se ve en la bitácora.
+- Cerrar una sesión y terminar un proceso no tienen reversión.
+- qwen2.5:7b clasifica como F1 un `sudo` hecho tras un SSH y como F4 algunas líneas de registro web con ataque;
+  en los dos casos el ticket termina en revisión manual.
+- Los cuatro límites de tasa quedan en 50 y el cortacircuito en 30 alertas en 10 minutos.
+- Una PyME por servidor; el servidor no se ha probado con un reinicio completo.
 
 ## Equipo
 
@@ -183,7 +194,7 @@ sin autorización escrita. Texto completo en [`LICENSE`](LICENSE).
 
 **Kronos AI** is a cloud-hosted SOAR (Security Orchestration, Automation and Response) platform for small
 businesses that cannot afford a cybersecurity specialist and rely on a general IT person. Wazuh agents on each
-computer send events to a central server, where 15 custom rules tag every alert with one of six incident
+computer send events to a central server, where 28 custom rules tag every alert with one of six incident
 families.
 
 A language model running locally on the server (qwen2.5:7b on Ollama) classifies each alert in two steps: first

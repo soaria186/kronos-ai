@@ -4,15 +4,15 @@
 | :--- | :--- |
 | Parte | 01 de 15 |
 | Responsable | Nicolás Zamora (revisa: Rodrigo Riveros) |
-| Versión | 0.9, 26-10-2026 |
-| Estado | Borrador para revisión: escrito desde la configuración del repositorio y los registros del proyecto, no desde el historial de comandos del servidor. Nicolás compara cada paso con lo que hizo y lo corrige |
+| Versión | 1.0, 12-11-2026 |
+| Estado | Vigente: comparada con SOAR-CORE-01 el 12-11-2026 (sistema, hora, SSH, `ufw` y carpetas) |
 | Requisitos | El VPS contratado y acceso a su panel |
 
 SOAR-CORE-01 es el único servidor de Kronos: un **Cloud VDS XL de Contabo** (16 vCPU AMD EPYC 7282, 64 GB de RAM,
 480 GB NVMe, sin GPU, x86_64) en Francia, con Ubuntu 24.04 LTS. Todo lo demás corre ahí, en Docker.
 
 Esta parte deja el servidor listo para lo siguiente: usuarios personales con llave, SSH sin contraseña ni
-`root`, hora en UTC y un firewall que deniega por defecto.
+`root`, hora en UTC y un firewall que deniega por defecto y sólo deja entrar SSH por NetBird.
 
 ---
 
@@ -49,14 +49,16 @@ Host soar-core-01
 
 ## 3. SSH sólo con llave y sin `root`
 
-Con una sesión abierta (por si algo falla), crear `/etc/ssh/sshd_config.d/10-kronos.conf`:
+Con una sesión abierta (por si algo falla), crear `/etc/ssh/sshd_config.d/00-kronos.conf`. El prefijo `00` hace que
+se lea antes que los archivos de la imagen de Contabo (`50-cloud-init.conf` y `60-cloudimg-settings.conf`): en
+`sshd` vale el primer valor que se lee. `AllowUsers` lleva las cuentas personales de la sección 2.
 
 ```
-[servidor] sudo tee /etc/ssh/sshd_config.d/10-kronos.conf >/dev/null <<'FIN'
+[servidor] sudo tee /etc/ssh/sshd_config.d/00-kronos.conf >/dev/null <<'FIN'
 PermitRootLogin no
 PasswordAuthentication no
 KbdInteractiveAuthentication no
-PubkeyAuthentication yes
+AllowUsers <cuentas personales, separadas por espacios>
 FIN
 [servidor] sudo sshd -t && sudo systemctl reload ssh
 ```
@@ -65,10 +67,11 @@ FIN
 entrando con la llave (`ssh soar-core-01`) antes de cerrar la primera sesión.
 
 ```
-[servidor] sudo sshd -T | grep -E '^(permitrootlogin|passwordauthentication|pubkeyauthentication)'
+[servidor] sudo sshd -T | grep -E '^(permitrootlogin|passwordauthentication|kbdinteractiveauthentication|pubkeyauthentication)'
 ```
 
-**Debe mostrar:** `permitrootlogin no`, `passwordauthentication no` y `pubkeyauthentication yes`.
+**Debe mostrar:** `permitrootlogin no`, `passwordauthentication no`, `kbdinteractiveauthentication no` y
+`pubkeyauthentication yes` (este último es el valor de fábrica).
 
 ## 4. Hora en UTC (D-13)
 
@@ -83,19 +86,24 @@ Las alertas de Wazuh, la bitácora y los temporizadores de systemd usan UTC.
 
 ## 5. Firewall: deniega por defecto
 
-Sólo dos puertos quedan abiertos a internet: **22** (SSH, sólo con llave) y **1514** (los agentes de las PyME
-envían ahí sus eventos). Todo lo demás llega por NetBird (parte 02).
+Desde internet sólo llega el **1514** (los agentes de las PyME envían ahí sus eventos). El **22** (SSH) entra
+sólo por la interfaz de NetBird, `wt0`. Todo lo demás también llega por NetBird (parte 02).
+
+Este paso se hace **después de la parte 02**, con NetBird funcionando y una sesión SSH abierta por la IP de
+NetBird: si se hace antes, se pierde el acceso y hay que entrar por la consola VNC del panel.
 
 ```
 [servidor] sudo ufw default deny incoming
 [servidor] sudo ufw default allow outgoing
-[servidor] sudo ufw allow 22/tcp
-[servidor] sudo ufw allow 1514/tcp
+[servidor] sudo ufw allow in on wt0 to any port 22 proto tcp
 [servidor] sudo ufw enable
 [servidor] sudo ufw status verbose
 ```
 
-**Debe mostrar:** `Status: active`, `Default: deny (incoming), allow (outgoing)` y las reglas de 22 y 1514.
+**Debe mostrar:** `Status: active`, `Default: deny (incoming), allow (outgoing), deny (routed)` y sólo las
+reglas `22/tcp on wt0` (IPv4 e IPv6).
+
+El 1514 no necesita regla en `ufw`: lo publica Docker (ver la nota siguiente).
 
 > **Docker y el firewall.** Docker publica los puertos de sus contenedores con reglas propias de `iptables`,
 > por fuera de `ufw`. Por eso los puertos internos no se protegen con `ufw`, sino publicándolos **sólo en la IP
@@ -106,14 +114,15 @@ envían ahí sus eventos). Todo lo demás llega por NetBird (parte 02).
 
 - El segundo factor de las cuentas de Contabo quedó descartado por ahora (D-14): es un riesgo aceptado (R-07). La
   contraseña del panel va al gestor del equipo.
-- La consola VNC del panel da acceso al servidor sin SSH: usarla sólo si se pierde el acceso por SSH.
+- La consola VNC del panel da acceso al servidor sin SSH. En SOAR-CORE-01 quedó desactivada desde el 02-11; se
+  activa en el panel sólo si se pierde el acceso por NetBird, y se desactiva al terminar.
 
 ## 7. Carpetas de Kronos
 
 | Ruta | Qué hay | Parte |
 | :--- | :--- | :--- |
-| `/opt/wazuh-docker/single-node` | Compose de Wazuh. La carpeta se tiene que llamar `single-node`: de ese nombre salen el volumen de logs y la red que usa Kronos | 04 |
-| `/opt/kronos/ollama` | Compose de Ollama | 06 |
+| `/opt/kronos/wazuh-docker/single-node` | Compose de Wazuh. La carpeta se tiene que llamar `single-node`: de ese nombre salen el volumen de logs y la red que usa Kronos | 04 |
+| `/opt/kronos/ollama` | Compose de Ollama, en una instalación nueva (en SOAR-CORE-01 el contenedor se creó antes; ver la parte 06) | 06 |
 | `/opt/kronos/kronos-ai` | Clon de git de este repositorio, en una etiqueta de versión (D-55) | 07 |
 | `/opt/kronos/audit` | Enlace a la carpeta del proyecto en el clon (`Fase 2/Avances`): las demás partes usan esta ruta | 07 |
 | `/var/backups/kronos` | Respaldos cifrados de SOAR-AUDIT | 12 |
@@ -123,7 +132,7 @@ envían ahí sus eventos). Todo lo demás llega por NetBird (parte 02).
 
 - [ ] Ubuntu 24.04, 16 vCPU, 64 GB de RAM.
 - [ ] Una cuenta personal por integrante, en `sudo` y no en `docker`.
-- [ ] SSH sólo con llave y sin `root`; probado desde otra ventana.
+- [ ] SSH sólo con llave, sin `root` y sólo para las cuentas de `AllowUsers`; probado desde otra ventana.
 - [ ] Hora en UTC, sincronizada.
-- [ ] `ufw` activo: entrada denegada salvo 22 y 1514.
+- [ ] `ufw` activo: entrada denegada salvo el 22 por `wt0`.
 - [ ] Contraseña del panel de Contabo en el gestor de contraseñas.

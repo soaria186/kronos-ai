@@ -26,10 +26,10 @@ son consecutivas: la de Wazuh tiene las partes 04, 05 y 08, y la parte 08 se hac
 
 | Parte | Tema | Carpeta | Responsable | Revisa | Estado |
 | :-: | :--- | :--- | :--- | :--- | :--- |
-| [01](01-Servidor/01-servidor.md) | Servidor SOAR-CORE-01 y endurecimiento | `01-Servidor` | Nicolás | Rodrigo | Borrador |
-| [02](02-NetBird/02-netbird.md) | Red privada NetBird | `02-NetBird` | Nicolás | Rodrigo | Borrador |
-| [03](03-Docker/03-docker.md) | Docker | `03-Docker` | Nicolás | Rodrigo | Borrador |
-| [04](04-Wazuh/04-wazuh.md) | Wazuh 4.14.8: compose, puertos y certificados | `04-Wazuh` | Nicolás | Rodrigo | Borrador |
+| [01](01-Servidor/01-servidor.md) | Servidor SOAR-CORE-01 y endurecimiento | `01-Servidor` | Nicolás | Rodrigo | Vigente |
+| [02](02-NetBird/02-netbird.md) | Red privada NetBird | `02-NetBird` | Nicolás | Rodrigo | Vigente |
+| [03](03-Docker/03-docker.md) | Docker | `03-Docker` | Nicolás | Rodrigo | Vigente |
+| [04](04-Wazuh/04-wazuh.md) | Wazuh 4.14.8: compose, puertos y certificados | `04-Wazuh` | Nicolás | Rodrigo | Vigente |
 | [05](04-Wazuh/05-reglas-de-sobre.md) | Reglas de sobre | `04-Wazuh` | Nicolás | Patricio | Vigente |
 | [06](05-IA-Ollama/06-ollama.md) | Ollama y el modelo | `05-IA-Ollama` | Patricio | Nicolás | Vigente |
 | [07](06-PostgreSQL-y-Servicios/07-base-y-servicios.md) | Base SOAR-AUDIT y servicios | `06-PostgreSQL-y-Servicios` | Rodrigo | Patricio | Vigente |
@@ -38,13 +38,14 @@ son consecutivas: la de Wazuh tiene las partes 04, 05 y 08, y la parte 08 se hac
 | [10](07-Agentes/10-agente-windows.md) | Agente Windows | `07-Agentes` | Nicolás | Rodrigo | Vigente |
 | [11](08-Telegram/11-telegram.md) | Telegram | `08-Telegram` | Rodrigo | Patricio | Vigente |
 | [12](09-Respaldo-y-Retencion/12-respaldo-y-retencion.md) | Respaldo, restauración y retención | `09-Respaldo-y-Retencion` | Rodrigo | Patricio | Vigente |
-| [13](10-Operacion-y-Verificacion/13-alta-de-una-pyme.md) | Alta de una PyME | `10-Operacion-y-Verificacion` | Patricio y Nicolás | Rodrigo | Borrador |
-| [14](10-Operacion-y-Verificacion/14-retiro-y-desinstalacion.md) | Retiro de una PyME y desinstalación | `10-Operacion-y-Verificacion` | Nicolás | Rodrigo | Borrador |
-| [15](10-Operacion-y-Verificacion/15-verificacion-de-punta-a-punta.md) | Verificación de punta a punta (escenarios E1 a E7) | `10-Operacion-y-Verificacion` | Patricio | Nicolás | Borrador |
+| [13](10-Operacion-y-Verificacion/13-alta-de-una-pyme.md) | Alta de una PyME | `10-Operacion-y-Verificacion` | Patricio y Nicolás | Rodrigo | Vigente |
+| [14](10-Operacion-y-Verificacion/14-retiro-y-desinstalacion.md) | Retiro de una PyME y desinstalación | `10-Operacion-y-Verificacion` | Nicolás | Rodrigo | Revisada, sin ejecutar |
+| [15](10-Operacion-y-Verificacion/15-verificacion-de-punta-a-punta.md) | Verificación de punta a punta (escenarios E1 a E7) | `10-Operacion-y-Verificacion` | Nicolás | Patricio | Vigente |
 
 **Estados.** *Borrador*: escrito desde la configuración del repositorio y los registros del proyecto; su
 responsable lo compara con lo que se hizo de verdad, lo corrige y lo pasa a *vigente*. *Vigente*: seguido y
-comprobado en SOAR-CORE-01 o en la PyME simulada.
+comprobado en SOAR-CORE-01 o en la PyME simulada. *Revisada, sin ejecutar*: al día con la versión, pero se sigue
+completa sólo cuando hace falta (el retiro, al cerrar el servidor).
 
 ## Convenciones
 
@@ -67,7 +68,7 @@ comprobado en SOAR-CORE-01 o en la PyME simulada.
 
 ```text
 Equipos de la PyME ──1514/TCP──▶ SOAR-CORE-01 (Contabo, Docker)
-  agente de Wazuh                 ├─ Wazuh 4.14.8 (manager, indexer, dashboard) + 15 reglas de sobre
+  agente de Wazuh                 ├─ Wazuh 4.14.8 (manager, indexer, dashboard) + 28 reglas de sobre
   scripts kronos-*                ├─ Ollama 0.40.0 + qwen2.5:7b (sólo 127.0.0.1 y red interna)
                                   ├─ PostgreSQL 17.11: SOAR-AUDIT (sin puertos)
                                   ├─ SOAR-VALIDATE, SOAR-EXECUTE, SOAR-NOTIFY y SOAR-CONSOLE

@@ -4,8 +4,8 @@
 | :--- | :--- |
 | Parte | 02 de 15 |
 | Responsable | Nicolás Zamora (revisa: Rodrigo Riveros) |
-| Versión | 0.9, 26-10-2026 |
-| Estado | Borrador para revisión: escrito desde la configuración del repositorio y los registros del proyecto. Nicolás lo compara con lo que hizo (por ejemplo, si el servidor entró con una clave de configuración o con inicio de sesión) y lo corrige |
+| Versión | 1.0, 12-11-2026 |
+| Estado | Vigente: comparada con SOAR-CORE-01 el 12-11-2026 (NetBird 0.80.0, unido con clave de configuración; puertos internos sólo en la IP de NetBird) |
 | Requisitos | Parte 01 |
 
 NetBird es la red privada del equipo (WireGuard en malla). El servidor y los PC de los integrantes, y los del
@@ -38,7 +38,7 @@ secreto: se carga sin que quede en pantalla ni en el historial.
 [servidor] netbird status
 ```
 
-**Debe mostrar:** `Management: Connected`, `Signal: Connected` y `NetBird IP: 100.x.y.z/16`. Esa es la **IP de
+**Debe mostrar:** `Management: Connected`, `Signal: Connected`, `NetBird IP: 100.x.y.z/16` e `Interface type: Kernel`. Esa es la **IP de
 NetBird del servidor**: va a `NETBIRD_IP` (parte 04) y a `KRONOS_CONSOLA_IP` (parte 07). No se publica en el
 repositorio.
 
@@ -70,10 +70,14 @@ En el panel de NetBird:
 ```
 
 **Debe mostrar:** la IP de NetBird del servidor y, una vez hechas las partes 04 y 07, los cuatro puertos
-escuchando **sólo** en esa IP, nunca en `0.0.0.0`.
+escuchando **sólo** en esa IP, nunca en `0.0.0.0`. En esa IP también escucha el 53: es el DNS de NetBird.
+
+Con NetBird funcionando se cierra el SSH desde internet (parte 01, sección 5): desde ahí, al servidor se entra
+sólo por su IP de NetBird.
 
 ## 5. Lista de comprobación
 
 - [ ] Servidor en NetBird, con su IP anotada en el gestor de contraseñas (no en el repositorio).
 - [ ] PC de cada integrante en el grupo `admins`, con rol User.
 - [ ] 443, 55000, 9200 y 5601 sólo en la IP de NetBird.
+- [ ] SSH sólo por NetBird (parte 01, sección 5).

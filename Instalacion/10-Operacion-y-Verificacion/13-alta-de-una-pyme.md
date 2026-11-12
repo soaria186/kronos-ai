@@ -4,8 +4,8 @@
 | :--- | :--- |
 | Parte | 13 de 15 |
 | Responsable | Patricio González y Nicolás Zamora (revisa: Rodrigo Riveros) |
-| Versión | 0.9, 26-10-2026 |
-| Estado | Borrador para revisión: sale de `validacion/configuracion/validate.json`, de las partes 07 a 11 y del alta de la PyME simulada |
+| Versión | 1.0, 12-11-2026 |
+| Estado | Vigente: seguida al dar de alta la PyME simulada (inquilino 1, agentes 001 y 002) y comprobada en las pruebas integrales del 03-11 y del 10 y 11-11-2026. Las secciones 1 y 2 son para una PyME real: en la simulada no aplican |
 | Requisitos | Partes 01 a 12 |
 
 Dar de alta una PyME es dejarla monitoreada y protegida: sus equipos con agente, su configuración de exclusiones,
@@ -51,7 +51,7 @@ Cada PyME es un **inquilino**, con un número entero. En la PyME simulada es el 
 | `KRONOS_INQUILINOS` | El mismo número | EXECUTE, NOTIFY y la consola |
 | `KRONOS_NOMBRES_INQUILINOS` | `número:nombre`, por ejemplo `1:PyME de demostración` | NOTIFY (avisos) |
 
-## 4. Lista de exclusión y redes internas
+## 4. Lista de exclusión, redes internas y tipo de cada equipo
 
 Van en `validacion/configuracion/validate.json`. Es configuración versionada: se cambia **por PR**, con la
 aprobación de otro integrante, y se despliega con la nueva versión (parte 07, sección 8). Las categorías son
@@ -71,6 +71,19 @@ aprobación de otro integrante, y se despliega con la nueva versión (parte 07, 
 
 Lo que está en la lista nunca recibe una medida: el caso pasa a revisión manual con el motivo `ACTIVO_EXCLUIDO`.
 En la PyME simulada, la única entrada es la puerta de enlace del laboratorio, `10.0.50.1`.
+
+En el mismo archivo, `arquetipos_de_equipos` dice si cada equipo es un **puesto** de trabajo o un **servidor**,
+por el nombre de su agente. VALIDATE no le ofrece a la IA las medidas pensadas para el otro tipo (por ejemplo,
+aislar un puesto cuando el equipo es un servidor). Un equipo que no está en la lista recibe todas. En la PyME
+simulada:
+
+```json
+"arquetipos_de_equipos": {"equipos": {"EP-SRV-01": "servidor", "EP-WKS-01": "puesto"}}
+```
+
+Los **contadores de tasa** también están ahí. En la v1.0.0 los cuatro quedan en 50 (por PyME, por equipo y por
+playbook en una hora, y de nivel 2 en un día), y el cortacircuito se abre con 30 alertas recibidas en 10
+minutos. Para una PyME real conviene bajarlos después de la semana de observación.
 
 ## 5. Encargado de TI
 
@@ -102,7 +115,7 @@ acta del alta registra la fecha, los equipos, las exclusiones y el resultado de 
 ## 8. Lista de comprobación
 
 - [ ] Autorización, aviso a los trabajadores y aceptación de las medidas, firmados.
-- [ ] Inventario completo; exclusiones y redes internas en `validate.json`, por PR.
+- [ ] Inventario completo; exclusiones, redes internas y tipo de cada equipo en `validate.json`, por PR.
 - [ ] Inquilino y nombre en `.env`; servicios recreados.
 - [ ] Encargado de TI en Telegram (con verificación en dos pasos), en NetBird y con cuenta de consola.
 - [ ] Agentes `Active` y scripts instalados.

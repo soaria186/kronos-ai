@@ -6,8 +6,8 @@ las medidas en los agentes.
 
 | Parte | Tema | Requisitos | Estado |
 | :-: | :--- | :--- | :--- |
-| [04](04-wazuh.md) | Wazuh 4.14.8: compose, puertos y certificados | Partes 01 a 03 | Borrador |
-| [05](05-reglas-de-sobre.md) | Reglas de sobre | Parte 04 | Borrador |
+| [04](04-wazuh.md) | Wazuh 4.14.8: compose, puertos y certificados | Partes 01 a 03 | Vigente |
+| [05](05-reglas-de-sobre.md) | Reglas de sobre | Parte 04 | Vigente |
 | [08](08-active-response.md) | Active Response: script `kronos-bloquear-ip` y usuario de API `kronos-execute` | Parte 04; se hace después de la parte 07 | Vigente |
 
 **En el repositorio:** [`Fase 2/Avances/infra/wazuh`](../../Fase%202/Avances/infra/wazuh/), con el compose de

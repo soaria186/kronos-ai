@@ -4,8 +4,8 @@
 | :--- | :--- |
 | Parte | 04 de 15 |
 | Responsable | Nicolás Zamora (revisa: Rodrigo Riveros) |
-| Versión | 0.9, 26-10-2026 |
-| Estado | Borrador para revisión: sigue `infra/wazuh/docker-compose.yml.example` y la instalación oficial de Wazuh con Docker. Nicolás confirma la ruta, el cambio de contraseñas y el respaldo de Wazuh tal como se hicieron |
+| Versión | 1.0, 12-11-2026 |
+| Estado | Vigente: comparada con SOAR-CORE-01 el 12-11-2026 (ruta, versión 4.14.8, puertos, certificado de la API y respaldo diario). Las contraseñas de fábrica se cambiaron el 02-11-2026 |
 | Requisitos | Partes 01 a 03 |
 
 Wazuh es SOAR-DETECT: recibe los eventos de los agentes, los correlaciona y escribe las alertas en
@@ -25,7 +25,7 @@ puertos que fija Kronos.
 ## 1. Requisito del indexador
 
 ```
-[servidor] echo 'vm.max_map_count=262144' | sudo tee /etc/sysctl.d/90-wazuh.conf
+[servidor] echo 'vm.max_map_count=262144' | sudo tee /etc/sysctl.d/99-wazuh.conf
 [servidor] sudo sysctl --system | grep max_map_count
 ```
 
@@ -34,8 +34,8 @@ puertos que fija Kronos.
 ## 2. Compose oficial, versión 4.14.8
 
 ```
-[servidor] sudo git clone https://github.com/wazuh/wazuh-docker.git -b v4.14.8 /opt/wazuh-docker
-[servidor] cd /opt/wazuh-docker/single-node
+[servidor] sudo git clone https://github.com/wazuh/wazuh-docker.git -b v4.14.8 /opt/kronos/wazuh-docker
+[servidor] cd /opt/kronos/wazuh-docker/single-node
 ```
 
 La carpeta tiene que seguir llamándose `single-node`: Compose toma de ahí el nombre del proyecto, y Kronos usa
@@ -60,9 +60,9 @@ en los puertos: 1514 público, 1515 sin publicar y el resto sólo en la IP de Ne
 
 ```
 [PC]       scp infra/wazuh/docker-compose.yml.example soar-core-01:~/
-[servidor] sudo install -m 600 ~/docker-compose.yml.example /opt/wazuh-docker/single-node/docker-compose.yml
+[servidor] sudo install -m 600 ~/docker-compose.yml.example /opt/kronos/wazuh-docker/single-node/docker-compose.yml
 [servidor] rm ~/docker-compose.yml.example
-[servidor] echo 'NETBIRD_IP=XXXX' | sudo tee /opt/wazuh-docker/single-node/.env >/dev/null
+[servidor] echo 'NETBIRD_IP=XXXX' | sudo tee /opt/kronos/wazuh-docker/single-node/.env >/dev/null
 ```
 
 `XXXX` es la IP de NetBird del servidor (parte 02).
@@ -88,7 +88,7 @@ gestor tenga esa (lección del 20-10-2026).
 ## 6. Levantar
 
 ```
-[servidor] cd /opt/wazuh-docker/single-node
+[servidor] cd /opt/kronos/wazuh-docker/single-node
 [servidor] sudo docker compose up -d
 [servidor] sudo docker compose ps --format '{{.Name}}\t{{.Status}}'
 ```
@@ -132,20 +132,24 @@ EXECUTE verifica el certificado de la API. Se copia el que presenta el manager y
 
 ## 9. Lo que Kronos no toca en Wazuh
 
-- **No hay bloques `<active-response>`** en la configuración del manager: el Active Response automático de Wazuh
-  queda apagado y Kronos es el único que ordena medidas, por la API (parte 08).
+- **No hay bloques `<active-response>` activos** en la configuración del manager (el que trae `ossec.conf` de
+  fábrica está comentado): el Active Response automático de Wazuh queda apagado y Kronos es el único que ordena
+  medidas, por la API (parte 08). Se comprueba con
+  `sudo docker exec single-node-wazuh.manager-1 grep -n -B2 -A3 '<active-response>' /var/ossec/etc/ossec.conf`:
+  el único bloque debe estar entre `<!--` y `-->`.
 - La configuración del manager del servidor no se cambia sin avisar a Nicolás.
 
 ## 10. Respaldo de Wazuh
 
 La configuración de Wazuh, los certificados y `client.keys` (las llaves de los agentes) se respaldan a diario a
-las 04:00 UTC, cifrados con `age` con los mismos destinatarios que el respaldo de la base (parte 12). Ese script
-corre en el servidor y todavía no está en el repositorio: conviene versionarlo en `infra/wazuh/respaldo/`.
+las 04:00 UTC, cifrados con `age` con los mismos destinatarios que el respaldo de la base (parte 12). Lo hace
+`kronos-respaldo-wazuh.sh`, con su servicio y su temporizador `kronos-respaldo-wazuh` de systemd. En la v1.0.0
+ese script está sólo en el servidor, no en el repositorio: para otra instalación se copia desde el respaldo.
 
 ## 11. Lista de comprobación
 
 - [ ] `vm.max_map_count` persistente.
-- [ ] Wazuh 4.14.8 en `/opt/wazuh-docker/single-node`, con el compose de Kronos.
+- [ ] Wazuh 4.14.8 en `/opt/kronos/wazuh-docker/single-node`, con el compose de Kronos.
 - [ ] Contraseñas de `admin`, `kibanaserver` y `wazuh-wui` cambiadas y en el gestor.
 - [ ] Tres contenedores `Up`; API responde 200; dashboard por NetBird.
 - [ ] 1514 público, 1515 sin publicar, el resto sólo en NetBird.

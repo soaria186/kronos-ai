@@ -5,7 +5,7 @@ que ningún puerto quede publicado fuera de NetBird o de `127.0.0.1`, salvo el 1
 
 | Parte | Tema | Requisitos | Estado |
 | :-: | :--- | :--- | :--- |
-| [03](03-docker.md) | Docker | Parte 01 | Borrador |
+| [03](03-docker.md) | Docker | Parte 01 | Vigente |
 
 **En el repositorio:** los archivos de Docker del proyecto están en
 [`Fase 2/Avances/infra/docker`](../../Fase%202/Avances/infra/docker/).
