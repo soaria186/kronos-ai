@@ -12,6 +12,10 @@ lleva en su portada un código (1.1 a 6.5) que indica su área y su orden.
 | 5. Seguridad | [`Seguridad/`](Seguridad/) | 6 |
 | 6. Calidad y pruebas | [`Calidad/`](Calidad/) | 5 |
 
+La carpeta [`Documentos-Evidencias/`](Documentos-Evidencias/) reúne, en un archivo por ítem, los documentos que puede pedir la
+revisión del proyecto (inicio, metodología, Scrum, requisitos y documentación técnica), con copias de los originales
+y los documentos propios que no estaban en otra carpeta.
+
 ## Índice
 
 | Código | Documento | Archivo |
