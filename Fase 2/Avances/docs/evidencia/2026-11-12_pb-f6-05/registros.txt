@@ -1,0 +1,39 @@
+# Extractos de registros de la prueba de PB-F6-05 (horas en UTC)
+
+## EP-WKS-01: C:\Program Files (x86)\ossec-agent\active-response\active-responses.log
+
+# 11-11: acción por la API (probar-ar-api.sh)
+2026-11-11T20:48:46Z kronos-detener-servicio: iniciar Spooler OK
+2026-11-11T20:49:10Z kronos-detener-servicio: aplicar Spooler OK
+2026-11-11T20:49:39Z kronos-detener-servicio: iniciar Spooler OK
+# 11-11: ticket #203 aprobado por Telegram
+2026-11-11T20:51:12Z kronos-detener-servicio: aplicar Spooler OK
+# 12-11: ticket #207 aprobado por Telegram
+2026-11-12T20:44:02Z kronos-detener-servicio: aplicar Spooler OK
+# 12-11: reversión del #203 desde la consola
+2026-11-12T20:58:58Z kronos-detener-servicio: iniciar Spooler OK
+
+## EP-WKS-01: Get-Service Spooler
+
+# después de aplicar (#207)
+Status   Name               DisplayName
+Stopped  Spooler            Cola de impresión
+# después de revertir (#203)
+Status   Name               DisplayName
+Running  Spooler            Cola de impresión
+
+## EP-WKS-01: arranque de la VM (por actualizaciones de Windows)
+
+LastBootUpTime: 12-11-2026 17:51:46 (hora de Chile) = 20:51:46 UTC
+
+## SOAR-CORE-01: registro de SOAR-EXECUTE (docker compose logs execute)
+
+2026-11-12 20:44:01,259 soar-execute INFO inquilino 1: {'huerfanos': [], 'vencidas': [], 'exitosas': [207], 'fallidas': [], 'revertidas': [], 'reversiones_fallidas': []}
+2026-11-12 20:52:53,549 soar-execute INFO inquilino 1: {'huerfanos': [], 'vencidas': [], 'exitosas': [], 'fallidas': [], 'revertidas': [], 'reversiones_fallidas': [207]}
+2026-11-12 20:58:55,537 soar-execute INFO inquilino 1: {'huerfanos': [], 'vencidas': [], 'exitosas': [], 'fallidas': [], 'revertidas': [203], 'reversiones_fallidas': []}
+
+## SOAR-CORE-01: estado del agente antes de revertir el #203 (probar-ar-api.sh estado)
+
+== 2026-11-12T20:58:36Z agente 002
+   Agent Name: EP-WKS-01
+   Status:     Active
