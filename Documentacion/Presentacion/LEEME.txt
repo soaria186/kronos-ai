@@ -1,0 +1,50 @@
+KRONOS AI · Presentación para la comisión
+==========================================
+
+ABRIR
+  Doble clic en index.html. Se recomienda Chrome o Edge.
+  Funciona sin internet: Reveal.js, Chart.js, Font Awesome y las fuentes
+  están copiados en assets/vendor. Con internet se cargan desde jsDelivr,
+  cdnjs y Google Fonts.
+
+TECLAS
+  Flechas o espacio   avanzar / retroceder
+  F                   pantalla completa
+  S                   vista del orador (notas, tiempo y diapositiva siguiente)
+  O                   vista general de todas las diapositivas
+  Esc                 salir de la pantalla completa o de la vista general
+
+DIAPOSITIVAS (20 en total)
+  1  Portada                 11 Catálogo de respuesta
+  2  El problema             12 Control y trazabilidad
+  3  La solución             13 Validación: pruebas
+  4  Arquitectura            14 Entorno de validación
+  5  Funcionamiento          15 Guía de los videos
+  6  Infraestructura         16 Video 01 · nivel 1
+  7  Herramientas (resumen)  17 Video 02 · nivel 2
+  8  Familias de incidentes  18 Video 03 · nivel 3
+  9  Decisión                19 Video 04 · nivel 3
+  10 Niveles de autonomía    20 Cierre
+
+DURACIÓN (en las notas de cada diapositiva)
+  Exposición unos 6 minutos y videos unos 7 minutos: cerca de 13 minutos en total.
+    Nicolás   diapositivas 1 a 4, 6 y 14, video 01 y parte del 04
+    Patricio  diapositivas 5, 8, 9 y 15, video 03 y parte del 04
+    Rodrigo   diapositivas 10 a 13, video 02 y parte del 04
+    Diapositiva 7 (herramientas) la exponen los tres, cada uno sus herramientas.
+    Cierre: diapositiva 20, la frase final la dice Nicolás.
+
+IMÁGENES  (ya incluidas en assets/img)
+  telegram-aviso.png    diapositiva 12
+  consola-kronos.png    diapositiva 12
+  laboratorio.png       diapositiva 14
+
+VIDEOS  (ya incluidos en assets/videos)
+  01-nivel1-fuerza-bruta-ssh.mp4      diapositiva 16
+  02-nivel2-cuenta-deshabilitada.mp4  diapositiva 17
+  03-nivel3-sitio-alterado.mp4        diapositiva 18
+  04-nivel3-servidor-aislado.mp4      diapositiva 19
+  Formato MP4 (H.264), 1920 x 1080. Duran entre 1 1/2 y 2 1/2 minutos cada uno.
+  Clic en reproducir y el video pasa a pantalla completa; al salir, se pausa.
+
+Mantener index.html y la carpeta assets juntos al copiar o enviar.
