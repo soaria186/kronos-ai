@@ -48,6 +48,15 @@ lleva en su portada un código (1.1 a 6.5) que indica su área y su orden.
 | 6.4 | Pruebas Deterministas y Regresión de Reglas | [`Calidad/Pruebas-deterministas-regresion.docx`](Calidad/Pruebas-deterministas-regresion.docx) |
 | 6.5 | Pruebas de Carga, Estrés y Latencia | [`Calidad/Pruebas-carga-estres-latencia.docx`](Calidad/Pruebas-carga-estres-latencia.docx) |
 
+## Presentación de la defensa
+
+[`Presentacion/`](Presentacion/) tiene la presentación para la comisión: 20 diapositivas en Reveal.js y los 4 videos
+de la demostración (niveles 1, 2 y 3). Se abre con `index.html` y funciona sin internet; las teclas, el orden de
+exposición y la duración están en [`LEEME.txt`](Presentacion/LEEME.txt).
+
+El video 04 pesa más de 100 MB y está en Git LFS: para tenerlo al clonar el repositorio hace falta Git LFS
+(`git lfs install` antes de clonar, o `git lfs pull` después). Desde la página de GitHub se descarga normal.
+
 ## Formato
 
 - Los documentos están en Word (`.docx`). La Carta Gantt (1.3) y la Matriz RACI (1.8) incluyen además su
