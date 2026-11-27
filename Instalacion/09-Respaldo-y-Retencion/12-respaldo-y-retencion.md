@@ -4,8 +4,8 @@
 | :--- | :--- |
 | Parte | 12 de 15 |
 | Responsable | Rodrigo Riveros (revisa: Patricio González) |
-| Versión | 0.9, 26-10-2026 |
-| Estado | Borrador para revisión: reúne `infra/docker/respaldo/README.md` y `infra/docker/retencion/README.md`. El respaldo y la restauración se probaron el 15-10-2026; la purga se instaló el 21-10-2026 |
+| Versión | 1.0, 01-11-2026 |
+| Estado | Vigente: comprobada en SOAR-CORE-01 el 01-11-2026 (los tres temporizadores activos, 14 copias `root:sudo` 640, un destinatario de `age` y la purga diaria sin errores). La restauración se probó el 15-10-2026. La copia fuera del servidor (sección 5) la confirma Nicolás |
 | Requisitos | Parte 07 |
 
 | Qué | Cuándo (UTC) | Dónde |
@@ -58,7 +58,15 @@ conservan las 14 copias más recientes.
 [servidor] systemctl list-timers 'kronos-*'
 ```
 
-**Debe mostrar:** la próxima ejecución a las 04:15 UTC.
+**Debe mostrar:** la próxima ejecución a las 04:15 UTC. En SOAR-CORE-01 aparecen tres temporizadores: `kronos-respaldo-wazuh` (04:00, parte 04), `kronos-respaldo-postgres` (04:15) y `kronos-retencion-alertas` (04:45). En la misma carpeta quedan también los respaldos de Wazuh (`respaldo-wazuh-<fecha>.tar.gz.age`).
+
+Para comprobar que la llave privada no quedó en el servidor (debe dar 0; muestra sólo cuántos archivos, nunca su contenido):
+
+```
+[servidor] sudo grep -rlsE 'AGE-SECRET-KEY-1[0-9A-Z]{50,}' /etc /root /home /opt/kronos /tmp /var/tmp /dev/shm 2>/dev/null | wc -l
+```
+
+El patrón busca una llave completa y no sólo su prefijo: esta guía y los scripts del repositorio, que están en `/opt/kronos`, nombran el prefijo y no deben contar. Si da más de 0, se cambia `wc -l` por `xargs ls -l` para ver la ruta, el dueño y la fecha, y se confirma que el gestor tiene la llave antes de borrarla.
 
 ## 3. Probar la restauración
 

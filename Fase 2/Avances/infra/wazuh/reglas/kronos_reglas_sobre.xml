@@ -6,7 +6,9 @@
   La familia es una pista: la clasificación final la hace el paso 1 del modelo y la
   valida SOAR-VALIDATE.
 
-  Rango de identificadores: 100101 a 100115 (rango reservado para reglas propias).
+  Rango de identificadores: 100101 a 100128 (rango reservado para reglas propias). Las 100116 a
+  100124 se agregaron el 10-11-2026 y las 100125 a 100128 el 11-11-2026 para cubrir los 25
+  playbooks (prueba integral 2).
   Los niveles son una propuesta: se ajustan cuando se fije el mapa de severidad.
   Los números de las reglas nativas se verificaron en el manager el 14-10-2026.
 
@@ -20,7 +22,9 @@
   <rule id="100101" level="10">
     <if_sid>5712, 5720, 5763</if_sid>
     <description>Kronos F1: fuerza bruta por SSH desde $(srcip)</description>
-    <group>kronos_f1,</group>
+    <!-- authentication_failures: mantiene la correlación de la 40112 (acceso correcto tras
+         varios fallos), que busca ese grupo en la alerta anterior. -->
+    <group>kronos_f1,authentication_failures,</group>
   </rule>
 
   <rule id="100102" level="10">
@@ -32,6 +36,17 @@
   <rule id="100103" level="10">
     <if_sid>60204, 60115</if_sid>
     <description>Kronos F1: fallos repetidos de inicio de sesión en Windows o cuenta bloqueada</description>
+    <group>kronos_f1,</group>
+  </rule>
+
+  <!-- Correlación propia: un acceso correcto (5715) desde una IP que, en los 4 minutos
+       anteriores, falló al menos 5 veces (5760). Con wazuh-logtest se comprobó que la 40112
+       nativa y una correlación sobre la 100101 no se activan; ésta sí (10-11-2026). -->
+  <rule id="100116" level="10" frequency="5" timeframe="240">
+    <if_sid>5715</if_sid>
+    <if_matched_sid>5760</if_matched_sid>
+    <same_source_ip />
+    <description>Kronos F1: inicio de sesión correcto después de varios fallos desde el mismo origen</description>
     <group>kronos_f1,</group>
   </rule>
 
@@ -57,8 +72,13 @@
 
   <!-- F3 - Movimiento lateral o acceso remoto -->
 
-  <rule id="100107" level="8">
-    <if_sid>92653, 92657</if_sid>
+  <!-- 100107 en severidad 10 (11-11-2026): un acceso remoto desde una IP interna permite PB-F3-02
+       (bloquear la IP del otro equipo, nivel 2); desde una IP externa sigue PB-F3-01 (nivel 1).
+       Los niveles 3 de F3 (aislar) quedan para la 100108, la ejecución remota. Se suma la 92652
+       (inicio de sesión NTLM de red, posible pass-the-hash). Los equipos de administración de la
+       PyME van en la lista de exclusión, para que su RDP diario no bloquee a nadie. -->
+  <rule id="100107" level="10">
+    <if_sid>92652, 92653, 92657</if_sid>
     <description>Kronos F3: inicio de sesión remoto (RDP o NTLM de red)</description>
     <group>kronos_f3,</group>
   </rule>
@@ -66,6 +86,52 @@
   <rule id="100108" level="12">
     <if_sid>92068, 92650, 92202, 92218, 92220, 92602, 92656</if_sid>
     <description>Kronos F3: ejecución remota o uso de recursos administrativos (PsExec, servicios, WinRM, Impacket)</description>
+    <group>kronos_f3,</group>
+  </rule>
+
+  <!-- F3 en Linux (11-11-2026), con el mismo reparto que en Windows:
+       - 100125: acceso por SSH desde otro equipo de la red interna (10.0.0.0/8). Trae la IP, así
+         que permite PB-F3-02 (bloquear la IP del otro equipo, nivel 2), como la 100107.
+       - 100126: excepción para los equipos de administración. En el laboratorio, 10.0.50.1 es la
+         puerta de enlace por la que entra el SSH del equipo; en cada PyME van aquí sus equipos de
+         administración. Al quedar en nivel 0, tampoco cuenta para la 100127.
+       - 100127: después de ese acceso, alguien usa sudo para ser root. La alerta de sudo no trae
+         IP, así que la única medida de F3 posible en un servidor es aislarlo (PB-F3-04, nivel 3,
+         con aprobación). Límites: no compara la cuenta del SSH con la del sudo, y otras redes
+         internas (172.16.0.0/12, 192.168.0.0/16) se agregan como la 100125 si la PyME las usa. -->
+  <rule id="100125" level="10">
+    <if_sid>5715</if_sid>
+    <srcip>10.0.0.0/8</srcip>
+    <description>Kronos F3: acceso por SSH desde otro equipo de la red interna</description>
+    <group>kronos_f3,kronos_ssh_interno,</group>
+  </rule>
+
+  <rule id="100126" level="0">
+    <if_sid>100125</if_sid>
+    <srcip>10.0.50.1</srcip>
+    <description>Kronos: SSH desde un equipo de administración (se descarta)</description>
+  </rule>
+
+  <rule id="100127" level="12" timeframe="600" ignore="300">
+    <if_sid>5402</if_sid>
+    <if_matched_group>kronos_ssh_interno</if_matched_group>
+    <description>Kronos F3: uso de sudo a root después de un acceso por SSH desde otro equipo interno</description>
+    <group>kronos_f3,</group>
+  </rule>
+
+  <!-- Linux (auditd): el servidor se conecta por SSH a otro equipo, el salto clásico de un
+       atacante que ya entró al servidor. La clave la pone la regla de auditd del equipo (guía 07):
+       -w /usr/bin/ssh -p x -k kronos_salto_ssh. La alerta no trae IP de origen, así que en un
+       servidor la única medida de F3 posible es aislarlo (PB-F3-04, nivel 3, con aprobación).
+       La 100127 (sudo después del SSH) queda, pero el modelo la clasifica como F1 aun con el
+       SSH como contexto (tickets 194, 196 y 198): termina en revisión manual, sin actuar.
+       La clave no dice «salida»: con esa palabra el modelo la confundía con F4 (11-11-2026).
+       Límite: un administrador que salta por SSH desde el servidor también la dispara; por eso
+       pide aprobación. -->
+  <rule id="100128" level="12" ignore="300">
+    <if_sid>80700</if_sid>
+    <field name="audit.key">kronos_salto_ssh</field>
+    <description>Kronos F3: el servidor se conectó por SSH a otro equipo de la red interna (salto entre equipos)</description>
     <group>kronos_f3,</group>
   </rule>
 
@@ -77,11 +143,41 @@
     <group>kronos_f4,</group>
   </rule>
 
+  <!-- Sysmon (evento 3): un programa que vive en una carpeta de usuario conecta hacia fuera.
+       La 92104 nativa sólo cubre el truco del carácter RLO en el nombre. -->
+  <rule id="100117" level="12">
+    <if_group>sysmon_event3</if_group>
+    <field name="win.eventdata.image" type="pcre2">(?i)\\\\(Users\\\\Public|Downloads|AppData\\\\Local\\\\Temp)\\\\</field>
+    <field name="win.eventdata.destinationIp" type="pcre2" negate="yes">^(10\.|127\.|192\.168\.|172\.(1[6-9]|2[0-9]|3[01])\.|169\.254\.|::1|fe80)</field>
+    <options>no_full_log</options>
+    <description>Kronos F4: programa en una carpeta de usuario abrió una conexión hacia un destino externo</description>
+    <group>kronos_f4,</group>
+  </rule>
+
+  <!-- Linux (auditd): una herramienta de transferencia abrió una conexión. La clave la pone la
+       regla de auditd del equipo (guía 07): -S connect -F exe=/usr/bin/curl -k kronos_salida. -->
+  <rule id="100124" level="12" ignore="300">
+    <if_sid>80700</if_sid>
+    <field name="audit.key">kronos_salida</field>
+    <description>Kronos F4: herramienta de transferencia en el servidor abrió una conexión hacia fuera</description>
+    <group>kronos_f4,</group>
+  </rule>
+
   <!-- F5 - Alteración de integridad o persistencia -->
 
   <rule id="100110" level="7">
     <if_sid>550, 553, 554</if_sid>
     <description>Kronos F5: archivo vigilado modificado, agregado o borrado</description>
+    <group>kronos_f5,</group>
+  </rule>
+
+  <!-- Hija de la 100110: Wazuh la evalúa después de que ésta coincide y, si la ruta es de la
+       aplicación web, la alerta queda con la más específica (prueba integral 2, ticket 117).
+       En las reglas, la ruta de integridad de archivos se llama «file», no syscheck.path. -->
+  <rule id="100121" level="12">
+    <if_sid>100110</if_sid>
+    <field name="file" type="pcre2">^/var/www/</field>
+    <description>Kronos F5: archivo de una aplicación publicada modificado o agregado</description>
     <group>kronos_f5,</group>
   </rule>
 
@@ -97,8 +193,18 @@
     <group>kronos_f5,</group>
   </rule>
 
+  <!-- Tareas que crea el propio Windows (\Microsoft\..., \SoftLanding\...) y las de OneDrive que
+       Windows crea por usuario al iniciar sesión: se descartan para que Kronos no las deshabilite
+       (prueba integral 2, tickets 142, 143 y 185). Un atacante podría esconder una tarea en esas
+       carpetas o con esos nombres: queda como límite conocido. -->
+  <rule id="100122" level="0">
+    <if_sid>100112</if_sid>
+    <field name="win.eventdata.taskName" type="pcre2">(?i)^\\\\((Microsoft|SoftLanding)\\\\|OneDrive (Standalone Update|Reporting) Task-S-1-5-21-)</field>
+    <description>Kronos: tarea programada propia de Windows (se descarta)</description>
+  </rule>
+
   <rule id="100113" level="12">
-    <if_sid>60117, 18118, 63103</if_sid>
+    <if_sid>60117, 18118, 63103, 592, 593</if_sid>
     <description>Kronos F5: registro de auditoría borrado</description>
     <group>kronos_f5,</group>
   </rule>
@@ -114,6 +220,31 @@
   <rule id="100115" level="7">
     <if_sid>504, 506</if_sid>
     <description>Kronos F6: agente de Wazuh desconectado o detenido</description>
+    <group>kronos_f6,</group>
+  </rule>
+
+  <rule id="100118" level="12">
+    <if_sid>31151</if_sid>
+    <description>Kronos F6: inundación de peticiones contra el servicio web desde la misma IP (posible denegación de servicio)</description>
+    <group>kronos_f6,</group>
+  </rule>
+
+  <rule id="100119" level="12">
+    <if_sid>31152, 31153, 31154</if_sid>
+    <description>Kronos F6: el servicio web publicado recibe ataques repetidos desde la misma IP (tráfico entrante)</description>
+    <group>kronos_f6,</group>
+  </rule>
+
+  <!-- Un ataque web que obtuvo respuesta 200: el servicio publicado podría estar comprometido. -->
+  <rule id="100123" level="12">
+    <if_sid>31106</if_sid>
+    <description>Kronos F6: un ataque contra el servicio web publicado tuvo éxito (respuesta 200): servicio comprometido</description>
+    <group>kronos_f6,</group>
+  </rule>
+
+  <rule id="100120" level="12">
+    <if_sid>61107</if_sid>
+    <description>Kronos F6: un servicio de Windows terminó de forma inesperada</description>
     <group>kronos_f6,</group>
   </rule>
 

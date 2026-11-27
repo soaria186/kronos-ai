@@ -5,7 +5,7 @@ el rechazo de las medidas de nivel 3. La conexión es sólo HTTPS saliente desde
 
 | Parte | Tema | Requisitos | Estado |
 | :-: | :--- | :--- | :--- |
-| [11](11-telegram.md) | Telegram | Parte 07 | Borrador |
+| [11](11-telegram.md) | Telegram | Parte 07 | Vigente |
 
 **En el repositorio:** el servicio está en [`Fase 2/Avances/notificacion`](../../Fase%202/Avances/notificacion/)
 y su configuración en [`Fase 2/Avances/infra/docker/servicios`](../../Fase%202/Avances/infra/docker/servicios/).

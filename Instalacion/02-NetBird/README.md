@@ -5,7 +5,7 @@ dashboard. Los agentes de las PyME no usan NetBird: envían sus eventos al puert
 
 | Parte | Tema | Requisitos | Estado |
 | :-: | :--- | :--- | :--- |
-| [02](02-netbird.md) | Red privada NetBird | Parte 01 | Borrador |
+| [02](02-netbird.md) | Red privada NetBird | Parte 01 | Vigente |
 
 **Anterior:** [01 · Servidor](../01-Servidor/) · **Siguiente:** [03 · Docker](../03-Docker/). Índice de la
 guía: [`Instalacion`](../README.md).

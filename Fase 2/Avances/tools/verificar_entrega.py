@@ -29,7 +29,7 @@ PROYECTO_DIR = Path(__file__).resolve().parent.parent
 RAIZ = Path(
     subprocess.run(
         ["git", "rev-parse", "--show-toplevel"],
-        cwd=PROYECTO_DIR, capture_output=True, text=True, check=False,
+        cwd=PROYECTO_DIR, capture_output=True, text=True, encoding="utf-8", check=False,
     ).stdout.strip()
     or PROYECTO_DIR
 )
@@ -38,7 +38,16 @@ P = PROYECTO_DIR.relative_to(RAIZ).as_posix().rstrip("/") + "/" if PROYECTO_DIR 
 FASES = ("Fase 1", "Fase 2")
 CARPETAS_FASE = ("Avances", "Documentación Individual", "Documentación Grupal")
 # Históricos: pueden mencionar la farmacia.
-EXCLUIDAS = (P + "docs/archivo/", P + "docs/registro/")
+EXCLUIDAS = (
+    P + "docs/archivo/",
+    P + "docs/registro/",
+    # Documentos DUOC de la Fase 2 ya entregados (D-75, 10-11-2026): quedan como registro de lo
+    # entregado, aunque nombren al cliente anterior.
+    "Fase 2/Documentación Grupal/2.1_APT122_DiarioReflexionFase2.docx",
+    "Fase 2/Documentación Grupal/2.4_APT122_GuiaDesarrolloProyecto_Fase2.docx",
+    "Fase 2/Documentación Grupal/2.6_APT122_GuiaInformeFinal_Fase2.docx",
+    "Fase 2/Documentación Individual/Nicolás Zamora/2.2_APT122_AutoevaluacionAvance_Fase2_Nicolas_Zamora.docx",
+)
 # Nombran la farmacia para buscarla.
 PROPIOS = (P + "tools/verificar_entrega.py", P + "tools/README.md")
 TEXTO = (
@@ -58,9 +67,12 @@ resultados: list[tuple[bool, bool, str, str]] = []  # (ok, obligatoria, nombre, 
 
 
 def git(*args: str) -> str:
+    # git escribe las rutas en UTF-8. Sin encoding, Windows las lee con su página de
+    # códigos («DocumentaciÃ³n»): leer() no encuentra esos archivos y los da por vacíos.
     return subprocess.run(
         ["git", "-c", "core.quotePath=false", *args],
-        cwd=RAIZ, capture_output=True, text=True, check=False,
+        cwd=RAIZ, capture_output=True, text=True, encoding="utf-8", errors="replace",
+        check=False,
     ).stdout.strip()
 
 
@@ -104,7 +116,8 @@ def comprobar_portada(publicada: bool = True) -> None:
         r"(?i)^#{2,3} .*(english|summary|abstract)", readme, re.MULTILINE
     )
     anotar(bool(ingles), "README con resumen en inglés")
-    anotar((RAIZ / "LICENSE").exists(), "LICENSE", obligatoria=False)
+    anotar("Todos los derechos reservados" in leer("LICENSE"),
+           "LICENSE con «Todos los derechos reservados» (D-63)")
     anotar((RAIZ / P / "CHANGELOG.md").exists(), "CHANGELOG.md")
     faltan = [f"{f}/{c}" for f in FASES for c in CARPETAS_FASE
               if not (RAIZ / f / c / "README.md").exists()]

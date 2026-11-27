@@ -26,7 +26,7 @@ from notificacion.mensajes import (
     limpio,
     pedido_de_motivo,
 )
-from notificacion.telegram import ClienteTelegram
+from notificacion.telegram import ClienteTelegram, ErrorTelegram
 
 if TYPE_CHECKING:
     from persistencia.repositorio import Repositorio
@@ -81,12 +81,29 @@ class Atendedor:
         except self._estado_invalido:
             self._cliente.contestar_boton(cq["id"], "Ya no espera aprobación")
             return
-        self._cliente.contestar_boton(cq["id"], "Aprobado")
+        # La aprobación ya quedó registrada: si Telegram falla al contestar el botón o al
+        # quitarlo, igual se intenta el aviso al grupo (11-11-2026, ticket 199: un URLError en
+        # answerCallbackQuery dejó el botón «cargando» y sin aviso, aunque sí se ejecutó).
+        self._sin_detenerse(
+            "contestar el botón", self._cliente.contestar_boton, cq["id"], "Aprobado"
+        )
         if "message_id" in mensaje:
-            self._cliente.quitar_botones(self._chat, mensaje["message_id"])
+            self._sin_detenerse(
+                "quitar los botones",
+                self._cliente.quitar_botones,
+                self._chat,
+                mensaje["message_id"],
+            )
         self._avisar(
             f"Ticket #{respuesta.ticket_id} aprobado por {nombre}. Se ejecutará en breve."
         )
+
+    @staticmethod
+    def _sin_detenerse(que: str, funcion: Any, *argumentos: Any) -> None:
+        try:
+            funcion(*argumentos)
+        except ErrorTelegram as exc:
+            registro.warning("no se pudo %s en Telegram: %s", que, exc)
 
     def _mensaje(self, mensaje: dict[str, Any]) -> None:
         nombre = self._integrante(mensaje.get("from"))

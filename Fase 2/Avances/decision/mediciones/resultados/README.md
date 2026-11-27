@@ -99,6 +99,67 @@ tarda.
     IP de `casos_150` son del rango de documentación 192.0.2.0/24, que cuenta como externa, así
     que esta medición no cambia; el efecto real depende de las IP de cada cliente.
 
+## E3 y E4 con las alertas reales de la prueba integral (D-67)
+
+`escenarios_e3_e4_reales_qwen2.5_7b_20261104.csv`, del 04-11. Lo generó `tools/medir_escenarios.py --alertas` desde el PC de
+Patricio contra el Ollama de SOAR-CORE-01 (0.40.0, qwen2.5:7b), con 5 repeticiones. Usó las alertas reales de los tickets #35 (E3, regla 100103, cuenta bloqueada en EP-WKS-01) y #36 (E4, regla 100113, registro de auditoría borrado en EP-WKS-01), tal como quedaron en `alertas_guardadas` el 03-11. El archivo de alertas no está en el repositorio porque trae datos del laboratorio. **No se cambió el prompt.**
+
+| Escenario | Esperada | Eligió | Nivel | Confianza (paso 1 / paso 2) | VALIDATE | Coincide |
+| :-: | :--- | :--- | :-: | :-: | :--- | :-: |
+| E3 | PB-F1-05 (deshabilitar la cuenta) | PB-F1-05 las 5 veces | 2 | 0,8 / 0,8 | aprobada | 5/5 |
+| E4 | PB-F5-04 (aislar un equipo de trabajo) | PB-F5-03 (cuarentena de un archivo) las 5 veces | 3 | 0,8 / 0,8 | aprobada | 0/5 |
+
+Tiempo: la primera repetición de cada escenario tardó unos 50 s, porque el prompt de esa alerta todavía no estaba en caché; las demás, entre 8,2 y 8,7 s.
+
+12. **E3 acierta y es estable:** con la alerta real elige deshabilitar la cuenta, de nivel 2 y automática, igual que en la prueba integral del 03-11.
+13. **E4 es estable, pero elige otra medida:** las 5 veces eligió PB-F5-03, aunque la condición de uso de PB-F5-04 nombra el caso («registros de auditoría borrados, en un EQUIPO DE TRABAJO»). Es el mismo sesgo de la conclusión 9, donde todos los casos de nivel 3 de `casos_150` fueron PB-F5-03. Es una falla segura: las dos medidas son de nivel 3 y esperan la aprobación del encargado de TI. La alerta no trae un archivo, así que, aprobada, la cuarentena termina en `ARGUMENTO_FALTANTE` sin tocar el equipo. El resultado es que el equipo no se aísla aunque el encargado de TI apruebe. Queda para decidir entre los tres, sin cambiar el prompt antes de la v1.0 (D-67): dejarlo como limitación documentada o, después de la v1.0, un chequeo determinista que lleve la regla 100113 en un equipo de trabajo a PB-F5-04.
+
+## Prompts del paso 2 probados el 05-11 (no se integraron)
+
+Después de E4 con la alerta real (#67), se probó si un cambio del prompt del paso 2 resolvía lo mismo que el #68. Todos
+los cambios están en la sección «CÓMO ELEGIR»:
+
+- [`prompt-v3.patch`](../experimentos/prompt-v3.patch): no elegir una medida cuyo dato no viene en la alerta, y
+  distinguir puesto de servidor por el nombre del equipo.
+- [`prompt-v4-1b.patch`](../experimentos/prompt-v4-1b.patch): las reglas como procedimiento. Primero se descarta lo que
+  no tiene su dato y después se elige la condición que repite las palabras de la regla de Wazuh. No menciona ningún
+  escenario. Viene de una propuesta que ponía la alerta antes de las reglas; eso no se admite, porque la alerta va al
+  final por seguridad (`plantillas.py`, inyección).
+- [`prompt-v4-2.patch`](../experimentos/prompt-v4-2.patch): las reglas del v3 con un ejemplo escrito del caso E4
+  («registro de auditoría borrado» → aislar; «no elijas cuarentena»).
+
+Patricio lo midió desde su PC contra el Ollama de SOAR-CORE-01 (qwen2.5:7b). Usó E1 a E4, las alertas reales de E3 y
+E4 (5 repeticiones) y, para los prompts que pasaron el filtro de E4 o que se midieron completos, los 150 casos de
+`casos_150`:
+
+- `prompt_actual_qwen2.5_7b_20261105.csv`
+- `prompt_v3_qwen2.5_7b_20261105.csv`
+- `prompt_v4_2_qwen2.5_7b_20261105.csv`
+
+Los CSV se comparan con `tools/comparar_prompt.py`.
+
+| | Prompt actual | v3 | v4-1b | v4-2 | #68 (esquema) |
+| :--- | :-: | :-: | :-: | :-: | :-: |
+| E4 con la alerta real | PB-F5-03 | PB-F5-03 | PB-F5-03 | **PB-F5-04** | PB-F5-05 |
+| E3 con la alerta real | PB-F1-05 | PB-F1-05 | PB-F1-05 | PB-F1-05 | PB-F1-05 |
+| E1 de ejemplo | PB-F1-02 | PB-F1-02 | PB-F1-02 | PB-F1-02 | — |
+| Medida sin su dato, de 150 | 32 | 10 | sin medir | 17 | **0** |
+| Puesto en servidor o al revés, de 150 | 0 | 13 | sin medir | 9 | 0 |
+| Casos con otra medida | — | 50 | sin medir | 33 | 32, sólo los imposibles |
+| Bajan de nivel | — | 5 | sin medir | 6 | 0 |
+
+18. **Ningún cambio del prompt reemplaza al #68.**
+    - El v3 y el v4-1b siguen eligiendo la cuarentena en E4 aunque una regla diga que sin archivo no se elige. El
+      modelo de 7B no sigue bien ese tipo de regla.
+    - El v4-2 acierta E4, pero porque el prompt trae escrito ese caso, que es lo que D-67 pide evitar. En los 150 casos
+      sólo 3 de 10 cuarentenas de F5 pasan a aislar, quedan 17 medidas imposibles, aparecen 9 errores de puesto o
+      servidor y cambian 33 casos, 6 de ellos hacia una medida más débil.
+19. **Cambiar el texto mueve respuestas que estaban bien** (es el mismo patrón de la conclusión 4). En las versiones
+    medidas completas, entre 3 y 4 casos de F2 pierden una cuarentena que sí era posible. Quitar las medidas imposibles
+    del esquema de la respuesta (#68) las lleva a 0 y no cambia nada más.
+20. **Pendiente:** distinguir puesto de servidor. Es una mejora futura con los arquetipos del catálogo y un mapa de
+    equipos por PyME, no con el prompt.
+
 ## Ramas de experimentos archivadas
 
 Las cuatro ramas de las mediciones del 14-10 se integraron aquí para poder borrarlas sin perder nada. Sus datos
@@ -114,3 +175,80 @@ sus 6 commits en [`../experimentos/prompt-v2.patch`](../experimentos/prompt-v2.p
 
 Para revisar el prompt v2 sin tocar el proyecto: `git apply --stat ../experimentos/prompt-v2.patch` muestra qué
 cambia, y `git am` en una rama aparte lo aplica con sus autores y fechas.
+
+## Paso 2 sólo con medidas aplicables (propuesta del 04-11)
+
+Desde E4 con la alerta real (#67), el modelo elegía la cuarentena (PB-F5-03) para un registro de auditoría borrado,
+y esa alerta no trae archivo: EXECUTE la terminaba en `ARGUMENTO_FALTANTE`. La propuesta es que VALIDATE quite del
+**esquema de la respuesta** del paso 2 las medidas cuyo dato no viene en la alerta (`ejecucion.ordenes.falta_argumento`).
+El texto del prompt no cambia. Con temperature = 0, si el modelo iba a elegir una medida posible, elige la misma.
+
+Medido el 04-11 desde el PC de Patricio contra el Ollama de SOAR-CORE-01 (qwen2.5:7b). Se usaron los 71 casos de
+`casos_150` en los que cambia el esquema (`tools/medir_sin_datos.py`), una vez en `develop` y otra con el cambio:
+`sin_datos_antes_qwen2.5_7b_20261104.csv` y `sin_datos_despues_qwen2.5_7b_20261104.csv`.
+
+| | Antes | Después |
+| :--- | :-: | :-: |
+| Medida elegida sin su dato (`ARGUMENTO_FALTANTE`) | 32 de 71 | **0 de 71** |
+| Casos con otra respuesta | — | 32, justo los que antes eran imposibles |
+
+| Antes → después | Casos | Qué cambia |
+| :--- | :-: | :--- |
+| PB-F5-03 → PB-F5-05 | 10 | De una cuarentena sin archivo a aislar un servidor (nivel 3). 8 son la regla 100111, cuenta nueva o usuario en sudo |
+| PB-F3-01 → PB-F3-03 / PB-F3-04 | 8 / 4 | Movimiento lateral sin IP de origen: de bloquear la IP a aislar el equipo (nivel 3) |
+| PB-F5-01 → PB-F5-02 | 5 | Persistencia sin archivo: de la cuarentena a revertir la tarea (nivel 1) |
+| PB-F4-01 → PB-F4-02 | 3 | Salida sin IP de destino: de bloquear el destino a aislar el equipo (nivel 3) |
+| PB-F2-03 → PB-F2-01 | 1 | Proceso sin PID: de terminarlo a reunir contexto (nivel 0) |
+| PB-F5-01 → PB-F5-05 | 1 | Persistencia sin archivo: a aislar un servidor (nivel 3) |
+
+Con las alertas reales, E3 sigue en PB-F1-05 (5/5). E4 pasa de PB-F5-03, que fallaba, a **PB-F5-05**, aislar un
+servidor (5/5, nivel 3, con script en Windows). Los tiempos no cambian: unos 50 s la primera vez y 8 s las demás.
+
+14. **Ninguna medida imposible, sin efectos laterales:** los 39 casos con una medida posible no cambiaron. Una primera
+    versión quitaba las medidas también del texto del prompt. Esa versión acertaba E4 (PB-F5-04), pero 8 casos de F2
+    bajaban de la cuarentena, que sí era posible, a una consulta de nivel 0. Por eso se descartó.
+15. **Lo que sube de nivel pide aprobación:** 16 casos pasan de una medida de nivel 1 que fallaba (no hacía nada) a
+    aislar el equipo, que es de nivel 3 y espera la aprobación del encargado de TI. En F3 coincide con lo que la
+    conclusión 11 decía que correspondía.
+16. **Puesto o servidor:** el modelo no distingue el tipo de equipo. E4 ocurre en un puesto (EP-WKS-01) y elige
+    PB-F5-05 (servidor) en vez de PB-F5-04 (puesto). Las dos medidas ejecutan lo mismo (`aislar_equipo` sobre el equipo de la alerta),
+    así que el efecto es el correcto. Lo que queda mal es el nombre de la medida en el ticket y en el aviso. Los
+    arquetipos del catálogo (`puesto` y `servidor`) permitirían filtrar también por tipo de equipo, con un mapa de
+    equipos por PyME. Queda como mejora.
+17. **Vacío del catálogo:** para una cuenta nueva o un usuario agregado a sudo (regla 100111), F5 no tiene una medida
+    proporcionada. Hoy se propone aislar el servidor, con aprobación.
+
+## Prompt v5, medición final (11-11)
+
+El prompt v5 nació de las alertas reales de la prueba integral 2 (10 y 11-11). Agrega tres desempates en el paso 1
+(F2 frente a F4, los ataques web entrantes como F6 y el `sudo` dentro de una sesión abierta desde otro equipo como F3)
+y ajusta las condiciones de PB-F5-01 y PB-F5-03 en el catálogo. Por D-67, se midió antes de proponerlo para integrar.
+
+Medido el 11-11 desde el PC de Patricio contra el Ollama de SOAR-CORE-01 (qwen2.5:7b, por el túnel), con
+`tools/comparar_prompt.py`. «Antes» es `develop` en `eb0d9f4` (todo lo del 10 y 11-11, con el prompt anterior);
+«después» es ese mismo `develop` más el prompt v5. Así se mide sólo el efecto del prompt.
+CSV: `prompt_v5_antes_qwen2.5_7b_20261111.csv` y `prompt_v5_despues_qwen2.5_7b_20261111.csv`.
+
+| 150 casos | Antes | Después (v5) |
+| :--- | :-: | :-: |
+| Medida elegida sin su dato (`ARGUMENTO_FALTANTE`) | 0 | 0 |
+| Medida de puesto en un servidor, o al revés | 13 | **6** |
+| Casos con otra medida | — | 7 |
+| Casos que suben o bajan de nivel | — | 0 |
+| Aprobadas / rechazadas por VALIDATE | 114 / 36 | 114 / 36 (mismos motivos) |
+
+Los 7 cambios son todos PB-F3-03 → PB-F3-04: movimiento lateral en un servidor, que antes se aislaba como puesto.
+
+Con las alertas reales de la prueba integral del 03-11 (tickets #35 y #36), 5 repeticiones cada una
+(`escenarios_e3e4_v5_qwen2.5_7b_20261111.csv`):
+
+| Escenario | Esperada | Eligió | Coincide |
+| :-: | :-: | :-: | :-: |
+| E3, cuenta bloqueada en Windows (4740) | PB-F1-05 | PB-F1-05 | 5/5 |
+| E4, registro de seguridad borrado | PB-F5-04 | PB-F5-04 | 5/5 |
+
+E4 deja de ser PB-F5-05 (aislar un servidor, conclusión 16): con los arquetipos de equipo y el v5, EP-WKS-01 se aísla
+como puesto. Tiempos: unos 50 s la primera consulta (modelo frío) y 8,4 s las demás.
+
+21. **El prompt v5 se integra:** no cambia el nivel de ninguna medida, deja en 0 las medidas imposibles y corrige
+    más de la mitad de los errores de puesto o servidor (conclusión 20). Es la versión de la v1.0.0.

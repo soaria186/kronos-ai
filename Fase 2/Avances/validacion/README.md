@@ -31,6 +31,23 @@ no responde o se pasa del plazo (falla segura). Las alertas de un mismo ataque (
 mismo equipo, dentro de 10 minutos) se resuelven con una sola decisión y quedan como `ALERTA_AGRUPADA`. Nunca se
 actúa sobre el manager (agente 000).
 
+**Sólo medidas que se pueden aplicar.** En el paso 2, VALIDATE quita del esquema de la respuesta (no del texto del
+prompt) las medidas cuyo dato no viene en la alerta, con la misma regla que usa EXECUTE para `ARGUMENTO_FALTANTE` (`ejecucion.ordenes.falta_argumento`):
+una cuarentena sin ruta de archivo, revertir una tarea sin su nombre, bloquear una IP que la alerta no trae. Un valor que
+está pero no es válido no se decide aquí: lo sigue rechazando EXECUTE. Si la familia queda sin candidatos, se aceptan todos.
+Como el prompt no cambia, si el modelo iba a elegir una medida posible elige la misma (temperature = 0). Viene de E4
+con la alerta real (04-11): sin esto, el modelo elegía la cuarentena las 5 veces.
+
+**Cortacircuito por alertas recibidas.** El disparo (30 alertas en 10 minutos por inquilino) mide las alertas
+que **llegan**, no las que VALIDATE alcanza a procesar. Antes de procesar un lote se anotan todas las que pasaron
+por una regla de sobre (`Validador.anotar_llegadas`), y el cortacircuito toma el mayor entre esas llegadas y lo
+registrado en la base (tickets más alertas agrupadas). Así, 30 alertas casi juntas lo abren con la primera, antes
+de llamar al modelo. Para que lo que llega mientras el modelo decide también se cuente, el servicio vuelve a leer
+`alerts.json` antes de cada alerta (`validacion/bucle.py`): una ráfaga abre el cortacircuito con, a lo más, una
+decisión de retraso. Limitaciones conocidas: las llegadas viven en memoria, así que si VALIDATE se reinicia se
+pierden y sólo queda lo registrado en la base; y una alerta releída tras una rotación de `alerts.json` también
+cuenta como llegada.
+
 Despliegue: `infra/docker/servicios/README.md` y la parte 07 de la guía de instalación. Alta de una PyME
 (inquilino, exclusiones y redes internas): parte 13. Pruebas: `tests/unit/test_chequeos.py`,
 `test_contrato.py`, `test_ciclo.py`, `test_alerta.py` y `test_configuracion.py`, entre otras.

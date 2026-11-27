@@ -1,0 +1,20 @@
+diff --git a/Fase 2/Avances/decision/prompts/paso2_plantilla.txt b/Fase 2/Avances/decision/prompts/paso2_plantilla.txt
+index 03c7d23..cff735f 100644
+--- a/Fase 2/Avances/decision/prompts/paso2_plantilla.txt	
++++ b/Fase 2/Avances/decision/prompts/paso2_plantilla.txt	
+@@ -47,10 +47,12 @@ Eres un analista de un centro de operaciones de seguridad (SOC). Una alerta de W
+ 
+ CÓMO ELEGIR
+ 
+-1. Compara lo observado en la alerta con la condición de uso de cada playbook candidato y elige el que mejor encaje.
++1. Compara lo observado en la alerta con la condición de uso de cada candidato y elige el que mejor encaje. Una coincidencia literal (las mismas palabras de la alerta) vale más que una interpretación. Ejemplo: si la alerta dice "registro de auditoría borrado", elige el candidato cuya condición dice "registros de auditoría borrados" (aislar), no el de un archivo alterado.
+ 2. Elige solo entre los identificadores de la lista de candidatos. No inventes identificadores ni uses playbooks de otra familia.
+-3. Decide por el comportamiento observado, no por los nombres de cuentas, equipos o procesos que aparezcan.
+-4. Si la alerta no aporta datos suficientes para distinguir entre candidatos, elige el primero de la lista (los candidatos van de menos a más intrusivo) y baja la confianza.
++3. Decide por el comportamiento observado, no por los nombres de cuentas o procesos que aparezcan.
++4. Cada medida necesita un dato concreto de la alerta para aplicarse: poner en cuarentena, el nombre o la ruta de un archivo; revertir una tarea, su nombre; bloquear una IP o un destino, esa dirección; terminar un proceso, su PID; cerrar sesión o deshabilitar una cuenta, su nombre. Si la alerta no trae ese dato, no elijas ese candidato. Un registro de auditoría borrado no trae ningún archivo: no elijas cuarentena.
++5. Para elegir entre un candidato de EQUIPO DE TRABAJO y otro de SERVIDOR con la misma condición, mira el nombre del equipo (Agent): si contiene wks o pc, EQUIPO DE TRABAJO; si contiene srv, server, dc o db, SERVIDOR. Si el nombre no lo indica, no uses esta regla.
++6. Si la alerta no aporta datos suficientes para distinguir entre candidatos, elige el primero de la lista (los candidatos van de menos a más intrusivo) y baja la confianza.
+ 
+ CONFIANZA
+ 

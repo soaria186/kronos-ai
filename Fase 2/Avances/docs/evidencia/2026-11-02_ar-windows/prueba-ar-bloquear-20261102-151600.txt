@@ -1,0 +1,56 @@
+﻿**********************
+Inicio de la transcripción de Windows PowerShell
+Hora de inicio: 20261102151600
+Nombre de usuario: EP-WKS-01\labadmin
+Usuario RunAs: EP-WKS-01\labadmin
+Nombre de la configuración: 
+Máquina: EP-WKS-01 (Microsoft Windows NT 10.0.26300.0)
+Aplicación host: C:\WINDOWS\System32\WindowsPowerShell\v1.0\powershell.exe -ExecutionPolicy Bypass -File C:\Users\labadmin\probar-ar-windows.ps1 -Parte bloquear
+Id. de proceso: 3896
+PSVersion: 5.1.26100.9711
+PSEdition: Desktop
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1.26100.9711
+BuildVersion: 10.0.26100.9711
+CLRVersion: 4.0.30319.42000
+WSManStackVersion: 3.0
+PSRemotingProtocolVersion: 2.3
+SerializationVersion: 1.1.0.1
+**********************
+== Kronos, prueba 'bloquear' en EP-WKS-01, 2026-11-02 15:16:00 (hora local)
+OK     aplicar (obtenido: 0)
+OK     la regla existe (obtenido: True)
+OK     aplicar de nuevo (obtenido: 0)
+OK     quitar (obtenido: 0)
+OK     la regla ya no existe (obtenido: False)
+OK     quitar de nuevo (obtenido: 0)
+   (IP propia: 10.0.2.15; puerta de enlace: 10.0.2.2)
+OK     rechaza 127.0.0.1 (obtenido: 1)
+OK     rechaza la IP propia (obtenido: 1)
+OK     rechaza la puerta de enlace (obtenido: 1)
+OK     rechaza '1' (obtenido: 1)
+OK     rechaza IP con & calc (obtenido: 1)
+OK     rechaza tres argumentos (obtenido: 1)
+OK     rechaza operacion 'borrar' (obtenido: 1)
+OK     rechaza entrada vacia (obtenido: 1)
+OK     rechaza JSON roto (obtenido: 1)
+OK     no quedo ninguna regla Kronos-bloqueo (obtenido: 0)
+
+== Ultimas lineas de active-responses.log
+2026-11-02T18:16:05Z kronos-bloquear-ip: aplicar 203.0.113.50 OK (la regla ya existia)
+2026-11-02T18:16:06Z kronos-bloquear-ip: quitar 203.0.113.50 OK
+2026-11-02T18:16:07Z kronos-bloquear-ip: quitar 203.0.113.50 OK (la regla no existia)
+2026-11-02T18:16:08Z kronos-bloquear-ip: ERROR no se bloquea loopback: 127.0.0.1
+2026-11-02T18:16:09Z kronos-bloquear-ip: ERROR es una IP del propio equipo: 10.0.2.15
+2026-11-02T18:16:10Z kronos-bloquear-ip: ERROR es la puerta de enlace del equipo: 10.0.2.2
+2026-11-02T18:16:10Z kronos-bloquear-ip: ERROR IP no canonica: 1
+2026-11-02T18:16:11Z kronos-bloquear-ip: ERROR IP invalida: 203.0.113.50 & calc
+2026-11-02T18:16:11Z kronos-bloquear-ip: ERROR se esperaban 2 argumentos y llegaron 3
+2026-11-02T18:16:12Z kronos-bloquear-ip: ERROR operacion no permitida: borrar
+2026-11-02T18:16:12Z kronos-bloquear-ip: ERROR sin entrada JSON
+2026-11-02T18:16:13Z kronos-bloquear-ip: ERROR la entrada no es JSON
+
+== RESULTADO: todo OK (bloquear)
+**********************
+Fin de la transcripción de Windows PowerShell
+Hora de finalización: 20261102151613
+**********************

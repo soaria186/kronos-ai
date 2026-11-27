@@ -1,0 +1,194 @@
+#!/usr/bin/python3
+"""Kronos: deshabilita o habilita una cuenta local. Uso por Active Response:
+extra_args = ["aplicar" | "habilitar", "<cuenta>"] (exactamente dos argumentos).
+
+Deshabilitar es bloquear la contrasena (usermod -L) y vencer la cuenta (chage -E 0), para
+que tampoco entre con llave SSH. Nunca toca root, las cuentas del sistema (UID menor que
+1000), nobody, las cuentas de administracion y de servicio del laboratorio ni a los
+miembros de sudo, wheel o admin (no deja al equipo sin quien lo administre).
+
+Solo revierte lo que hizo Kronos: cada paso de aplicar queda en el archivo de marcas antes
+de hacerlo, y habilitar deshace solo esos pasos. Aplicar o habilitar dos veces no cambia
+nada."""
+import datetime, grp, json, os, pwd, re, subprocess, sys
+
+LOG = "/var/ossec/logs/active-responses.log"
+MARCAS = "/var/ossec/active-response/kronos-cuentas.json"
+PROTEGIDAS = {"root", "labadmin", "wazuh", "kronos", "nobody"}
+ADMINISTRADORES = ("sudo", "wheel", "admin")
+
+
+def ahora():
+    return datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
+def log(msg):
+    with open(LOG, "a") as f:
+        f.write(f"{ahora()} kronos-deshabilitar-cuenta: {msg}\n")
+
+
+def correr(cmd):
+    """Corre el comando (siempre como lista, sin shell). Devuelve el resultado."""
+    return subprocess.run(cmd, capture_output=True, text=True)
+
+
+def leer(cmd):
+    """Corre un comando que solo lee. Si falla, lo registra y sale con 1."""
+    r = correr(cmd)
+    if r.returncode != 0:
+        log(f"ERROR {' '.join(cmd)} (codigo {r.returncode}): {r.stderr.strip()}")
+        sys.exit(1)
+    return r.stdout
+
+
+def es_administrador(cuenta, gid):
+    """Miembro de sudo, wheel o admin, o con uno de ellos como grupo primario. Los grupos
+    que no existen en el equipo se ignoran."""
+    for nombre in ADMINISTRADORES:
+        try:
+            g = grp.getgrnam(nombre)
+        except KeyError:
+            continue
+        if cuenta in g.gr_mem or g.gr_gid == gid:
+            return True
+    return False
+
+
+def estado(cuenta):
+    """(bloqueada, vencida). Bloqueada: `passwd -S` muestra L. Vencida: la fecha de
+    vencimiento de shadow (dias desde 1970) ya paso; chage -E 0 la deja en 0."""
+    campos = leer(["passwd", "-S", cuenta]).split()
+    bloqueada = len(campos) > 1 and campos[1].startswith("L")
+    sombra = leer(["getent", "shadow", cuenta]).strip().split(":")
+    vence = sombra[7] if len(sombra) > 7 else ""
+    hoy = (datetime.datetime.now(datetime.timezone.utc).date() - datetime.date(1970, 1, 1)).days
+    try:
+        vencida = vence != "" and int(vence) <= hoy
+    except ValueError:
+        log(f"ERROR vencimiento ilegible en shadow para {cuenta}: {vence}")
+        sys.exit(1)
+    return bloqueada, vencida
+
+
+def leer_marcas():
+    """Lo que hizo Kronos en cada cuenta. Si el archivo no es JSON valido, no se actua."""
+    try:
+        with open(MARCAS) as f:
+            texto = f.read()
+    except FileNotFoundError:
+        return {}
+    try:
+        marcas = json.loads(texto)
+    except ValueError as e:
+        marcas = e
+    if not isinstance(marcas, dict) or not all(isinstance(m, dict) for m in marcas.values()):
+        log(f"ERROR {MARCAS} no es JSON valido; no se toca la cuenta")
+        sys.exit(1)
+    return marcas
+
+
+def guardar_marcas(marcas):
+    """Escritura atomica: archivo temporal en la misma carpeta y os.replace, root:wazuh 640."""
+    tmp = f"{MARCAS}.{os.getpid()}.tmp"
+    try:
+        with open(tmp, "x") as f:
+            f.write(json.dumps(marcas, indent=2, sort_keys=True) + "\n")
+        os.chmod(tmp, 0o640)
+        os.chown(tmp, 0, grp.getgrnam("wazuh").gr_gid)
+        os.replace(tmp, MARCAS)
+    except (OSError, KeyError) as e:
+        try:
+            os.unlink(tmp)
+        except OSError:
+            pass
+        log(f"ERROR no se pudo guardar {MARCAS}: {e}")
+        sys.exit(1)
+
+
+try:
+    args = json.loads(sys.stdin.readline())["parameters"]["extra_args"]
+except Exception as e:
+    log(f"entrada invalida: {e}")
+    sys.exit(1)
+
+if not isinstance(args, list) or len(args) != 2 or not all(isinstance(a, str) for a in args):
+    cantidad = len(args) if isinstance(args, list) else "?"
+    log(f"entrada invalida: se esperaban 2 argumentos y llegaron {cantidad}")
+    sys.exit(1)
+
+op, cuenta = args
+if op not in ("aplicar", "habilitar"):
+    log(f"entrada invalida: operacion desconocida: {op}")
+    sys.exit(1)
+if not re.fullmatch(r"[A-Za-z0-9._-]{1,32}", cuenta):
+    log(f"entrada invalida: nombre de cuenta no permitido: {cuenta!r}")
+    sys.exit(1)
+if cuenta in PROTEGIDAS:
+    log(f"cuenta protegida: {cuenta}")
+    sys.exit(1)
+try:
+    datos = pwd.getpwnam(cuenta)
+except KeyError:
+    log(f"ERROR no existe la cuenta local: {cuenta}")
+    sys.exit(1)
+if datos.pw_uid < 1000:
+    log(f"cuenta protegida: {cuenta}")
+    sys.exit(1)
+if es_administrador(cuenta, datos.pw_gid):
+    log(f"cuenta protegida: {cuenta} (administrador)")
+    sys.exit(1)
+
+marcas = leer_marcas()
+
+if op == "aplicar":
+    bloqueada, vencida = estado(cuenta)
+    if bloqueada and vencida:
+        log(f"aplicar {cuenta} OK (sin cambios: ya estaba deshabilitada)")
+        sys.exit(0)
+    previa = marcas.get(cuenta, {})
+    entrada = {"bloqueo": bool(previa.get("bloqueo")), "vencio": bool(previa.get("vencio")),
+               "desde": previa.get("desde") or ahora()}
+    for falta, campo, cmd in ((not bloqueada, "bloqueo", ["usermod", "-L", cuenta]),
+                              (not vencida, "vencio", ["chage", "-E", "0", cuenta])):
+        if not falta:
+            continue
+        antes = entrada[campo]
+        entrada[campo] = True
+        marcas[cuenta] = entrada
+        guardar_marcas(marcas)  # la marca va antes del cambio
+        r = correr(cmd)
+        if r.returncode != 0:
+            entrada[campo] = antes
+            if entrada["bloqueo"] or entrada["vencio"]:
+                marcas[cuenta] = entrada
+            else:
+                marcas.pop(cuenta, None)
+            guardar_marcas(marcas)
+            log(f"ERROR {' '.join(cmd)} (codigo {r.returncode}): {r.stderr.strip()}")
+            sys.exit(1)
+    log(f"aplicar {cuenta} OK")
+    sys.exit(0)
+
+# habilitar
+entrada = marcas.get(cuenta)
+if entrada is None:
+    log(f"habilitar {cuenta} OK (sin cambios: no la deshabilito Kronos)")
+    sys.exit(0)
+bloqueada, vencida = estado(cuenta)
+hizo = False
+for hacer, campo, cmd in ((entrada.get("bloqueo") and bloqueada, "bloqueo", ["usermod", "-U", cuenta]),
+                          (entrada.get("vencio") and vencida, "vencio", ["chage", "-E", "-1", cuenta])):
+    if not hacer:
+        continue
+    r = correr(cmd)
+    if r.returncode != 0:
+        log(f"ERROR {' '.join(cmd)} (codigo {r.returncode}): {r.stderr.strip()}")
+        sys.exit(1)
+    entrada[campo] = False  # este paso ya se deshizo
+    marcas[cuenta] = entrada
+    guardar_marcas(marcas)
+    hizo = True
+marcas.pop(cuenta, None)
+guardar_marcas(marcas)
+log(f"habilitar {cuenta} OK" + ("" if hizo else " (sin cambios: ya estaba habilitada)"))
+sys.exit(0)

@@ -1,0 +1,49 @@
+﻿**********************
+Inicio de la transcripción de Windows PowerShell
+Hora de inicio: 20261102151027
+Nombre de usuario: EP-WKS-01\labadmin
+Usuario RunAs: EP-WKS-01\labadmin
+Nombre de la configuración: 
+Máquina: EP-WKS-01 (Microsoft Windows NT 10.0.26300.0)
+Aplicación host: C:\WINDOWS\System32\WindowsPowerShell\v1.0\powershell.exe -ExecutionPolicy Bypass -File C:\Users\labadmin\probar-ar-windows.ps1 -Parte bloquear
+Id. de proceso: 1264
+PSVersion: 5.1.26100.9711
+PSEdition: Desktop
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1.26100.9711
+BuildVersion: 10.0.26100.9711
+CLRVersion: 4.0.30319.42000
+WSManStackVersion: 3.0
+PSRemotingProtocolVersion: 2.3
+SerializationVersion: 1.1.0.1
+**********************
+== Kronos, prueba 'bloquear' en EP-WKS-01, 2026-11-02 15:10:27 (hora local)
+FALLA  aplicar (obtenido: 1, esperado: 0)
+FALLA  la regla existe (obtenido: False, esperado: True)
+FALLA  aplicar de nuevo (obtenido: 1, esperado: 0)
+OK     quitar (obtenido: 0)
+OK     la regla ya no existe (obtenido: False)
+OK     quitar de nuevo (obtenido: 0)
+   (IP propia: 10.0.2.15; puerta de enlace: 10.0.2.2)
+OK     rechaza 127.0.0.1 (obtenido: 1)
+OK     rechaza la IP propia (obtenido: 1)
+OK     rechaza la puerta de enlace (obtenido: 1)
+OK     rechaza '1' (obtenido: 1)
+OK     rechaza IP con & calc (obtenido: 1)
+OK     rechaza tres argumentos (obtenido: 1)
+OK     rechaza operacion 'borrar' (obtenido: 1)
+OK     rechaza entrada vacia (obtenido: 1)
+OK     rechaza JSON roto (obtenido: 1)
+OK     no quedo ninguna regla Kronos-bloqueo (obtenido: 0)
+
+== Ultimas lineas de active-responses.log
+2026/10/21 12:26:01 active-response/bin/restart-wazuh.exe: Starting
+2026/10/21 12:26:01 active-response/bin/restart-wazuh.exe: {"version":1,"origin":{"name":"","module":"wazuh-execd"},"command":"add","parameters":{"extra_args":[],"alert":{},"program":"restart-wazuh.exe"}}
+
+2026/10/21 12:26:01 active-response/bin/restart-wazuh.exe: Ended
+prueba compartida
+
+== RESULTADO: 3 FALLA(S) (bloquear)
+**********************
+Fin de la transcripción de Windows PowerShell
+Hora de finalización: 20261102151041
+**********************

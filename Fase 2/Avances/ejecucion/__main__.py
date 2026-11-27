@@ -7,6 +7,10 @@ Variables de entorno:
     KRONOS_DB_CLAVE_ARCHIVO     archivo con la contraseña de kronos_worker (secreto de Docker)
     KRONOS_INQUILINOS           identificadores separados por coma, por ejemplo «1»
     KRONOS_INTERVALO_SEGUNDOS   pausa entre ciclos (por omisión, 10)
+    KRONOS_AGENTES_SO           sistema operativo de cada agente, «001:linux,002:windows»
+                                (opcional; si un agente no está, se deduce de la alerta)
+    KRONOS_IP_PROTEGIDAS        IP sobre las que nunca se actúa, separadas por coma: el
+                                manager y la puerta de enlace (opcional, recomendado)
     KRONOS_WAZUH_*              ver ejecucion/actuador_wazuh.py
 
 Un error en un inquilino se registra y no detiene a los demás. Si falta la
@@ -25,8 +29,10 @@ from pathlib import Path
 from psycopg.conninfo import make_conninfo
 
 from ejecucion.actuador_wazuh import ActuadorWazuh
+from ejecucion.consulta_wazuh import ConsultaWazuh
 from ejecucion.ejecutor import Ejecutor
-from ejecucion.medidas import cargar_medidas
+from ejecucion.medidas import cargar_actuadores, cargar_medidas
+from ejecucion.ordenes import leer_ip_protegidas, leer_mapa_agentes
 from persistencia.repositorio import ACTOR_EXECUTE, Repositorio
 
 registro = logging.getLogger("soar-execute")
@@ -52,10 +58,17 @@ def main() -> int:
         dsn = make_conninfo(os.environ["KRONOS_DSN"], password=clave)
         inquilinos = _inquilinos(os.environ["KRONOS_INQUILINOS"])
         intervalo = float(os.environ.get("KRONOS_INTERVALO_SEGUNDOS", "10"))
+        agentes_so = leer_mapa_agentes(os.environ.get("KRONOS_AGENTES_SO", ""))
+        ip_protegidas = leer_ip_protegidas(os.environ.get("KRONOS_IP_PROTEGIDAS", ""))
+        actuador = ActuadorWazuh.desde_entorno()
         ejecutor = Ejecutor(
             Repositorio(dsn, actor=ACTOR_EXECUTE),
-            ActuadorWazuh.desde_entorno(),
+            actuador,
             cargar_medidas(),
+            cargar_actuadores(),
+            agentes_so,
+            consulta=ConsultaWazuh(actuador),
+            ip_protegidas=ip_protegidas,
         )
     except (KeyError, ValueError, OSError) as exc:
         motivo = (
@@ -67,6 +80,18 @@ def main() -> int:
     registro.info(
         "en marcha para los inquilinos %s, cada %.0f s", inquilinos, intervalo
     )
+    if agentes_so:
+        registro.info("sistema operativo por agente: %s", agentes_so)
+    else:
+        registro.warning(
+            "KRONOS_AGENTES_SO vacío: el sistema operativo se deduce de cada alerta"
+        )
+    if ip_protegidas:
+        registro.info("IP protegidas: %d", len(ip_protegidas))
+    else:
+        registro.warning(
+            "KRONOS_IP_PROTEGIDAS vacío: sólo protegen la lista de exclusión y los scripts"
+        )
     while True:
         for tenant_id in inquilinos:
             try:

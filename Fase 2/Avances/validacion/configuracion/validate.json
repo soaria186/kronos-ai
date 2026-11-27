@@ -24,14 +24,18 @@
     ]
   },
   "contadores": [
-    {"nombre": "acciones_por_inquilino", "descripcion": "Acciones automáticas de un cliente en la última hora", "ventana_minutos": 60, "tope": 10},
-    {"nombre": "acciones_por_equipo", "descripcion": "Acciones automáticas sobre un mismo equipo en la última hora", "ventana_minutos": 60, "tope": 3},
-    {"nombre": "acciones_por_playbook", "descripcion": "Ejecuciones automáticas de un mismo playbook en la última hora", "ventana_minutos": 60, "tope": 5},
-    {"nombre": "acciones_nivel_2", "descripcion": "Acciones de nivel 2 de un cliente en el último día", "ventana_minutos": 1440, "tope": 5}
+    {"nombre": "acciones_por_inquilino", "descripcion": "Acciones automáticas de un cliente en la última hora", "ventana_minutos": 60, "tope": 50},
+    {"nombre": "acciones_por_equipo", "descripcion": "Acciones automáticas sobre un mismo equipo en la última hora", "ventana_minutos": 60, "tope": 50},
+    {"nombre": "acciones_por_playbook", "descripcion": "Ejecuciones automáticas de un mismo playbook en la última hora", "ventana_minutos": 60, "tope": 50},
+    {"nombre": "acciones_nivel_2", "descripcion": "Acciones de nivel 2 de un cliente en el último día", "ventana_minutos": 1440, "tope": 50}
   ],
   "agrupacion": {
     "descripcion": "Alertas con la misma regla, la misma IP de origen y el mismo equipo dentro de esta ventana se resuelven con una sola decisión; las demás se anotan en la bitácora del ticket que decidió",
     "ventana_minutos": 10
+  },
+  "arquetipos_de_equipos": {
+    "descripcion": "Tipo de cada equipo, por el nombre de su agente (sin distinguir mayúsculas): puesto de trabajo o servidor. VALIDATE no ofrece al paso 2 las medidas pensadas para el otro tipo, por ejemplo aislar un puesto cuando el equipo es un servidor. Un equipo que no está en la lista recibe todas. Se completa al dar de alta cada PyME.",
+    "equipos": {"EP-SRV-01": "servidor", "EP-WKS-01": "puesto"}
   },
   "disparo_cortacircuito": {
     "nombre": "alertas_por_ventana",

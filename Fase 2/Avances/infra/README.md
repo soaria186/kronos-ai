@@ -6,6 +6,7 @@ a paso está en la guía de [`Instalacion`](../../../Instalacion/), con una carp
 | Carpeta | Qué tiene | Guía |
 | :--- | :--- | :--- |
 | `docker/` | SOAR-AUDIT (PostgreSQL 17.11): `docker-compose.yml`, esquema inicial (`initdb/`) y migraciones | 07 |
+| `docker/desplegar.sh` | Despliegue de una etiqueta en SOAR-CORE-01 desde el clon de git (D-55): respaldo, checkout, migraciones y servicios | 07 |
 | `docker/servicios.yml` y `docker/servicios/` | Imagen y despliegue de VALIDATE, EXECUTE, NOTIFY y CONSOLE, con el ejemplo de `.env` | 07 y 11 |
 | `docker/respaldo/` | Respaldo diario cifrado con age y prueba de restauración | 12 |
 | `docker/retencion/` | Purga diaria de las alertas guardadas a los 90 días | 12 |

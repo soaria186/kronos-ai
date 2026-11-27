@@ -11,6 +11,17 @@ Un ciclo, por inquilino:
 3. Toma las reversiones vencidas (nivel 1 al vencer su plazo, o pedidas por una
    persona) y las ejecuta.
 
+La consulta de nivel 0 (acción «consulta») no pasa por Active Response: se pide a la
+API de Wazuh desde el servidor (D-72, ``ejecucion.consulta``) y el ticket termina en
+SUCCESS con el resumen, sin aviso (D-50). Sin consulta configurada, queda como antes:
+FAILED con ACCION_NO_IMPLEMENTADA, que en el nivel 0 no se avisa.
+
+Antes de armar cada orden (y cada reversión) se determina el sistema operativo del
+agente (``ordenes.sistema_operativo``) y se comprueba que la acción tenga script en ese
+sistema (``actuadores_v1`` del catálogo). Si no se sabe el sistema, o no hay script, no
+se envía nada: la API de Wazuh confirmaría la entrega aunque el script no exista, y el
+ticket quedaría en SUCCESS sin que nada pasara en el equipo.
+
 Falla segura: si la orden no se puede armar o no se puede entregar, el ticket queda
 en FAILED con el motivo y nada se reintenta solo. Una medida de reversión automática
 sin plazo en el catálogo no se ejecuta: no se aplica algo que después no se sabría
@@ -24,12 +35,16 @@ from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
 from ejecucion.actuador import Actuador, ErrorActuador
+from ejecucion.consulta import Consulta, ErrorConsulta
 from ejecucion.medidas import Medida
 from ejecucion.ordenes import (
     AccionNoImplementada,
+    ArgumentoFaltante,
     OrdenInvalida,
+    agente,
     construir,
     construir_reversion,
+    sistema_operativo,
 )
 
 if TYPE_CHECKING:  # sin dependencia de psycopg al importar (pruebas unitarias)
@@ -40,6 +55,8 @@ MAX_POR_CICLO = 50
 MOTIVO_SIN_MEDIDA = "PLAYBOOK_SIN_MEDIDA"
 MOTIVO_NO_IMPLEMENTADA = "ACCION_NO_IMPLEMENTADA"
 MOTIVO_ORDEN_INVALIDA = "ORDEN_INVALIDA"
+MOTIVO_ARGUMENTO_FALTANTE = "ARGUMENTO_FALTANTE"
+MOTIVO_CONSULTA_FALLIDA = "CONSULTA_FALLIDA"
 MOTIVO_SIN_PLAZO = "PLAZO_DE_REVERSION_SIN_DEFINIR"
 MOTIVO_ACTUADOR = "ACTUADOR_FALLO"
 
@@ -60,10 +77,19 @@ class Ejecutor:
         repositorio: Repositorio,
         actuador: Actuador,
         medidas: Mapping[str, Medida],
+        actuadores: Mapping[str, frozenset[str]],
+        agentes_so: Mapping[str, str] | None = None,
+        *,
+        consulta: Consulta | None = None,
+        ip_protegidas: frozenset[str] = frozenset(),
     ) -> None:
         self._repo = repositorio
         self._actuador = actuador
         self._medidas = medidas
+        self._actuadores = actuadores
+        self._agentes_so = agentes_so or {}
+        self._consulta = consulta
+        self._ip_protegidas = ip_protegidas
 
     def ciclo(self, tenant_id: int) -> Resumen:
         resumen = Resumen()
@@ -100,10 +126,18 @@ class Ejecutor:
             if medida.plazo_minutos is None:
                 return self._fallo(tenant_id, ticket_id, MOTIVO_SIN_PLAZO, playbook_id)
             plazo = medida.plazo_minutos
+        datos = alerta.get("alerta", {})
+        if medida.accion == "consulta":
+            return self._consultar(tenant_id, ticket_id, datos)
         try:
-            orden = construir(medida.accion, alerta.get("alerta", {}))
+            sistema = self._sistema(medida.accion, datos)
+            orden = construir(
+                medida.accion, datos, sistema=sistema, ip_protegidas=self._ip_protegidas
+            )
         except AccionNoImplementada as exc:
             return self._fallo(tenant_id, ticket_id, MOTIVO_NO_IMPLEMENTADA, str(exc))
+        except ArgumentoFaltante as exc:
+            return self._fallo(tenant_id, ticket_id, MOTIVO_ARGUMENTO_FALTANTE, str(exc))
         except OrdenInvalida as exc:
             return self._fallo(tenant_id, ticket_id, MOTIVO_ORDEN_INVALIDA, str(exc))
         try:
@@ -121,6 +155,27 @@ class Ejecutor:
         )
         return True
 
+    def _consultar(self, tenant_id: int, ticket_id: int, datos: Mapping) -> bool:
+        """Nivel 0 (D-72): resumen del agente por la API de Wazuh, sin Active Response."""
+        if self._consulta is None:
+            return self._fallo(
+                tenant_id,
+                ticket_id,
+                MOTIVO_NO_IMPLEMENTADA,
+                "consulta: sin consulta de inventario configurada",
+            )
+        try:
+            agente_id = agente(datos)
+            resumen = dict(self._consulta.consultar(agente_id))
+        except OrdenInvalida as exc:
+            return self._fallo(tenant_id, ticket_id, MOTIVO_ORDEN_INVALIDA, str(exc))
+        except ErrorConsulta as exc:
+            return self._fallo(tenant_id, ticket_id, MOTIVO_CONSULTA_FALLIDA, str(exc))
+        self._repo.registrar_ejecucion(
+            tenant_id, ticket_id, True, {"consulta": {"agente": agente_id, **resumen}}
+        )
+        return True
+
     def _revertir(
         self, tenant_id: int, ticket_id: int, playbook_id: str, alerta: dict
     ) -> bool:
@@ -129,7 +184,11 @@ class Ejecutor:
         try:
             if medida is None:
                 raise AccionNoImplementada(f"{playbook_id}: sin medida en el catálogo")
-            orden = construir_reversion(medida.accion, alerta.get("alerta", {}))
+            datos = alerta.get("alerta", {})
+            sistema = self._sistema(medida.accion, datos)
+            orden = construir_reversion(
+                medida.accion, datos, sistema=sistema, ip_protegidas=self._ip_protegidas
+            )
             detalle["orden"] = orden.como_detalle()
             detalle["referencia"] = self._actuador.enviar(orden)
         except (AccionNoImplementada, OrdenInvalida, ErrorActuador) as exc:
@@ -139,6 +198,22 @@ class Ejecutor:
             return False
         self._repo.registrar_reversion(tenant_id, ticket_id, True, detalle)
         return True
+
+    def _sistema(self, accion: str, alerta: Mapping) -> str:
+        """Sistema del agente, si la acción tiene script en él.
+
+        Un agente inválido (o el 000) lanza OrdenInvalida, igual que al armar la orden;
+        sin sistema conocido o sin script en ese sistema, AccionNoImplementada.
+        """
+        agente_id = agente(alerta)
+        sistema = sistema_operativo(alerta, self._agentes_so)
+        if sistema is None:
+            raise AccionNoImplementada(
+                f"no se pudo determinar el sistema operativo del agente {agente_id}"
+            )
+        if accion not in self._actuadores.get(sistema, frozenset()):
+            raise AccionNoImplementada(f"{accion}: sin script en {sistema} en la v1.0")
+        return sistema
 
     def _fallo(
         self,

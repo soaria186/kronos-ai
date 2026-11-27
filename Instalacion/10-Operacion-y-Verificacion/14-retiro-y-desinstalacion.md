@@ -4,8 +4,8 @@
 | :--- | :--- |
 | Parte | 14 de 15 |
 | Responsable | Nicolás Zamora (revisa: Rodrigo Riveros) |
-| Versión | 0.9, 26-10-2026 |
-| Estado | Borrador para revisión |
+| Versión | 1.0, 12-11-2026 |
+| Estado | Revisada, sin ejecutar: se sigue completa al cerrar el servidor (10-12-2026). La reversión de cada medida, que es la base de la sección 1, se probó en la prueba integral 2 (10-11-2026) |
 | Requisitos | Una PyME dada de alta (parte 13) |
 
 Retirar a una PyME es dejar sus equipos como estaban antes de Kronos, quitarle el acceso a su encargado de TI y
@@ -16,9 +16,15 @@ contrato del servidor (10-12-2026).
 
 ## 1. Antes de desinstalar: medidas vigentes
 
-Una medida aplicada que no se revierte antes de quitar el agente queda puesta para siempre. En la consola,
-revisar las medidas de nivel 2 vigentes y los niveles 3 aplicados, y revertirlas. Las de nivel 1 se revierten
-solas a los 60 minutos.
+Una medida aplicada que no se revierte antes de quitar el agente queda puesta para siempre. En la consola, en
+«Medidas vigentes», revertir todas las que queden:
+
+- **Se revierten solas a los 60 minutos:** los bloqueos de nivel 1 (PB-F1-02, PB-F3-01, PB-F4-01, PB-F6-02) y
+  la limitación de conexiones (PB-F6-03).
+- **No se revierten solas:** las de nivel 2 y 3, y también las de persistencia de nivel 1: la cuarentena
+  (PB-F2-02 y PB-F5-01) y la tarea deshabilitada (PB-F5-02). Se revierten con el botón de la consola.
+- **No tienen reversión:** cerrar la sesión (PB-F1-04) y terminar un proceso (PB-F2-03). Aparecen en «Medidas
+  vigentes», pero su botón «Revertir» falla: se dejan como están.
 
 Después, detener SOAR-EXECUTE para que Kronos no actúe sobre equipos a medio desinstalar (la consola sólo
 cierra el cortacircuito, no lo abre):
@@ -42,7 +48,18 @@ En la v1.0 hay una PyME por servidor (parte 13), así que esto no afecta a otras
 ```
 
 Si el primer comando muestra reglas de Kronos, quitarlas antes con el mismo script (`quitar <ip>`) o con
-`sudo iptables -D INPUT -s <ip> -m comment --comment kronos -j DROP`.
+`sudo iptables -D INPUT -s <ip> -m comment --comment kronos -j DROP` (en `OUTPUT` para un destino bloqueado).
+Antes de desinstalar, revisar también lo que dejan los otros scripts:
+
+```
+[agente Linux] sudo iptables -S | grep -E 'KRONOS-AISLAR|connlimit'
+[agente Linux] sudo ls /var/lib/kronos/cuarentena/
+[agente Linux] sudo grep -rl '#kronos# ' /etc/crontab /etc/cron.d /var/spool/cron 2>/dev/null
+[agente Linux] sudo cat /var/ossec/active-response/kronos-cuentas.json 2>/dev/null
+```
+
+Debe salir vacío. Lo que aparezca se revierte desde la consola, con el agente todavía instalado. Al final,
+borrar `/var/lib/kronos` si quedó.
 
 ## 3. En cada equipo Windows
 
@@ -50,6 +67,8 @@ Como administrador:
 
 ```
 [agente Windows] Get-NetFirewallRule -DisplayName 'Kronos-*' | Format-Table DisplayName, Direction, Action
+[agente Windows] Get-ScheduledTask -TaskPath '\Kronos\' -ErrorAction SilentlyContinue
+[agente Windows] Get-ChildItem C:\ProgramData\Kronos\cuarentena -ErrorAction SilentlyContinue
 [agente Windows] Get-LocalUser | Where-Object { -not $_.Enabled } | Format-Table Name
 [agente Windows] Stop-Service -Name WazuhSvc
 [agente Windows] Get-Package -Name 'Wazuh Agent' | Uninstall-Package
@@ -58,7 +77,8 @@ Como administrador:
 - Las reglas `Kronos-*` que queden se borran con `Remove-NetFirewallRule -DisplayName 'Kronos-…'`.
 - Una cuenta que Kronos deshabilitó y que debe volver a usarse se habilita con `Enable-LocalUser -Name <cuenta>`.
 - Si el equipo quedó aislado, la política del firewall se restaura con el mismo script (`quitar`).
-- Al final, borrar la carpeta `C:\Program Files (x86)\ossec-agent` si quedó.
+- Un archivo en `C:\ProgramData\Kronos\cuarentena` se restaura desde la consola antes de desinstalar.
+- Al final, borrar las carpetas `C:\Program Files (x86)\ossec-agent` y `C:\ProgramData\Kronos` si quedaron.
 
 ## 4. En el servidor
 
@@ -95,7 +115,8 @@ Al terminar el contrato del servidor (10-12-2026):
 ## 7. Lista de comprobación
 
 - [ ] Medidas vigentes revertidas; SOAR-EXECUTE detenido durante el retiro.
-- [ ] Agentes desinstalados; sin reglas `kronos` ni `Kronos-*`; cuentas habilitadas de nuevo si corresponde.
+- [ ] Agentes desinstalados; sin reglas `kronos` ni `Kronos-*`, sin archivos en cuarentena ni tareas
+  deshabilitadas por Kronos; cuentas habilitadas de nuevo si corresponde.
 - [ ] Agentes quitados del manager; PyME fuera de la configuración.
 - [ ] Encargado de TI fuera de Telegram, la consola y NetBird.
 - [ ] La PyME sabe qué datos quedan y hasta cuándo.

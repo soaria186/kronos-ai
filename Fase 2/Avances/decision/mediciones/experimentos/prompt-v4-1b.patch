@@ -1,0 +1,20 @@
+diff --git a/Fase 2/Avances/decision/prompts/paso2_plantilla.txt b/Fase 2/Avances/decision/prompts/paso2_plantilla.txt
+index 03c7d23..bf1afa4 100644
+--- a/Fase 2/Avances/decision/prompts/paso2_plantilla.txt	
++++ b/Fase 2/Avances/decision/prompts/paso2_plantilla.txt	
+@@ -47,10 +47,11 @@ Eres un analista de un centro de operaciones de seguridad (SOC). Una alerta de W
+ 
+ CÓMO ELEGIR
+ 
+-1. Compara lo observado en la alerta con la condición de uso de cada playbook candidato y elige el que mejor encaje.
+-2. Elige solo entre los identificadores de la lista de candidatos. No inventes identificadores ni uses playbooks de otra familia.
+-3. Decide por el comportamiento observado, no por los nombres de cuentas, equipos o procesos que aparezcan.
+-4. Si la alerta no aporta datos suficientes para distinguir entre candidatos, elige el primero de la lista (los candidatos van de menos a más intrusivo) y baja la confianza.
++1. Descarta los candidatos cuya medida necesita un dato que la alerta no trae: la ruta del archivo para una cuarentena, el nombre de la tarea para revertirla, el PID para terminar un proceso, la IP o el destino para un bloqueo.
++2. Entre los que quedan, elige el que encaje con lo observado. Si la condición de uno usa las mismas palabras que la descripción de la regla (el texto entre comillas después de Rule), elige ese aunque otro también parezca encajar.
++3. Si dos candidatos solo se diferencian en EQUIPO DE TRABAJO o SERVIDOR, mira el nombre del equipo (Agent): si contiene srv, server, dc o db, es un SERVIDOR; si contiene wks o pc, es un EQUIPO DE TRABAJO. Si el nombre no lo indica, no uses esta regla.
++4. Decide por el comportamiento observado, no por los nombres de cuentas o procesos.
++5. Elige solo entre los identificadores de la lista de candidatos. Si aun así no puedes distinguir entre los que quedan, elige el primero de ellos (van de menos a más intrusivo) y baja la confianza.
+ 
+ CONFIANZA
+ 

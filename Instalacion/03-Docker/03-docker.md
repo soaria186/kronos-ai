@@ -4,8 +4,8 @@
 | :--- | :--- |
 | Parte | 03 de 15 |
 | Responsable | Nicolás Zamora (revisa: Rodrigo Riveros) |
-| Versión | 0.9, 26-10-2026 |
-| Estado | Borrador para revisión: procedimiento oficial de Docker para Ubuntu 24.04. Nicolás confirma que el servidor lo instaló así |
+| Versión | 1.0, 12-11-2026 |
+| Estado | Vigente: comparada con SOAR-CORE-01 el 12-11-2026 (Docker 29.9.1 y Compose v5.6.0 del repositorio oficial). La prueba de reinicio de la sección 4 no se ha hecho en ese servidor |
 | Requisitos | Parte 01 |
 
 Todo Kronos corre en contenedores: Wazuh, Ollama, PostgreSQL y los cuatro servicios. Se usa Docker Engine con
@@ -57,7 +57,9 @@ Al terminar las partes 04 a 07:
 [servidor] sudo ss -tlnp | grep -v -E '127\.0\.0\.|::1'
 ```
 
-**Debe mostrar:** en `0.0.0.0` (o `*`) sólo el 22 (SSH) y el 1514; el resto, en la IP de NetBird.
+**Debe mostrar:** en `0.0.0.0` y `[::]` sólo el 22 y el 1514; el resto, en la IP de NetBird (443, 55000, 9200 y
+5601, más el 53 del DNS de NetBird). El 22 aparece en todas las interfaces porque `sshd` escucha en todas, pero
+`ufw` sólo lo deja entrar por `wt0` (parte 01, sección 5).
 
 ## 4. Prueba de reinicio
 
@@ -68,12 +70,25 @@ Coordinarla con el equipo en el grupo de Telegram: mientras el servidor reinicia
 [servidor] sudo docker ps --format '{{.Names}}\t{{.Status}}'
 ```
 
-**Debe mostrar:** todos los contenedores `Up` sin haberlos levantado a mano (todos tienen `restart: always` o
-`unless-stopped`). Después, dejar el modelo cargado otra vez (parte 06, paso 5).
+**Debe mostrar:** todos los contenedores `Up` sin haberlos levantado a mano. Después, dejar el modelo cargado
+otra vez (parte 06, paso 5).
+
+La política de reinicio de cada contenedor se ve sin reiniciar:
+
+```
+[servidor] sudo docker ps --format '{{.Names}}' | xargs -n1 sudo docker inspect -f '{{.Name}} {{.HostConfig.RestartPolicy.Name}}'
+```
+
+**Debe mostrar:** `always` en los tres de Wazuh y `unless-stopped` en `ollama` y en los cinco de Kronos
+(`kronos-db-1`, `kronos-validate-1`, `kronos-execute-1`, `kronos-notify-1` y `kronos-consola-1`).
+
+> **Estado en SOAR-CORE-01.** Las políticas están comprobadas (12-11-2026), pero el servidor no se ha
+> reiniciado desde el 20-10-2026: la prueba completa queda pendiente antes de instalar en una PyME real
+> (riesgo R-02 y caso CP-46).
 
 ## 5. Lista de comprobación
 
 - [ ] Docker y Compose instalados desde el repositorio oficial; Docker habilitado al arranque.
 - [ ] Nadie en el grupo `docker`.
-- [ ] Sólo 22 y 1514 abiertos a internet.
+- [ ] Desde internet sólo el 1514; el 22 sólo por NetBird.
 - [ ] Los contenedores vuelven solos después de un reinicio.

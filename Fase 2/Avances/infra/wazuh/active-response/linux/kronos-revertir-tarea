@@ -1,0 +1,227 @@
+#!/usr/bin/python3
+"""Kronos: deshabilita o vuelve a habilitar una tarea programada. Uso por Active Response:
+extra_args = ["aplicar" | "habilitar", "<ruta>"] (exactamente dos argumentos).
+
+La ruta es el archivo que cambio (integridad de archivos de Wazuh):
+- /etc/crontab, /etc/cron.d/<archivo> o /var/spool/cron/...: aplicar comenta las lineas
+  de tareas con la marca "#kronos# "; habilitar quita solo esa marca. Las variables
+  (PATH=..., MAILTO=...) y, en /etc/crontab, las lineas run-parts del sistema no se tocan.
+- /etc/cron.hourly|daily|weekly|monthly/<script>: aplicar le quita el permiso de
+  ejecucion (run-parts lo salta); habilitar le devuelve sus permisos.
+- /etc/systemd/system/<nombre>.timer: aplicar lo deshabilita y lo detiene
+  (systemctl disable --now); habilitar lo deja como estaba (habilitado y/o en marcha).
+
+Barreras (segunda linea; EXECUTE valida lo mismo en ejecucion/ordenes.py):
+- Solo esas dos operaciones y exactamente una ruta, con caracteres de una lista blanca, sin
+  "." ni "..", y dentro de esas carpetas. Lo que no calza se rechaza.
+- Solo archivos regulares, nunca enlaces.
+- Nunca las tareas del agente de Wazuh, de Kronos ni de systemd.
+- Solo revierte lo que hizo Kronos: la marca en las lineas, o el registro de
+  kronos-tareas.json (escrito antes de actuar). Aplicar o habilitar dos veces no cambia nada.
+"""
+import datetime, grp, json, os, re, stat, subprocess, sys
+
+NOMBRE = "kronos-revertir-tarea"
+LOG = "/var/ossec/logs/active-responses.log"
+MARCAS = "/var/ossec/active-response/kronos-tareas.json"
+RAIZ = ""  # las pruebas la apuntan a una carpeta temporal
+MARCA = "#kronos# "
+TRAMO = r"[\w .()+#@,-]{1,255}"
+RUTA = re.compile(rf"^/(?:{TRAMO}/)*{TRAMO}$")
+ARCHIVOS_CRON = ("/etc/crontab",)
+CARPETAS_CRON = ("/etc/cron.d/", "/var/spool/cron/")
+CARPETAS_RUN_PARTS = ("/etc/cron.hourly/", "/etc/cron.daily/", "/etc/cron.weekly/", "/etc/cron.monthly/")
+CARPETA_TIMERS = "/etc/systemd/system/"
+UNIDAD = re.compile(r"^[A-Za-z0-9_][A-Za-z0-9:._@-]{0,240}\.timer$")
+PROTEGIDAS = ("wazuh", "ossec", "kronos", "netbird", "systemd-")
+VARIABLE = re.compile(r"^\s*[A-Za-z_][A-Za-z0-9_]*\s*=")
+
+
+class Rechazo(Exception):
+    pass
+
+
+def log(msg):
+    hora = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    with open(LOG, "a") as f:
+        f.write(f"{hora} {NOMBRE}: {msg}\n")
+
+
+def correr(cmd):
+    """Siempre como lista, sin shell."""
+    return subprocess.run(cmd, capture_output=True, text=True)
+
+
+def tipo_de(ruta):
+    if len(ruta) > 1024 or not RUTA.match(ruta):
+        raise Rechazo(f"ruta no permitida: {ruta!r}")
+    for tramo in ruta.split("/")[1:]:
+        if tramo in (".", "..") or tramo != tramo.strip():
+            raise Rechazo(f"ruta con tramos no permitidos: {ruta!r}")
+    base = os.path.basename(ruta).lower()
+    if any(p in base for p in PROTEGIDAS):
+        raise Rechazo(f"tarea protegida: {ruta}")
+    if ruta in ARCHIVOS_CRON or any(ruta.startswith(c) for c in CARPETAS_CRON):
+        return "cron"
+    if any(ruta.startswith(c) and "/" not in ruta[len(c):] for c in CARPETAS_RUN_PARTS):
+        return "run-parts"
+    if ruta.startswith(CARPETA_TIMERS) and "/" not in ruta[len(CARPETA_TIMERS):]:
+        if not UNIDAD.match(os.path.basename(ruta)):
+            raise Rechazo(f"en systemd solo se deshabilitan temporizadores (.timer): {ruta}")
+        return "timer"
+    raise Rechazo(f"no es una tarea de cron ni de systemd: {ruta}")
+
+
+def archivo_regular(ruta):
+    try:
+        info = os.lstat(RAIZ + ruta)
+    except FileNotFoundError:
+        raise Rechazo(f"no existe: {ruta}")
+    if not stat.S_ISREG(info.st_mode):
+        raise Rechazo(f"no es un archivo regular: {ruta}")
+    return info
+
+
+def leer_marcas():
+    try:
+        with open(RAIZ + MARCAS) as f:
+            marcas = json.load(f)
+    except FileNotFoundError:
+        return {}
+    except ValueError:
+        raise Rechazo(f"{MARCAS} no es JSON valido; no se actua")
+    if not isinstance(marcas, dict):
+        raise Rechazo(f"{MARCAS} no es JSON valido; no se actua")
+    return marcas
+
+
+def escribir(destino, texto, modo, uid, gid):
+    """Escritura atomica: archivo temporal en la misma carpeta y os.replace."""
+    tmp = f"{destino}.kronos.{os.getpid()}.tmp"
+    try:
+        with open(tmp, "x") as f:
+            f.write(texto)
+        os.chmod(tmp, modo)
+        try:
+            os.chown(tmp, uid, gid)
+        except PermissionError:
+            pass  # en las pruebas, sin root
+        os.replace(tmp, destino)
+    except OSError:
+        if os.path.exists(tmp):
+            os.unlink(tmp)
+        raise
+
+
+def guardar_marcas(marcas):
+    try:
+        gid = grp.getgrnam("wazuh").gr_gid
+    except KeyError:
+        gid = os.getgid()
+    escribir(RAIZ + MARCAS, json.dumps(marcas, indent=2, sort_keys=True) + "\n", 0o640, 0, gid)
+
+
+def es_tarea(linea, ruta):
+    if not linea.strip() or linea.lstrip().startswith("#") or VARIABLE.match(linea):
+        return False
+    return not (ruta == "/etc/crontab" and "run-parts" in linea)
+
+
+def cron(op, ruta):
+    info = archivo_regular(ruta)
+    with open(RAIZ + ruta) as f:
+        lineas = f.read().splitlines(keepends=True)
+    if op == "aplicar":
+        nuevas = [MARCA + l if es_tarea(l, ruta) else l for l in lineas]
+        cuantas = sum(1 for a, b in zip(lineas, nuevas) if a != b)
+        if not cuantas:
+            ya = any(l.startswith(MARCA) for l in lineas)
+            return "sin cambios (" + ("ya la habia desactivado Kronos)" if ya else "no hay tareas activas)")
+    else:
+        nuevas = [l[len(MARCA):] if l.startswith(MARCA) else l for l in lineas]
+        cuantas = sum(1 for a, b in zip(lineas, nuevas) if a != b)
+        if not cuantas:
+            return "sin cambios (no la desactivo Kronos)"
+    escribir(RAIZ + ruta, "".join(nuevas), stat.S_IMODE(info.st_mode), info.st_uid, info.st_gid)
+    return f"OK ({cuantas} linea{'s' if cuantas != 1 else ''})"
+
+
+def run_parts(op, ruta):
+    info = archivo_regular(ruta)
+    modo = stat.S_IMODE(info.st_mode)
+    marcas = leer_marcas()
+    if op == "aplicar":
+        if not modo & 0o111:
+            return "sin cambios (" + ("ya la habia desactivado Kronos)" if ruta in marcas else "no era ejecutable)")
+        marcas[ruta] = {"tipo": "run-parts", "modo": modo}
+        guardar_marcas(marcas)  # el registro va antes del cambio
+        os.chmod(RAIZ + ruta, modo & ~0o111)
+        return "OK (sin permiso de ejecucion)"
+    if ruta not in marcas:
+        return "sin cambios (no la desactivo Kronos)"
+    os.chmod(RAIZ + ruta, int(marcas[ruta]["modo"]))
+    del marcas[ruta]
+    guardar_marcas(marcas)
+    return "OK (permisos restaurados)"
+
+
+def timer(op, ruta):
+    archivo_regular(ruta)
+    unidad = os.path.basename(ruta)
+    marcas = leer_marcas()
+    if op == "aplicar":
+        habilitado = correr(["systemctl", "is-enabled", unidad]).stdout.strip() == "enabled"
+        activo = correr(["systemctl", "is-active", unidad]).stdout.strip() == "active"
+        if not habilitado and not activo:
+            return "sin cambios (" + ("ya lo habia desactivado Kronos)" if ruta in marcas else "no estaba habilitado ni en marcha)")
+        anterior = marcas.get(ruta, {})
+        marcas[ruta] = {"tipo": "timer", "habilitado": habilitado or bool(anterior.get("habilitado")),
+                        "activo": activo or bool(anterior.get("activo"))}
+        guardar_marcas(marcas)
+        r = correr(["systemctl", "disable", "--now", unidad])
+        if r.returncode != 0:
+            raise Rechazo(f"systemctl disable --now {unidad} (codigo {r.returncode}): {r.stderr.strip()}")
+        return "OK (deshabilitado y detenido)"
+    if ruta not in marcas:
+        return "sin cambios (no lo desactivo Kronos)"
+    marca = marcas[ruta]
+    for hacer, cmd in ((marca.get("habilitado"), ["systemctl", "enable", unidad]),
+                       (marca.get("activo"), ["systemctl", "start", unidad])):
+        if hacer:
+            r = correr(cmd)
+            if r.returncode != 0:
+                raise Rechazo(f"{' '.join(cmd)} (codigo {r.returncode}): {r.stderr.strip()}")
+    del marcas[ruta]
+    guardar_marcas(marcas)
+    return "OK (como estaba antes)"
+
+
+def main():
+    try:
+        args = json.loads(sys.stdin.readline())["parameters"]["extra_args"]
+    except Exception as e:
+        log(f"entrada invalida: {e}")
+        return 1
+    if not isinstance(args, list) or len(args) != 2 or not all(isinstance(a, str) for a in args):
+        cantidad = len(args) if isinstance(args, list) else "?"
+        log(f"entrada invalida: se esperaban 2 argumentos y llegaron {cantidad}")
+        return 1
+    op, ruta = args
+    if op not in ("aplicar", "habilitar"):
+        log(f"operacion invalida: {op}")
+        return 1
+    try:
+        tipo = tipo_de(ruta)
+        resultado = {"cron": cron, "run-parts": run_parts, "timer": timer}[tipo](op, ruta)
+    except Rechazo as e:
+        log(f"{op} {ruta}: rechazada: {e}")
+        return 1
+    except OSError as e:
+        log(f"{op} {ruta}: ERROR {e}")
+        return 1
+    log(f"{op} {ruta}: {resultado}")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

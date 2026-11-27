@@ -3,7 +3,8 @@
 Reúne los valores que los chequeos reciben como datos: el mapa de severidad a niveles,
 la lista de exclusión con sus seis categorías, los cuatro contadores de tasa de acciones
 el quinto contador, el de alertas, que abre el cortacircuito, y la ventana en que se
-agrupan las alertas de un mismo ataque (opcional). El archivo se rechaza
+agrupan las alertas de un mismo ataque (opcional) y el tipo de cada equipo, puesto de trabajo o
+servidor (opcional). El archivo se rechaza
 entero si algo no cuadra: un mapa con huecos, una entrada de exclusión con una categoría
 no declarada, un contador repetido o un tope no positivo.
 
@@ -14,7 +15,7 @@ cada uno en su ventana lo sabe SOAR-AUDIT; quien llama lo entrega a estado_opera
 from __future__ import annotations
 
 import json
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 
 from validacion.chequeos import (
@@ -27,6 +28,7 @@ from validacion.chequeos import (
 
 RUTA_CONFIGURACION = Path(__file__).resolve().parent / "configuracion" / "validate.json"
 CODIGO = "KRO-VAL-CONF"
+ARQUETIPOS_EQUIPO = frozenset({"puesto", "servidor"})
 CATEGORIAS_EXCLUSION = frozenset(
     {"equipo", "cuenta", "programa", "servicio", "ip", "destino"}
 )
@@ -54,6 +56,14 @@ class Configuracion:
     # Ventana en que las alertas de un mismo ataque (misma regla, IP de origen y equipo) se
     # resuelven con una sola decisión. 0 = sin agrupar.
     ventana_agrupacion_minutos: int = 0
+    # Tipo de cada equipo (nombre del agente en minúsculas → «puesto» o «servidor»). Las
+    # medidas pensadas para el otro tipo no se ofrecen al paso 2. Sin dato, se ofrecen todas.
+    arquetipo_por_equipo: dict[str, str] = field(default_factory=dict)
+
+    def arquetipo(self, equipo: object) -> str | None:
+        if not isinstance(equipo, str):
+            return None
+        return self.arquetipo_por_equipo.get(equipo.strip().lower())
 
     def estado_operacion(
         self, usos: dict[str, int], cortacircuito_abierto: bool
@@ -91,6 +101,7 @@ def cargar_configuracion(ruta: Path = RUTA_CONFIGURACION) -> Configuracion:
             contadores=_leer_contadores(datos["contadores"]),
             disparo_cortacircuito=_leer_contador(datos["disparo_cortacircuito"]),
             ventana_agrupacion_minutos=_leer_agrupacion(datos.get("agrupacion")),
+            arquetipo_por_equipo=_leer_arquetipos(datos.get("arquetipos_de_equipos")),
         )
     except (KeyError, TypeError, ValueError) as exc:
         if isinstance(exc, ConfiguracionInvalida):
@@ -180,3 +191,24 @@ def _leer_contadores(datos: list) -> tuple[DefinicionContador, ...]:
     if len(set(nombres)) != len(nombres):
         raise ConfiguracionInvalida("hay contadores con el mismo nombre")
     return contadores
+
+
+def _leer_arquetipos(dato: object) -> dict[str, str]:
+    """Tipo de cada equipo por el nombre de su agente; sin la sección, ninguno."""
+    if dato is None:
+        return {}
+    if not isinstance(dato, dict) or not isinstance(dato.get("equipos"), dict):
+        raise ConfiguracionInvalida("arquetipos_de_equipos.equipos debe ser un objeto")
+    mapa: dict[str, str] = {}
+    for nombre, arquetipo in dato["equipos"].items():
+        clave = nombre.strip().lower()
+        if not clave:
+            raise ConfiguracionInvalida("arquetipos_de_equipos: nombre de equipo vacío")
+        if arquetipo not in ARQUETIPOS_EQUIPO:
+            raise ConfiguracionInvalida(
+                f"arquetipos_de_equipos: {nombre!r} debe ser «puesto» o «servidor»"
+            )
+        if clave in mapa:
+            raise ConfiguracionInvalida(f"arquetipos_de_equipos: {nombre!r} está repetido")
+        mapa[clave] = arquetipo
+    return mapa

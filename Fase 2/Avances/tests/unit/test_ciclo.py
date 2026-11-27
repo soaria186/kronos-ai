@@ -11,6 +11,7 @@ from decision.inferencia import MotorNoDisponible, TiempoExcedido
 from decision.plantillas import Plantillas
 from validacion import posicion
 from validacion.alerta import preparar
+from validacion.bucle import Bucle
 from validacion.catalogo import cargar_catalogo
 from validacion.chequeos import Catalogo, ListaExclusion, Playbook
 from validacion.ciclo import (
@@ -34,6 +35,8 @@ ALERTAS_150 = (
 
 PLANTILLAS = Plantillas.cargar()
 CONFIG = cargar_configuracion()
+# Tope del contador por equipo según validate.json (50 desde D-80, 11-11).
+TOPE_EQUIPO = next(c.tope for c in CONFIG.contadores if c.nombre == "acciones_por_equipo")
 NIVEL = {"PB-F1-01": 2, "PB-F1-02": 1, "PB-F2-02": 1, "PB-F3-03": 3}
 
 Ticket = namedtuple("Ticket", "ticket_id nuevo")
@@ -229,7 +232,7 @@ class Ciclo(unittest.TestCase):
         self.rechazada(AlmacenFalso(), acierta(), "ACTIVO_EXCLUIDO", alerta, config)
 
     def test_contador_en_su_tope(self):
-        usos = {c.nombre: 0 for c in CONFIG.contadores} | {"acciones_por_equipo": 3}
+        usos = {c.nombre: 0 for c in CONFIG.contadores} | {"acciones_por_equipo": TOPE_EQUIPO}
         d = self.rechazada(AlmacenFalso(usos=usos), acierta(), "LIMITE_DE_TASA")
         self.assertIn("acciones_por_equipo", d.detalle)
 
@@ -248,12 +251,14 @@ class Ciclo(unittest.TestCase):
         self.rechazada(almacen, acierta(), "LIMITE_DE_TASA", alerta)
 
     def test_severidad_limita_el_nivel(self):
+        # Desde el 11-11 la medida que la severidad no permite ya no está en el esquema del
+        # paso 2 si en su familia queda otra permitida: el modelo que la devuelve igual queda en
+        # ESQUEMA_INVALIDO. El chequeo de severidad sigue como segunda barrera
+        # (test_candidatos_sin_datos.SeveridadEnElEsquema).
         alerta = alerta_ssh()
         alerta["rule"]["level"] = 8  # nivel máximo 1
         modelo = acierta("F1", "PB-F1-01")  # nivel 2
-        self.rechazada(
-            AlmacenFalso(), modelo, "NIVEL_NO_PERMITIDO_POR_SEVERIDAD", alerta
-        )
+        self.rechazada(AlmacenFalso(), modelo, "ESQUEMA_INVALIDO", alerta)
 
     def test_el_manager_nunca_se_toca_ni_se_consulta_al_modelo(self):
         for identificador in ("000", 0, " 0 "):
@@ -324,9 +329,11 @@ class Ciclo(unittest.TestCase):
 class AmbitoDeLaIp(unittest.TestCase):
     """Con el catálogo real: el modelo no sabe si una IP es externa o interna."""
 
-    def procesar(self, familia, playbook, ip):
+    def procesar(self, familia, playbook, ip, severidad=None):
         alerta = alerta_ssh()
         alerta["data"]["srcip"] = ip
+        if severidad is not None:
+            alerta["rule"]["level"] = severidad
         almacen = AlmacenFalso()
         validador_real = Validador(
             almacen,
@@ -339,9 +346,11 @@ class AmbitoDeLaIp(unittest.TestCase):
         return validador_real.procesar(1, alerta), almacen
 
     def test_bloquear_una_ip_interna_como_si_fuera_externa_se_rechaza(self):
-        resultado, almacen = self.procesar("F1", "PB-F1-02", "10.1.2.3")
-        self.assertEqual(resultado.motivo, "PLAYBOOK_FUERA_DE_CATALOGO")
-        self.assertIn("interna", almacen.decisiones[0][2].detalle)
+        # Desde el 10-11 la medida de otro ámbito ya no está en el esquema del paso 2: un modelo
+        # que la devuelva igual queda en ESQUEMA_INVALIDO. El chequeo de ámbito
+        # (PLAYBOOK_FUERA_DE_CATALOGO) sigue como segunda barrera en validacion.chequeos.
+        resultado, _ = self.procesar("F1", "PB-F1-02", "10.1.2.3")
+        self.assertEqual(resultado.motivo, "ESQUEMA_INVALIDO")
 
     def test_bloquear_una_ip_externa_pasa(self):
         resultado, _ = self.procesar("F1", "PB-F1-02", "203.0.113.9")
@@ -349,10 +358,11 @@ class AmbitoDeLaIp(unittest.TestCase):
 
     def test_la_ip_ipv4_mapeada_se_trata_como_la_ipv4(self):
         resultado, _ = self.procesar("F1", "PB-F1-02", "::ffff:10.1.2.3")
-        self.assertEqual(resultado.motivo, "PLAYBOOK_FUERA_DE_CATALOGO")
+        self.assertEqual(resultado.motivo, "ESQUEMA_INVALIDO")
 
     def test_una_consulta_no_mira_la_ip(self):
-        resultado, _ = self.procesar("F1", "PB-F1-01", "10.1.2.3")
+        # Severidad 9: desde 10 la consulta no se ofrece si hay otra medida (SEVERIDAD_SIN_CONSULTA).
+        resultado, _ = self.procesar("F1", "PB-F1-01", "10.1.2.3", severidad=9)
         self.assertEqual(resultado.destino, Destino.APROBADA)
 
 
@@ -564,7 +574,7 @@ class AgrupacionDeAlertas(unittest.TestCase):
                 self.assertEqual(almacen.agrupadas, [])
 
     def test_un_tope_pasajero_no_cierra_el_grupo(self):
-        usos = {c.nombre: 0 for c in CONFIG.contadores} | {"acciones_por_equipo": 3}
+        usos = {c.nombre: 0 for c in CONFIG.contadores} | {"acciones_por_equipo": TOPE_EQUIPO}
         almacen = AlmacenFalso(usos=usos)
         v = self.validador(almacen, ModeloFalso(*self.respuestas(2)))
         self.assertEqual(v.procesar(1, self.alerta()).motivo, "LIMITE_DE_TASA")
@@ -623,6 +633,137 @@ class AgrupacionDeAlertas(unittest.TestCase):
             clave_de_grupo(a, "srv-web-01"), ("100101", "192.0.2.77", "srv-web-01")
         )
         self.assertIsNone(clave_de_grupo(a, None))
+
+
+class CortacircuitoPorAlertasRecibidas(unittest.TestCase):
+    """El disparo mide las alertas que llegaron, no las que alcanzaron a procesarse."""
+
+    def setUp(self):
+        self.reloj = Reloj()
+        self.disparo = CONFIG.disparo_cortacircuito
+
+    def lote(self, cantidad):
+        """Alertas distintas (otra IP cada una, así que no se agrupan)."""
+        lote = []
+        for i in range(cantidad):
+            a = alerta_ssh()
+            a["id"] = f"llegada-{i}"
+            a["data"]["srcip"] = f"198.51.100.{i + 1}"
+            lote.append(a)
+        return lote
+
+    def validador(self, almacen, modelo):
+        return Validador(
+            almacen,
+            modelo,
+            PLANTILLAS,
+            catalogo_del_prompt(),
+            CONFIG,
+            DecisionFalsa,
+            reloj=self.reloj,
+        )
+
+    def test_un_lote_del_tope_abre_con_la_primera_sin_llamar_al_modelo(self):
+        almacen, modelo = AlmacenFalso(), acierta()
+        v = self.validador(almacen, modelo)
+        lote = self.lote(self.disparo.tope)
+
+        self.assertEqual(v.anotar_llegadas(1, lote), self.disparo.tope)
+        resultado = v.procesar(1, lote[0])
+
+        self.assertEqual(resultado.destino, Destino.RECHAZADA)
+        self.assertEqual(resultado.motivo, "CORTACIRCUITO_ABIERTO")
+        self.assertEqual(modelo.llamadas, 0)
+        self.assertEqual(len(almacen.aperturas), 1)
+        self.assertEqual(
+            almacen.aperturas[0],
+            f"{self.disparo.tope} alertas recibidas en {self.disparo.ventana_minutos} min",
+        )
+
+    def test_las_demas_del_lote_se_rechazan_sin_llamar_al_modelo(self):
+        almacen, modelo = AlmacenFalso(), acierta()
+        v = self.validador(almacen, modelo)
+        lote = self.lote(self.disparo.tope)
+        v.anotar_llegadas(1, lote)
+
+        resultados = [v.procesar(1, a) for a in lote]
+
+        self.assertEqual({r.motivo for r in resultados}, {"CORTACIRCUITO_ABIERTO"})
+        self.assertEqual(modelo.llamadas, 0)
+        self.assertEqual(len(almacen.aperturas), 1)  # se abre una sola vez
+        self.assertTrue(all(d.nivel is None for _, _, d in almacen.decisiones))
+
+    def test_un_lote_bajo_el_tope_no_abre(self):
+        almacen, modelo = AlmacenFalso(), acierta()
+        v = self.validador(almacen, modelo)
+        lote = self.lote(self.disparo.tope - 1)
+        v.anotar_llegadas(1, lote)
+
+        self.assertEqual(v.procesar(1, lote[0]).destino, Destino.APROBADA)
+        self.assertEqual(almacen.aperturas, [])
+
+    def test_las_llegadas_fuera_de_la_ventana_dejan_de_contar(self):
+        almacen, modelo = AlmacenFalso(), acierta()
+        v = self.validador(almacen, modelo)
+        lote = self.lote(self.disparo.tope)
+        v.anotar_llegadas(1, lote)
+        self.reloj.t += self.disparo.ventana_minutos * 60 + 1
+
+        self.assertEqual(v.procesar(1, lote[0]).destino, Destino.APROBADA)
+        self.assertEqual(almacen.aperturas, [])
+
+    def test_las_llegadas_de_varios_lotes_se_suman_dentro_de_la_ventana(self):
+        almacen, modelo = AlmacenFalso(), acierta()
+        v = self.validador(almacen, modelo)
+        primero, segundo = self.lote(20), self.lote(self.disparo.tope - 20)
+        v.anotar_llegadas(1, primero)
+        self.reloj.t += (self.disparo.ventana_minutos * 60) // 2
+        v.anotar_llegadas(1, segundo)
+
+        self.assertEqual(v.procesar(1, segundo[0]).motivo, "CORTACIRCUITO_ABIERTO")
+
+    def test_las_omitidas_y_las_invalidas_no_suman(self):
+        almacen, modelo = AlmacenFalso(), acierta()
+        v = self.validador(almacen, modelo)
+        lote = self.lote(self.disparo.tope - 1)
+        sin_etiqueta = alerta_ssh()
+        sin_etiqueta["id"] = "sin-etiqueta"
+        sin_etiqueta["rule"]["groups"] = ["syslog", "sshd"]
+        sin_id = alerta_ssh()
+        del sin_id["id"]
+        lote += [sin_etiqueta, sin_id]
+
+        self.assertEqual(v.anotar_llegadas(1, lote), self.disparo.tope - 1)
+        self.assertEqual(v.procesar(1, lote[0]).destino, Destino.APROBADA)
+        self.assertEqual(almacen.aperturas, [])
+
+    def test_si_la_base_informa_mas_que_la_memoria_manda_la_base(self):
+        # Reinicio de VALIDATE: la memoria está vacía y la base ya sabe de 30 alertas.
+        almacen, modelo = AlmacenFalso(alertas=self.disparo.tope), acierta()
+        v = self.validador(almacen, modelo)
+
+        self.assertEqual(v.procesar(1, self.lote(1)[0]).motivo, "CORTACIRCUITO_ABIERTO")
+        self.assertEqual(modelo.llamadas, 0)
+
+    def test_se_usa_el_maximo_y_no_la_suma(self):
+        # 15 llegadas en memoria y 15 en la base son las mismas alertas, no 30.
+        mitad = self.disparo.tope // 2
+        almacen, modelo = AlmacenFalso(alertas=mitad), acierta()
+        v = self.validador(almacen, modelo)
+        lote = self.lote(mitad)
+        v.anotar_llegadas(1, lote)
+
+        self.assertEqual(v.procesar(1, lote[0]).destino, Destino.APROBADA)
+        self.assertEqual(almacen.aperturas, [])
+
+    def test_cada_inquilino_cuenta_las_suyas(self):
+        almacen, modelo = AlmacenFalso(), acierta()
+        v = self.validador(almacen, modelo)
+        v.anotar_llegadas(1, self.lote(self.disparo.tope))
+        otro = self.lote(1)[0]
+
+        self.assertEqual(v.procesar(2, otro).destino, Destino.APROBADA)
+        self.assertEqual(almacen.aperturas, [])
 
 
 class PromptYCatalogo(unittest.TestCase):
@@ -686,6 +827,60 @@ class PosicionDeLectura(unittest.TestCase):
         ):
             self.ruta.write_text(contenido)
             self.assertIsNone(posicion.cargar(self.ruta), contenido)
+
+
+class RafagaDelTresDeNoviembre(unittest.TestCase):
+    """H2: la ráfaga de E6 (40 alertas) llegó mientras el modelo decidía la primera.
+
+    La primera lectura vio 13; las otras 27 llegaron durante esa decisión. Con el bucle
+    que relee antes de cada alerta, la segunda ya ve las 40 y el cortacircuito se abre:
+    sólo una alerta pasa por el modelo (antes pasaban 13).
+    """
+
+    class Lector:
+        def __init__(self, *lotes):
+            self.lotes = list(lotes)
+
+        def leer(self):
+            return self.lotes.pop(0) if self.lotes else []
+
+        posicion = None
+
+    def lote(self, desde, cantidad):
+        lote = []
+        for i in range(desde, desde + cantidad):
+            a = alerta_ssh()
+            a["id"] = f"e6-{i}"
+            a["data"]["srcip"] = f"198.51.100.{i + 1}"
+            lote.append(a)
+        return lote
+
+    def test_se_abre_con_la_segunda_alerta(self):
+        almacen = AlmacenFalso(alertas=0)
+        respuestas = acierta().respuestas
+        modelo = ModeloFalso(*(respuestas * 40))
+        v = Validador(
+            almacen,
+            modelo,
+            PLANTILLAS,
+            catalogo_del_prompt(),
+            CONFIG,
+            DecisionFalsa,
+            reloj=Reloj(),
+        )
+        lector = self.Lector(self.lote(0, 13), self.lote(13, 27))
+        bucle = Bucle(lector, v, 1)
+
+        for _ in range(100):
+            if not bucle.vuelta():
+                break
+
+        self.assertEqual(len(almacen.registradas), 40)
+        self.assertEqual(modelo.llamadas, 2)  # los dos pasos de la primera alerta
+        self.assertEqual(len(almacen.aperturas), 1)
+        self.assertEqual(almacen.aperturas[0], "40 alertas recibidas en 10 min")
+        rechazadas = [d for _, _, d in almacen.decisiones if d.motivo == "CORTACIRCUITO_ABIERTO"]
+        self.assertEqual(len(rechazadas), 39)
 
 
 if __name__ == "__main__":

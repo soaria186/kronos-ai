@@ -7,6 +7,22 @@ el script `.ps1` que hace el trabajo. Compatibles con Windows PowerShell 5.1.
 | Comando | Archivos | Aplicar | Revertir |
 | :--- | :--- | :--- | :--- |
 | `kronos-bloquear-ip` | `kronos-bloquear-ip.cmd` + `.ps1` | `aplicar <ip>`: regla de entrada `Kronos-bloqueo-<ip>` con `netsh advfirewall` | `quitar <ip>`: borra esa regla |
+| `kronos-terminar-proceso` | `kronos-terminar-proceso.cmd` + `.ps1` | `aplicar <pid> <ejecutable>`: termina el proceso **si sigue siendo ese programa** | — (la persona lo vuelve a abrir) |
+| `kronos-deshabilitar-cuenta` | `kronos-deshabilitar-cuenta.cmd` + `.ps1` | `aplicar <cuenta>`: deshabilita la cuenta **local** (`Disable-LocalUser`) | `habilitar <cuenta>`: la vuelve a habilitar, **sólo si la deshabilitó Kronos** |
+| `kronos-revertir-tarea` | `kronos-revertir-tarea.cmd` + `.ps1` | `aplicar <\carpeta\tarea>`: deshabilita la tarea programada (`Disable-ScheduledTask`, como `schtasks /DISABLE`) | `habilitar <\carpeta\tarea>`: la vuelve a habilitar, **sólo si la deshabilitó Kronos** |
+| `kronos-aislar-equipo` | `kronos-aislar-equipo.cmd` + `.ps1` | `aplicar`: corta todo el tráfico del equipo **salvo el canal del agente con el manager** | `quitar`: deja el firewall exactamente como estaba |
+| `kronos-cerrar-sesion` | `kronos-cerrar-sesion.cmd` + `.ps1` | `aplicar <cuenta>`: cierra todas las sesiones de la cuenta **local** (`quser` + `logoff`) | No se revierte: la persona puede volver a entrar |
+| `kronos-bloquear-destino` | `kronos-bloquear-destino.cmd` + `.ps1` | `aplicar <ip>`: regla de **salida** `Kronos-destino-<ip>` con `netsh advfirewall` | `quitar <ip>`: borra esa regla |
+| `kronos-limitar-conexiones` | `kronos-limitar-conexiones.cmd` + `.ps1` | `aplicar <ip>`: bloquea la **entrada** desde la IP por **10 minutos** (regla y tarea programada `Kronos-limite-<ip>`, D-71) | `quitar <ip>`: quita el bloqueo antes de tiempo |
+| `kronos-detener-servicio` | `kronos-detener-servicio.cmd` + `.ps1` | `aplicar <servicio>`: detiene el servicio (`Stop-Service`, sin `-Force`) | `iniciar <servicio>`: lo vuelve a poner en marcha, **sólo si lo detuvo Kronos** |
+| `kronos-cuarentena` | `kronos-cuarentena.cmd` + `.ps1` | `aplicar <ruta>`: mueve el archivo a `C:\ProgramData\Kronos\cuarentena\` (sólo Administradores y SYSTEM), con su huella y sus permisos | `restaurar <ruta>`: lo devuelve, si la huella sigue igual y la ruta está libre |
+
+El agente es de 32 bits: el `.cmd` lanza la PowerShell de 64 bits por `Sysnative`. Para
+`kronos-deshabilitar-cuenta` es indispensable, porque el módulo `LocalAccounts`
+(`Get-LocalUser`, `Disable-LocalUser`) sólo existe en la de 64 bits.
+
+EXECUTE envía el comando con la extensión (`!kronos-bloquear-ip.cmd`) a los agentes
+Windows: sin ella el agente no encuentra el script (ver la prueba del 21-10-2026, abajo).
 
 ## Cómo recibe la orden
 
@@ -18,9 +34,11 @@ el objetivo en `parameters.extra_args` (verificado con el script de Linux en Waz
 {"version":1,"command":"add","parameters":{"extra_args":["aplicar","203.0.113.50"]}}
 ```
 
-## Barreras del script
+## Barreras de los scripts
 
 Son una segunda línea de defensa: EXECUTE (`ejecucion/ordenes.py`) ya valida lo mismo.
+
+### `kronos-bloquear-ip`
 
 - Sólo `aplicar` o `quitar` y exactamente un objetivo.
 - La IP debe estar en su forma canónica (`1` o `0x7f.1` se rechazan, aunque Windows las acepte).
@@ -31,8 +49,155 @@ Son una segunda línea de defensa: EXECUTE (`ejecucion/ordenes.py`) ya valida lo
 - Si el firewall está apagado en algún perfil, deja una ADVERTENCIA en el registro (la
   regla existe, pero no bloquea en ese perfil).
 
-Resultado en `C:\Program Files (x86)\ossec-agent\active-response\active-responses.log`.
-Wazuh no devuelve el código de salida a la API: EXECUTE sólo sabe que la orden llegó.
+### `kronos-bloquear-destino`
+
+- Las mismas barreras de `kronos-bloquear-ip`, pero la regla es de **salida** (`dir=out`):
+  el equipo deja de comunicarse con esa IP (PB-F4-01).
+- Además nunca bloquea sus **servidores DNS**, la red de **NetBird** (`100.64.0.0/10`) ni
+  el **manager de Wazuh** (la dirección de `<server>` en `ossec.conf`, que se resuelve si
+  es un nombre). Si no puede leer esa dirección, sale con 1 sin tocar el firewall.
+
+### `kronos-limitar-conexiones`
+
+- El firewall de Windows no limita la cantidad de conexiones por IP. Por eso (D-71) bloquea
+  la **entrada** desde la IP por **10 minutos** (PB-F6-03): regla `Kronos-limite-<ip>` y una
+  tarea programada `\Kronos\Kronos-limite-<ip>` (cuenta SYSTEM) que la borra al vencer y
+  luego se borra sola. Si la tarea no se puede crear, borra la regla y sale con 1: nunca
+  queda un bloqueo sin vencimiento.
+- Las mismas barreras de `kronos-bloquear-destino`: nunca el propio equipo, la puerta de
+  enlace, los DNS, la red de NetBird ni el manager de Wazuh.
+- `quitar` borra la regla y la tarea. Las dos órdenes son idempotentes.
+
+### `kronos-terminar-proceso`
+
+- Sólo `aplicar`, un PID de 5 o más y la ruta del ejecutable (`C:\…`, con la misma lista
+  blanca que EXECUTE). Exactamente tres argumentos.
+- **El PID tiene que seguir siendo el mismo programa:** `Win32_Process.ExecutablePath` debe
+  ser la ruta de la alerta (sin distinguir mayúsculas). Justo antes de terminarlo se vuelve
+  a comprobar, con la misma hora de inicio. Si no, otro proceso heredó el PID: sale con 1
+  sin tocar nada.
+- **Procesos protegidos:** los del sistema (`System`, `smss`, `csrss`, `wininit`,
+  `winlogon`, `services`, `lsass`, `svchost`, `dwm`…), Defender, **Sysmon**, el agente de
+  Wazuh y todo lo que corre desde su carpeta o la de Kronos, NetBird, `sshd`, las
+  herramientas de VirtualBox, y este mismo script y su padre.
+- Si el proceso ya no existe, sale con 0 («sin cambios»).
+- Después de terminarlo espera hasta 10 s y sale con 1 si sigue vivo.
+
+### `kronos-deshabilitar-cuenta`
+
+- Sólo `aplicar` o `habilitar` (comparación exacta) y exactamente una cuenta.
+- Nombre con `^[A-Za-z0-9._-]{1,64}$`: si no calza, se rechaza (no se limpia ni se recorta).
+- Sólo cuentas **locales** (`Get-LocalUser`); las de dominio no se tocan.
+- **Cuentas protegidas, rechazadas siempre:** por nombre (`Administrator`, `Administrador`,
+  `Guest`, `Invitado`, `SYSTEM`, `LocalSystem`, `DefaultAccount`, `WDAGUtilityAccount`,
+  `kronos` y cualquier nombre que termine en `$`) y por SID (las cuentas integradas que
+  terminan en `-500`, `-501`, `-503` y `-504`, porque el nombre cambia con el idioma).
+- **Nunca deshabilita a un miembro del grupo local Administradores** (`S-1-5-32-544`), para
+  no dejar a la PyME sin quien administre el equipo (en el laboratorio protege a la cuenta
+  de administración). Si no puede leer el grupo, no actúa.
+- **Sólo revierte lo que hizo Kronos.** Al aplicar deja la marca
+  `active-response\kronos-estado\cuenta-<nombre>.txt` (antes de deshabilitar, para no
+  dejar una cuenta deshabilitada que Kronos no sepa revertir). Si la cuenta ya estaba
+  deshabilitada, sale con 0 y no deja marca. `habilitar` sólo actúa si existe la marca; si
+  no, sale con 0 y la cuenta queda como está.
+- Después de actuar vuelve a leer `Enabled` y sale con 1 si no quedó como se pidió.
+
+### `kronos-revertir-tarea`
+
+- Sólo `aplicar` o `habilitar` y exactamente una tarea, con la forma `\carpeta\tarea` y la
+  misma lista blanca que EXECUTE (sin comodines, comillas ni caracteres de shell, sin `.`
+  ni `..`).
+- **Tareas protegidas:** las del agente de Wazuh, de Kronos, de NetBird y de Windows
+  Defender (por nombre o carpeta).
+- **Sólo revierte lo que hizo Kronos:** al deshabilitar deja la marca
+  `active-response\kronos-estado\tarea-<huella>.txt` (antes de deshabilitar); `habilitar`
+  sólo actúa si existe. Después de actuar comprueba el estado de la tarea.
+- Deshabilitar no detiene una ejecución en curso: para eso está `kronos-terminar-proceso`.
+
+### `kronos-aislar-equipo`
+
+- Sólo `aplicar` o `quitar` y **exactamente un argumento** (esta medida no lleva objetivo).
+- **El agente sigue conectado al manager mientras el equipo está aislado.** Si perdiera el
+  canal, la orden `quitar` nunca llegaría. Por eso, antes de bloquear:
+  1. guarda la política completa (`netsh advfirewall export`) en
+     `active-response\kronos-estado\aislamiento.wfw`; si no puede, sale con 1 sin tocar nada;
+  2. lee el o los manager de `ossec.conf` (`<client><server>`: `<address>`, `<port>`,
+     `<protocol>`; si la dirección es un nombre, la resuelve); si no obtiene ninguna IP, sale
+     con 1 sin tocar nada;
+  3. crea las excepciones `Kronos-aislamiento-*` (grupo «Kronos AI aislamiento»): salida al
+     manager por su puerto (1514/TCP por omisión), DHCP (salida UDP 67 y entrada UDP 68, para
+     no perder la IP si vence el préstamo) y, sólo si el manager es un nombre, DNS (UDP y TCP
+     53) hacia los servidores configurados.
+- **Bloquea así:** deshabilita las reglas de permitir activas que no son de Kronos (en el
+  firewall de Windows una regla de permitir le gana a la acción por omisión) y deja los tres
+  perfiles encendidos con entrada y salida en `Block`. No crea una regla «bloquear todo»:
+  las reglas de bloqueo le ganan a las de permitir y cortarían también el canal del manager.
+- Si algo falla a mitad, restaura la copia y sale con 1.
+- `quitar` importa la copia (`netsh advfirewall import`: reglas, estado de cada regla y
+  perfiles), borra las reglas `Kronos-aislamiento-*` y la copia. Si el import falla, sale
+  con 1 y **conserva la copia**.
+- Aplicar y quitar son idempotentes: la copia es la marca de «aislado».
+
+**Limitaciones conocidas:**
+
+- `quitar` vuelve el firewall **al momento de aplicar**: un cambio hecho mientras el equipo
+  estaba aislado (por ejemplo, un bloqueo de IP de Kronos en ese lapso) se pierde.
+- Si el manager se alcanza por IPv6, el aislamiento no deja pasar el descubrimiento de
+  vecinos (ICMPv6). En la PyME simulada el manager se alcanza por IPv4.
+
+### `kronos-cerrar-sesion`
+
+- Sólo `aplicar` y exactamente una cuenta: esta medida **no se revierte** (no hay nada que
+  deshacer; para impedir que vuelva a entrar está `kronos-deshabilitar-cuenta`).
+- Las mismas barreras de `kronos-deshabilitar-cuenta`: nombre con `^[A-Za-z0-9._-]{1,64}$`,
+  sólo cuentas locales, cuentas protegidas por nombre y por SID integrado, y **nunca un
+  miembro del grupo local Administradores** (podría ser quien está respondiendo al
+  incidente). Si no puede leer el grupo, no actúa.
+- Lee las sesiones con `quser` (por posición de columna, no por los títulos, que cambian con
+  el idioma) y cierra cada una con `logoff <id>`. Si la cuenta no tiene sesiones, no hace
+  nada. Después comprueba que no quede ninguna.
+### `kronos-detener-servicio`
+
+- Sólo `aplicar` o `iniciar` (comparación exacta) y exactamente un servicio.
+- Nombre con `^[A-Za-z0-9._@][A-Za-z0-9._@-]{0,127}$` (el mismo de `ejecucion/ordenes.py`, sin
+  guion inicial): sin `*`, `?` ni `[ ]`, así que `Get-Service -Name` no lo toma como comodín.
+- **Servicios protegidos, rechazados siempre** (por el nombre corto, sin distinguir
+  mayúsculas): el agente (`WazuhSvc`, `OssecSvc`), SSH, NetBird, el firewall (`mpssvc`,
+  `BFE`), Defender, la red (`Dhcp`, `Dnscache`, `nsi`, `NlaSvc`, `netprofm`,
+  `LanmanWorkstation`), el registro de eventos y los servicios básicos de Windows (`RpcSs`,
+  `DcomLaunch`, `LSM`, `SamSs`, `Winmgmt`, `Schedule`, `ProfSvc`, `Power`, `PlugPlay` y otros),
+  además de Escritorio remoto y las herramientas de VirtualBox.
+- **No detiene un servicio con dependientes en marcha**: `Stop-Service` los detendría
+  también y podría llevarse uno protegido. No usa `-Force`.
+- **Sólo revierte lo que hizo Kronos.** Al aplicar deja la marca
+  `active-response\kronos-estado\servicio-<nombre>.txt` antes de detener; si falla, la
+  borra. `iniciar` sólo actúa si existe la marca.
+- Después de actuar espera hasta 30 s el estado pedido y lo comprueba.
+
+### `kronos-cuarentena`
+
+- Sólo `aplicar` o `restaurar` (comparación exacta) y exactamente una ruta.
+- Ruta `C:\…` con la misma lista blanca que EXECUTE: sin comodines, sin `~` (los nombres
+  cortos como `PROGRA~2` esquivarían las carpetas protegidas), sin `:` fuera de la unidad
+  (flujos alternativos), sin `.` ni `..` y sin tramos que terminen en punto o espacio.
+- **Carpetas protegidas:** `C:\Windows`, `C:\Program Files (x86)\ossec-agent`,
+  `C:\Program Files\ossec-agent`, `C:\Program Files\NetBird` y `C:\ProgramData\Kronos`.
+- Nunca a través de un enlace o una unión (reparse point) en ningún tramo de la ruta.
+- Sólo archivos. Si está en uso, sale con 1: primero hay que terminar el proceso.
+- **Nunca se pierde el archivo:** copia, comprueba el SHA-256 y recién entonces borra el
+  original. El registro (`<huella de la ruta>.json`, con la ruta, la huella y el SDDL) se
+  escribe antes de mover.
+- `restaurar` no sobrescribe un archivo que ocupe la ruta, comprueba la huella y devuelve
+  los permisos originales (si no puede, deja una ADVERTENCIA).
+- Aplicar y restaurar son idempotentes («sin cambios»).
+
+### Registro
+
+Resultado en `C:\Program Files (x86)\ossec-agent\active-response\active-responses.log`,
+una línea por orden (`… kronos-deshabilitar-cuenta: aplicar usuario.demo OK`,
+`… ERROR cuenta protegida: Administrador`). El agente tiene el archivo abierto, así que los
+scripts lo abren en modo compartido; si aun así no pueden escribir, lo dicen por la salida
+de error. Wazuh no devuelve el código de salida a la API: EXECUTE sólo sabe que la orden llegó.
 
 ## Instalar en un agente
 
@@ -40,14 +205,20 @@ En una consola de **administrador** del equipo:
 
 ```powershell
 $bin = 'C:\Program Files (x86)\ossec-agent\active-response\bin'
-Copy-Item .\kronos-bloquear-ip.cmd, .\kronos-bloquear-ip.ps1 -Destination $bin
-icacls "$bin\kronos-bloquear-ip.*"   # deben heredar sólo Administradores y SYSTEM
+Copy-Item .\kronos-*.cmd, .\kronos-*.ps1 -Destination $bin
+icacls "$bin\kronos-*"   # deben heredar sólo Administradores y SYSTEM
 ```
 
 ## Probar a mano
 
 En una consola de PowerShell **como administrador**, en la carpeta de los scripts.
 Usar sólo IP de documentación (`203.0.113.0/24`); nunca la puerta de enlace.
+
+> **La consola debe ser de administrador.** Sin elevación, `aplicar` sale con 1 porque
+> `netsh` no puede crear la regla, y el script avisa por la salida de error que no pudo
+> escribir en el registro («Acceso denegado»); pasó en la prueba del 02-11-2026. En
+> producción no ocurre: el agente corre como SYSTEM. Los scripts de prueba están en
+> [`../pruebas/`](../pruebas/README.md).
 
 ```powershell
 $e = '{"version":1,"command":"add","parameters":{"extra_args":["aplicar","203.0.113.50"]}}'
@@ -59,7 +230,34 @@ netsh advfirewall firewall show rule name=Kronos-bloqueo-203.0.113.50   # «No h
 ```
 
 Casos que deben salir con 1 sin crear reglas: `127.0.0.1`, la IP propia, la puerta de
-enlace, `1`, `203.0.113.50 & calc`, tres argumentos, operación `borrar`, entrada vacía.
+enlace, `1`, `203.0.113.50 & calc`, tres argumentos, operación `borrar`, entrada vacía y
+JSON roto.
+
+### `kronos-deshabilitar-cuenta`
+
+Con una cuenta local de prueba que **no** sea administradora (en el laboratorio,
+`usuario.demo`):
+
+```powershell
+$a = '{"version":1,"command":"add","parameters":{"extra_args":["aplicar","usuario.demo"]}}'
+$a | cmd /c kronos-deshabilitar-cuenta.cmd; "salida: $LASTEXITCODE"            # 0
+(Get-LocalUser usuario.demo).Enabled                                              # False
+$a | cmd /c kronos-deshabilitar-cuenta.cmd; "salida: $LASTEXITCODE"            # 0 (ya la había deshabilitado Kronos)
+$a.Replace('aplicar','habilitar') | cmd /c kronos-deshabilitar-cuenta.cmd; "salida: $LASTEXITCODE"   # 0
+(Get-LocalUser usuario.demo).Enabled                                              # True
+$a.Replace('aplicar','habilitar') | cmd /c kronos-deshabilitar-cuenta.cmd; "salida: $LASTEXITCODE"   # 0 (no la deshabilitó Kronos)
+Get-Content 'C:\Program Files (x86)\ossec-agent\active-response\active-responses.log' -Tail 6
+```
+
+**Sólo revierte lo que hizo Kronos:** deshabilitar la cuenta a mano
+(`Disable-LocalUser usuario.demo`), aplicar (sale 0, «no la deshabilitó Kronos»), habilitar
+(sale 0) y comprobar que la cuenta **sigue deshabilitada**. Al terminar,
+`Enable-LocalUser usuario.demo`.
+
+Casos que deben salir con 1 sin tocar ninguna cuenta: `Administrador`, la cuenta de
+administración del equipo (miembro de Administradores), `usuario.demo & calc`,
+`una cuenta que no existe`, `noexiste01`, tres argumentos, operación `borrar`, entrada
+vacía y JSON roto.
 
 ## Prueba en EP-WKS-01 (21-10-2026)
 
@@ -73,6 +271,58 @@ Agente 002, Wazuh 4.14.8, por la API con el usuario `kronos-execute` (#43):
 | A mano: casos de rechazo de la sección anterior | Salida 1, sin crear reglas |
 | Registro en `active-responses.log` | **No escribe.** `Add-Content` falla porque `wazuh-agent` tiene el archivo abierto, y el `catch` vacío esconde el error. Funciona si se abre en modo compartido: `[System.IO.File]::Open($LOG, 'Append', 'Write', 'ReadWrite, Delete')` con un `StreamWriter` UTF-8 sin BOM |
 
-Por eso EXECUTE debe enviar el nombre con `.cmd` a los agentes Windows, y el registro del
-`.ps1` se abre en modo compartido. Los dos cambios están en #56. Los scripts nuevos
-(`kronos-deshabilitar-cuenta` y `kronos-aislar-equipo`) siguen el mismo patrón.
+Por eso EXECUTE envía el nombre con `.cmd` a los agentes Windows, y el registro de los
+`.ps1` se abre en modo compartido (#56). `kronos-deshabilitar-cuenta` y
+`kronos-aislar-equipo` siguen el mismo patrón.
+
+### `kronos-aislar-equipo`
+
+**Siempre desde el snapshot `listo-demo`** de EP-WKS-01, para volver atrás si algo queda
+raro. Lo primero que se prueba es que el agente siga `Active`.
+
+```powershell
+(Get-NetFirewallRule).Count; @(Get-NetFirewallRule -Enabled True).Count
+Get-NetFirewallProfile | Select-Object Name, Enabled, DefaultInboundAction, DefaultOutboundAction
+$a = '{"version":1,"command":"add","parameters":{"extra_args":["aplicar"]}}'
+$a | cmd /c kronos-aislar-equipo.cmd; "salida: $LASTEXITCODE"                  # 0
+Test-NetConnection 1.1.1.1 -Port 443                                             # TcpTestSucceeded: False
+Get-NetFirewallRule -DisplayName 'Kronos-aislamiento-*' | Select-Object DisplayName, Direction
+$a | cmd /c kronos-aislar-equipo.cmd; "salida: $LASTEXITCODE"                  # 0 (ya estaba aislado)
+Get-Content 'C:\Program Files (x86)\ossec-agent\active-response\active-responses.log' -Tail 3
+```
+
+Durante al menos 5 minutos, **en el servidor** el agente 002 debe seguir `Active`
+(`agent_control -l` en el contenedor del manager). Después, **quitar por la API, no a
+mano** (así se prueba que el canal funciona durante el aislamiento): `!kronos-aislar-equipo.cmd`
+con `["quitar"]`. Al final, mismas cuentas de reglas y mismos perfiles que al comienzo,
+navegar funciona, y quitar de nuevo sale con 0 («no estaba aislado»).
+
+Casos que deben salir con 1 sin tocar el firewall: `["aplicar","203.0.113.50"]` (dos
+argumentos), `[]`, operación `borrar`, entrada vacía y JSON roto.
+
+## Prueba de `kronos-deshabilitar-cuenta` en EP-WKS-01
+
+Agente 002, con la cuenta `usuario.demo`. Salidas en
+[`docs/evidencia/2026-11-02_ar-windows/`](../../../../docs/evidencia/2026-11-02_ar-windows/README.md):
+
+| Prueba | Fecha | Resultado |
+| :--- | :--- | :--- |
+| A mano: aplicar, aplicar de nuevo, habilitar y habilitar de nuevo | 02-11-2026 | Salida 0 en las cuatro; `Enabled` pasa a False y vuelve a True. Las dos órdenes son idempotentes |
+| A mano: cuenta deshabilitada por otra persona; habilitar no la toca | 02-11-2026 | Aplicar sale con 0 («ya estaba deshabilitada»), habilitar sale con 0 («no la deshabilitó Kronos») y la cuenta sigue deshabilitada |
+| A mano: casos de rechazo | 02-11-2026 | Salida 1 en los 8: `Administrador`, `labadmin` (miembro de Administradores), `usuario.demo & calc`, `noexiste01`, tres argumentos, `borrar`, entrada vacía y JSON roto. `labadmin` y `usuario.demo` siguen habilitadas |
+| Por la API (`!kronos-deshabilitar-cuenta.cmd`), aplicar y habilitar | 02-11-2026 | `Enabled` pasa a False (18:35:53 UTC) y después a True (18:36:22 UTC) |
+| Registro en `active-responses.log` | 02-11-2026 | Una línea por orden. Hallazgo: el rechazo por nombre protegido sale como `Administrador: ERROR cuenta protegida: Administrador`, porque la variable local `$nombre` tapa a `$NOMBRE`; no cambia lo que hace el script. **Corregido** (D-69): todos los scripts escriben con `$script:NOMBRE` y ninguna función usa una variable `$nombre` |
+
+## Prueba de `kronos-aislar-equipo` en EP-WKS-01
+
+Agente 002, desde el snapshot `listo-demo`. Salidas en
+[`docs/evidencia/2026-11-02_ar-windows/`](../../../../docs/evidencia/2026-11-02_ar-windows/README.md):
+
+| Prueba | Fecha | Resultado |
+| :--- | :--- | :--- |
+| A mano: aplicar; `Test-NetConnection 1.1.1.1 -Port 443` falla | 02-11-2026 | Aísla a las 18:23:12 UTC: `1.1.1.1:443` falla y quedan 3 excepciones (canal al manager TCP/1514, DHCP de salida y DHCP de entrada) |
+| El agente 002 sigue `Active` en el manager durante al menos 5 minutos | 02-11-2026 | `Active` a las 18:24:55 y a las 18:25:55 UTC, con el keep-alive subiendo. Estuvo aislado 3 min 39 s hasta que se envió `quitar` (3 min 43 s hasta que el agente lo aplicó), no 5 minutos; se repite en E4 de la prueba integral |
+| Quitar **por la API** durante el aislamiento | 02-11-2026 | Enviada a las 18:26:51 UTC; llegó (`affected_items ["002"]`) y el agente la aplicó a las 18:26:55: «quitar OK; politica restaurada» |
+| Después: mismas reglas, mismos perfiles, navegación normal | 02-11-2026 | Las mismas 494 reglas, 240 activas y los mismos perfiles; no quedan reglas `Kronos-aislamiento-*` y `1.1.1.1:443` responde |
+| Aplicar dos veces y quitar dos veces (idempotente) | 02-11-2026 | Aplicar de nuevo sale con 0 sin cambiar nada («ya estaba aislado»); quitar de nuevo sale con 0 («no estaba aislado») |
+| Casos de rechazo | 02-11-2026 | Salida 1 en los 5 (dos argumentos, sin argumentos, `borrar`, entrada vacía y JSON roto), sin tocar el firewall |

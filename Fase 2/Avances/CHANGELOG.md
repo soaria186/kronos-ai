@@ -18,16 +18,25 @@ Milestone [«v1.0: cierre»](https://github.com/soaria186/kronos-ai/milestone/1)
 - CI: pruebas de la consola, pruebas de integración con PostgreSQL 17.11 y verificación de la entrega en los PR hacia `main` (#77). Desde la reestructuración, el CI corre también en cada cambio a `develop` y `main`.
 - Catálogo KRO-CAT-01 1.0, con las acciones que tienen script en cada sistema operativo (D-60) (#83).
 - `validate.json` 1.0, aprobada (D-65) (#84).
+- Consulta de nivel 0 del lado del servidor (D-72): EXECUTE resume el inventario del agente desde syscollector y el ticket termina en SUCCESS sin aviso (D-50).
+- Active Response `kronos-cerrar-sesion` para Linux y Windows (D-69): cierra todas las sesiones de una cuenta local, sin tocar a los administradores ni a las cuentas protegidas.
+- Active Response `kronos-detener-servicio` para Linux y Windows (D-69): detiene y vuelve a iniciar un servicio, con servicios protegidos y marca para revertir sólo lo que hizo Kronos.
+- `kronos-aislar-equipo` para Linux: corta el tráfico con la cadena `KRONOS-AISLAR` (iptables e ip6tables) salvo loopback, el manager por TCP 1514 y 1515, las direcciones de `kronos-aislar.permitidos` y NetBird, y la quita sin tocar otras reglas (D-69). Todavía no se activa en el catálogo: falta probarlo en EP-SRV-01.
+- `kronos-deshabilitar-cuenta` para Linux: bloquea la contraseña y vence la cuenta (`usermod -L` y `chage -E 0`), y las habilita de vuelta, deshaciendo sólo lo que hizo Kronos; nunca toca `root`, las cuentas del sistema, las del laboratorio ni a los administradores (`sudo`, `wheel` y `admin`) (D-69). Todavía no se activa en el catálogo: falta probarlo en EP-SRV-01.
+- SOAR-EXECUTE con los comandos de D-69: `kronos-cuarentena`, `kronos-bloquear-destino`, `kronos-limitar-conexiones` y `kronos-revertir-tarea`, con validación cerrada de la ruta, la IP de destino y el nombre de la tarea; falla segura `ARGUMENTO_FALTANTE` cuando la alerta no trae el campo; `KRONOS_IP_PROTEGIDAS` para el manager y la puerta de enlace; y la consulta de nivel 0 por la API de Wazuh, que termina en `SUCCESS` sin aviso (D-72, H1). Cada acción se activa en `actuadores_v1` con el PR de su script. VALIDATE revisa también `destinationIp` en la lista de exclusión.
 
 ### Corregido
 
 - Coherencia entre el código, la configuración y la documentación: `.env.example` con todas las variables, la imagen de servicios se construye una sola vez y los textos que seguían «pendientes» de cosas ya resueltas (#76).
+- El cortacircuito se abría tarde en una ráfaga (H2 de la prueba integral del 03-11): VALIDATE leía un lote y no volvía a leer `alerts.json` hasta procesarlo entero, así que lo que llegaba mientras el modelo decidía no se contaba. Ahora relee el archivo antes de cada alerta (`validacion/bucle.py`) y la ráfaga de E6 abre el cortacircuito con la segunda alerta, no con la decimocuarta.
 
 ### Documentación
 
 - README completo con resumen en inglés, registro de cambios, política de seguridad y plantilla de pull request (#75).
 - Diagramas al día con el estado real y la numeración de los 31 documentos (#79).
 - Guía de instalación completa, en 15 partes (#80).
+- Decisiones D-57 a D-65 aprobadas y D-66 a D-68 nuevas (CI en GitHub Actions desde el PR #46, E3 y E4 en la prueba integral y laboratorio en la defensa), con el acta del 02-11. `LICENSE`: todos los derechos reservados, Duoc UC (D-63).
+- Decisiones D-69 a D-73 de la prueba integral del 03-11: las 25 medidas del catálogo con actuador en Linux y Windows (reemplaza a D-60), corte de la v1.0 el 06-11 a las 18:00, bloqueo temporal en vez de limitar conexiones en Windows, consulta de nivel 0 por la API de Wazuh y exportación de las OVA el 06-11.
 - Estructura de `docs/`: índice de los 31 documentos, registro de trabajo del 15 al 26-10, registro de decisiones y archivo de los documentos v0.1 (#81).
 - Las ramas de experimentos del 14-10 quedan en el registro de mediciones, y el prompt v2 como parche en `decision/mediciones/experimentos/` (#82).
 

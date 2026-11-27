@@ -196,7 +196,7 @@ class ContratoConExecute(unittest.TestCase):
         repo = RepoFalso()
         registrar(repo, 1, ssh())
         detalle = repo.llamadas[0]["detalle"]
-        orden = construir("bloquear_ip", detalle.get("alerta", {}))
+        orden = construir("bloquear_ip", detalle.get("alerta", {}), sistema="linux")
         self.assertEqual(orden.agente, "003")
         self.assertEqual(orden.comando, "kronos-bloquear-ip")
         self.assertEqual(orden.argumentos, ("aplicar", "192.0.2.77"))
@@ -204,7 +204,7 @@ class ContratoConExecute(unittest.TestCase):
     def test_execute_saca_la_cuenta_de_lo_guardado(self):
         repo = RepoFalso()
         registrar(repo, 1, ssh())
-        orden = construir("deshabilitar_cuenta", repo.llamadas[0]["detalle"]["alerta"])
+        orden = construir("deshabilitar_cuenta", repo.llamadas[0]["detalle"]["alerta"], sistema="windows")
         self.assertEqual(orden.argumentos, ("aplicar", "operador02"))
 
     def test_execute_saca_el_pid_de_una_alerta_de_sysmon_guardada(self):
@@ -231,8 +231,9 @@ class ContratoConExecute(unittest.TestCase):
         }
         repo = RepoFalso()
         registrar(repo, 1, alerta)
-        orden = construir("terminar_proceso", repo.llamadas[0]["detalle"]["alerta"])
-        self.assertEqual((orden.agente, orden.argumentos), ("007", ("aplicar", "4312")))
+        orden = construir("terminar_proceso", repo.llamadas[0]["detalle"]["alerta"], sistema="windows")
+        imagen = "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe"
+        self.assertEqual((orden.agente, orden.argumentos), ("007", ("aplicar", "4312", imagen)))
 
 
 class EjecutarSoloLoQueSeRevisó(unittest.TestCase):
@@ -250,7 +251,7 @@ class EjecutarSoloLoQueSeRevisó(unittest.TestCase):
     def ordenes(self, accion, alertas=None):
         for alerta in alertas or self.alertas:
             try:
-                yield alerta, construir(accion, alerta)
+                yield alerta, construir(accion, alerta, sistema="linux")
             except (OrdenInvalida, AccionNoImplementada):
                 continue
 
@@ -283,6 +284,25 @@ class EjecutarSoloLoQueSeRevisó(unittest.TestCase):
             total += 1
         self.assertGreaterEqual(total, 3)
 
+    def test_ip_de_destino(self):
+        total = 0
+        for alerta, orden in self.ordenes("bloquear_destino"):
+            self.assertRevisado("ip", orden.argumentos[1], alerta)
+            total += 1
+        self.assertGreaterEqual(total, 10)
+
+    def test_ruta_de_la_cuarentena(self):
+        total = 0
+        for sistema in ("linux", "windows"):
+            for alerta in self.alertas:
+                try:
+                    orden = construir("cuarentena", alerta, sistema=sistema)
+                except (OrdenInvalida, AccionNoImplementada):
+                    continue
+                self.assertRevisado("programa", orden.argumentos[1], alerta)
+                total += 1
+        self.assertGreaterEqual(total, 10)
+
     def test_equipo(self):
         # Toda medida actúa sobre el agente de la alerta: el equipo se revisa siempre.
         for alerta in self.alertas:
@@ -298,7 +318,7 @@ class EjecutarSoloLoQueSeRevisó(unittest.TestCase):
             disfrazada = copy.deepcopy(alerta)
             disfrazada["data"]["srcip"] = f"::ffff:{ip}"
             try:
-                construir("bloquear_ip", disfrazada)
+                construir("bloquear_ip", disfrazada, sistema="linux")
             except OrdenInvalida:
                 self.fail(
                     f"{alerta['id']}: EXECUTE debería aceptar {disfrazada['data']['srcip']}"

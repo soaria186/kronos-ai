@@ -1,0 +1,223 @@
+#!/usr/bin/python3
+"""Kronos: aisla el equipo de la red o quita el aislamiento. Uso por Active Response:
+extra_args = ["aplicar"] o ["quitar"] (exactamente un argumento: la medida no lleva objetivo).
+
+Requisito critico: mientras el equipo esta aislado, el agente debe seguir conectado al
+manager; si pierde el canal, la orden "quitar" nunca llega. Por eso:
+- Si no se sabe a que IPv4 se conecta el agente (ossec.conf), no se toca nada.
+- Todo va en la cadena propia KRONOS-AISLAR (iptables e ip6tables), que se arma completa
+  (excepciones y DROP al final) ANTES de engancharla al comienzo de INPUT y OUTPUT: nunca
+  hay un momento con el DROP activo y sin las excepciones.
+- Excepciones, en orden: loopback; el manager por TCP 1514 y 1515, y su respuesta; las
+  direcciones de administracion de kronos-aislar.permitidos; la interfaz wt0 de NetBird si
+  existe. En IPv6 solo loopback.
+- Si algo falla a mitad, se deshace lo que se alcanzo a hacer y se sale con 1.
+
+Quitar desengancha y borra solo la cadena KRONOS-AISLAR: nunca toca otras reglas ni
+cadenas. Aplicar y quitar son idempotentes."""
+import datetime, ipaddress, json, re, socket, subprocess, sys
+import xml.etree.ElementTree as ET
+
+LOG = "/var/ossec/logs/active-responses.log"
+OSSEC_CONF = "/var/ossec/etc/ossec.conf"
+PERMITIDOS = "/var/ossec/etc/kronos-aislar.permitidos"
+CADENA = "KRONOS-AISLAR"
+PUERTOS = ("1514", "1515")
+NETBIRD = "wt0"
+FAMILIAS = ("iptables", "ip6tables")
+
+
+def log(msg):
+    hora = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    with open(LOG, "a") as f:
+        f.write(f"{hora} kronos-aislar-equipo: {msg}\n")
+
+
+def correr(cmd):
+    """Siempre como lista, sin shell."""
+    return subprocess.run(cmd, capture_output=True, text=True)
+
+
+def ok(cmd):
+    return correr(cmd).returncode == 0
+
+
+def leer_managers():
+    """IPv4 del o los manager de <client><server><address>. Un nombre se resuelve con
+    getaddrinfo. ossec.conf puede tener varios bloques raiz, asi que se envuelve en uno."""
+    try:
+        with open(OSSEC_CONF) as f:
+            texto = f.read()
+    except OSError as e:
+        raise ValueError(f"no se pudo abrir {OSSEC_CONF}: {e}")
+    texto = re.sub(r"<\?xml[^>]*\?>", "", texto)
+    try:
+        raiz = ET.fromstring(f"<kronos>{texto}</kronos>")
+    except ET.ParseError as e:
+        raise ValueError(f"{OSSEC_CONF} no se pudo leer como XML: {e}")
+    ips = []
+    for nodo in raiz.iter("client"):
+        for direccion in nodo.findall("server/address"):
+            valor = (direccion.text or "").strip()
+            try:
+                ip = ipaddress.ip_address(valor)
+            except ValueError:
+                if not re.fullmatch(r"[A-Za-z0-9.-]{1,253}", valor):
+                    raise ValueError(f"direccion del manager no valida: {valor!r}")
+                try:
+                    resueltas = socket.getaddrinfo(valor, None, socket.AF_INET, socket.SOCK_STREAM)
+                except OSError as e:
+                    raise ValueError(f"no se pudo resolver {valor}: {e}")
+                ips += [r[4][0] for r in resueltas]
+                continue
+            if ip.version != 4:
+                raise ValueError(f"el manager {ip} es IPv6; el aislamiento solo deja pasar al manager por IPv4")
+            ips.append(str(ip))
+    ips = sorted(set(ips), key=ipaddress.ip_address)
+    if not ips:
+        raise ValueError(f"{OSSEC_CONF} no tiene <client><server><address>")
+    return ips
+
+
+def leer_permitidos():
+    """Redes IPv4 de administracion, una por linea, con # comentarios. Si el archivo no
+    existe, ninguna. Una linea invalida impide aislar."""
+    try:
+        with open(PERMITIDOS) as f:
+            lineas = f.read().splitlines()
+    except FileNotFoundError:
+        return []
+    redes = []
+    for n, linea in enumerate(lineas, 1):
+        valor = linea.split("#", 1)[0].strip()
+        if not valor:
+            continue
+        try:
+            red = ipaddress.ip_network(valor)
+        except ValueError as e:
+            raise ValueError(f"{PERMITIDOS}, linea {n}: {e}")
+        if red.version != 4 or red.prefixlen == 0:
+            raise ValueError(f"{PERMITIDOS}, linea {n}: {valor} (solo redes IPv4 y nunca /0)")
+        redes.append(str(red))
+    return redes
+
+
+def enganchada(fam, cadena_base):
+    return ok([fam, "-C", cadena_base, "-j", CADENA])
+
+
+def existe(fam):
+    return ok([fam, "-S", CADENA])
+
+
+def desarmar(fam):
+    """Quita los ganchos y borra la cadena. Devuelve si habia algo."""
+    habia = False
+    for base in ("INPUT", "OUTPUT"):
+        for _ in range(10):  # por si quedo enganchada mas de una vez
+            if not enganchada(fam, base):
+                break
+            habia = True
+            r = correr([fam, "-D", base, "-j", CADENA])
+            if r.returncode != 0:
+                raise RuntimeError(f"{fam} -D {base} -j {CADENA} (codigo {r.returncode}): {r.stderr.strip()}")
+    if existe(fam):
+        habia = True
+        for paso in ("-F", "-X"):
+            r = correr([fam, paso, CADENA])
+            if r.returncode != 0:
+                raise RuntimeError(f"{fam} {paso} {CADENA} (codigo {r.returncode}): {r.stderr.strip()}")
+    return habia
+
+
+def reglas(fam, managers, permitidos, con_netbird):
+    """Las reglas de la cadena, en orden, para una familia."""
+    lista = [["-i", "lo", "-j", "ACCEPT"], ["-o", "lo", "-j", "ACCEPT"]]
+    if fam == "iptables":
+        for ip in managers:
+            for puerto in PUERTOS:
+                lista.append(["-d", ip, "-p", "tcp", "--dport", puerto, "-j", "ACCEPT"])
+            for puerto in PUERTOS:
+                lista.append(["-s", ip, "-p", "tcp", "--sport", puerto,
+                              "-m", "conntrack", "--ctstate", "ESTABLISHED", "-j", "ACCEPT"])
+        for red in permitidos:
+            lista.append(["-s", red, "-j", "ACCEPT"])
+            lista.append(["-d", red, "-j", "ACCEPT"])
+        if con_netbird:
+            lista.append(["-i", NETBIRD, "-j", "ACCEPT"])
+            lista.append(["-o", NETBIRD, "-j", "ACCEPT"])
+    lista.append(["-j", "DROP"])
+    return lista
+
+
+try:
+    args = json.loads(sys.stdin.readline())["parameters"]["extra_args"]
+except Exception as e:
+    log(f"entrada invalida: {e}")
+    sys.exit(1)
+
+if not isinstance(args, list) or len(args) != 1 or not isinstance(args[0], str):
+    cantidad = len(args) if isinstance(args, list) else "?"
+    log(f"entrada invalida: se esperaba 1 argumento y llegaron {cantidad}")
+    sys.exit(1)
+
+op = args[0]
+if op not in ("aplicar", "quitar"):
+    log(f"entrada invalida: operacion desconocida: {op}")
+    sys.exit(1)
+
+if op == "quitar":
+    try:
+        habia = [desarmar(fam) for fam in FAMILIAS]
+    except RuntimeError as e:
+        log(f"ERROR al quitar el aislamiento: {e}")
+        sys.exit(1)
+    log("quitar OK; aislamiento quitado" if any(habia) else "quitar OK (no estaba aislado)")
+    sys.exit(0)
+
+# aplicar
+if all(existe(fam) and enganchada(fam, "INPUT") and enganchada(fam, "OUTPUT") for fam in FAMILIAS):
+    log("aplicar OK (ya estaba aislado)")
+    sys.exit(0)
+
+try:
+    managers = leer_managers()
+except ValueError as e:
+    log(f"ERROR no se pudo leer el manager: {e}; no se toca nada")
+    sys.exit(1)
+try:
+    permitidos = leer_permitidos()
+except ValueError as e:
+    log(f"ERROR direcciones de administracion: {e}; no se aisla")
+    sys.exit(1)
+con_netbird = ok(["ip", "link", "show", NETBIRD])
+
+try:
+    for fam in FAMILIAS:
+        desarmar(fam)  # restos de un intento anterior a medias
+    pasos = []
+    for fam in FAMILIAS:
+        pasos.append([fam, "-N", CADENA])
+        pasos += [[fam, "-A", CADENA, *regla] for regla in reglas(fam, managers, permitidos, con_netbird)]
+    for fam in FAMILIAS:  # los ganchos van al final, con la cadena ya completa
+        pasos.append([fam, "-I", "INPUT", "1", "-j", CADENA])
+        pasos.append([fam, "-I", "OUTPUT", "1", "-j", CADENA])
+    for paso in pasos:
+        r = correr(paso)
+        if r.returncode != 0:
+            raise RuntimeError(f"{' '.join(paso)} (codigo {r.returncode}): {r.stderr.strip()}")
+except RuntimeError as e:
+    deshecho = True
+    for fam in FAMILIAS:
+        try:
+            desarmar(fam)
+        except RuntimeError:
+            deshecho = False
+    log(f"ERROR al aislar: {e}; " + ("se deshizo lo aplicado" if deshecho
+                                     else f"y NO se pudo deshacer: quitar a mano la cadena {CADENA}"))
+    sys.exit(1)
+
+administracion = ", ".join(permitidos) if permitidos else "ninguna"
+netbird = f"; NetBird ({NETBIRD}) permitido" if con_netbird else ""
+log(f"aplicar OK; manager permitido: {','.join(managers)} TCP/1514,1515; administracion: {administracion}{netbird}")
+sys.exit(0)

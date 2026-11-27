@@ -9,6 +9,7 @@ Salidas, extractos y capturas que respaldan lo que dicen el README del repositor
 | :--- | :--- | :--- |
 | [`esquema-audit-pruebas-2026-10-08.txt`](esquema-audit-pruebas-2026-10-08.txt) | Esquema de SOAR-AUDIT en la base de pruebas: a) dos inquilinos en paralelo, b) un inquilino con 8 conexiones, c) `UPDATE`, `DELETE` y `TRUNCATE` rechazados en la bitácora y d) manipulación detectada por la cadena de hash | 08-10-2026 |
 | [`esquema-audit-servidor-2026-10-08.txt`](esquema-audit-servidor-2026-10-08.txt) | Las mismas pruebas en SOAR-CORE-01 | 08-10-2026 |
+| [`2026-11-02_ar-windows/`](2026-11-02_ar-windows/README.md) | Scripts de Active Response de Windows en EP-WKS-01 (bloquear la IP, deshabilitar la cuenta y aislar el equipo), a mano y por la API | 02-11-2026 |
 
 ## Lo que se agrega en la semana de cierre
 

@@ -1,0 +1,59 @@
+﻿**********************
+Inicio de la transcripción de Windows PowerShell
+Hora de inicio: 20261102151724
+Nombre de usuario: EP-WKS-01\labadmin
+Usuario RunAs: EP-WKS-01\labadmin
+Nombre de la configuración: 
+Máquina: EP-WKS-01 (Microsoft Windows NT 10.0.26300.0)
+Aplicación host: C:\WINDOWS\System32\WindowsPowerShell\v1.0\powershell.exe -ExecutionPolicy Bypass -File C:\Users\labadmin\probar-ar-windows.ps1 -Parte cuenta
+Id. de proceso: 7312
+PSVersion: 5.1.26100.9711
+PSEdition: Desktop
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1.26100.9711
+BuildVersion: 10.0.26100.9711
+CLRVersion: 4.0.30319.42000
+WSManStackVersion: 3.0
+PSRemotingProtocolVersion: 2.3
+SerializationVersion: 1.1.0.1
+**********************
+== Kronos, prueba 'cuenta' en EP-WKS-01, 2026-11-02 15:17:24 (hora local)
+OK     aplicar (obtenido: 0)
+OK     la cuenta quedo deshabilitada (obtenido: False)
+OK     aplicar de nuevo (obtenido: 0)
+OK     habilitar (obtenido: 0)
+OK     la cuenta quedo habilitada (obtenido: True)
+OK     habilitar de nuevo (obtenido: 0)
+   (cuenta deshabilitada por otra persona: Kronos no debe habilitarla)
+OK     aplicar sobre cuenta ya deshabilitada (obtenido: 0)
+OK     habilitar no la toca (obtenido: 0)
+OK     sigue deshabilitada (obtenido: False)
+OK     rechaza Administrador (obtenido: 1)
+OK     rechaza al administrador (labadmin) (obtenido: 1)
+OK     rechaza nombre con & calc (obtenido: 1)
+OK     rechaza cuenta que no existe (obtenido: 1)
+OK     rechaza tres argumentos (obtenido: 1)
+OK     rechaza operacion 'borrar' (obtenido: 1)
+OK     rechaza entrada vacia (obtenido: 1)
+OK     rechaza JSON roto (obtenido: 1)
+OK     labadmin sigue habilitado (obtenido: True)
+OK     usuario.demo sigue habilitada (obtenido: True)
+
+== Ultimas lineas de active-responses.log
+2026-11-02T18:17:26Z kronos-deshabilitar-cuenta: habilitar usuario.demo OK
+2026-11-02T18:17:26Z kronos-deshabilitar-cuenta: habilitar usuario.demo OK (no la deshabilito Kronos; se deja como esta)
+2026-11-02T18:17:27Z kronos-deshabilitar-cuenta: aplicar usuario.demo OK (ya estaba deshabilitada; no la deshabilito Kronos)
+2026-11-02T18:17:27Z kronos-deshabilitar-cuenta: habilitar usuario.demo OK (no la deshabilito Kronos; se deja como esta)
+2026-11-02T18:17:28Z Administrador: ERROR cuenta protegida: Administrador
+2026-11-02T18:17:28Z kronos-deshabilitar-cuenta: ERROR cuenta protegida (miembro de Administradores): labadmin
+2026-11-02T18:17:29Z kronos-deshabilitar-cuenta: ERROR nombre de cuenta no permitido: usuario.demo & calc
+2026-11-02T18:17:29Z kronos-deshabilitar-cuenta: ERROR no existe como cuenta local: noexiste01
+2026-11-02T18:17:30Z kronos-deshabilitar-cuenta: ERROR se esperaban 2 argumentos y llegaron 3
+2026-11-02T18:17:30Z kronos-deshabilitar-cuenta: ERROR operacion no permitida: borrar
+2026-11-02T18:17:31Z kronos-deshabilitar-cuenta: ERROR sin entrada JSON
+2026-11-02T18:17:31Z kronos-deshabilitar-cuenta: ERROR la entrada no es JSON
+
+== RESULTADO: todo OK (cuenta)
+**********************
+Fin de la transcripción de Windows PowerShell
+Hora de finalización: 20261102151731
+**********************

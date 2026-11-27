@@ -41,11 +41,13 @@ class Datos:
                      ORDER BY t.creado_en
                     """,
                 ),
-                # RF-19: medidas de nivel 2 vigentes, con su antigüedad frente al plazo.
+                # RF-19: medidas de nivel 2 y 3 vigentes, con su antigüedad frente al plazo
+                # de revisión (sólo el nivel 2 lo tiene). El nivel 3 también aparece para
+                # poder revertirlo: quitar el aislamiento de un puesto, por ejemplo.
                 "activas": _filas(
                     cur,
                     """
-                    SELECT t.id, t.titulo, t.playbook,
+                    SELECT t.id, t.titulo, t.playbook, t.autonomia_aplicada AS nivel,
                            (SELECT min(a.creado_en) FROM frontend.auditoria a
                              WHERE a.ticket_id = t.id AND a.evento = 'EJECUCION_OK')
                                AS ejecutada_en,
@@ -56,7 +58,7 @@ class Datos:
                                     WHERE tm.ticket_id = t.id AND tm.tipo = 'REVERSION'
                                       AND tm.disparado_en IS NULL) AS reversion_pedida
                       FROM frontend.tickets t
-                     WHERE t.execution_status = 'SUCCESS' AND t.autonomia_aplicada = 2
+                     WHERE t.execution_status = 'SUCCESS' AND t.autonomia_aplicada IN (2, 3)
                        AND NOT EXISTS (SELECT 1 FROM frontend.auditoria a
                                         WHERE a.ticket_id = t.id
                                           AND a.evento = 'REVERSION_OK')

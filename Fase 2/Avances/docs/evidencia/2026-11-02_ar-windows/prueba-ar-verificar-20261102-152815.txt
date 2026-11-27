@@ -1,0 +1,47 @@
+﻿**********************
+Inicio de la transcripción de Windows PowerShell
+Hora de inicio: 20261102152815
+Nombre de usuario: EP-WKS-01\labadmin
+Usuario RunAs: EP-WKS-01\labadmin
+Nombre de la configuración: 
+Máquina: EP-WKS-01 (Microsoft Windows NT 10.0.26300.0)
+Aplicación host: C:\WINDOWS\System32\WindowsPowerShell\v1.0\powershell.exe -ExecutionPolicy Bypass -File C:\Users\labadmin\probar-ar-windows.ps1 -Parte verificar
+Id. de proceso: 3356
+PSVersion: 5.1.26100.9711
+PSEdition: Desktop
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1.26100.9711
+BuildVersion: 10.0.26100.9711
+CLRVersion: 4.0.30319.42000
+WSManStackVersion: 3.0
+PSRemotingProtocolVersion: 2.3
+SerializationVersion: 1.1.0.1
+**********************
+== Kronos, prueba 'verificar' en EP-WKS-01, 2026-11-02 15:28:16 (hora local)
+   antes:   494 reglas, 240 activas; Domain:True:NotConfigured:NotConfigured Private:True:NotConfigured:NotConfigured Public:True:NotConfigured:NotConfigured
+   despues: 494 reglas, 240 activas; Domain:True:NotConfigured:NotConfigured Private:True:NotConfigured:NotConfigured Public:True:NotConfigured:NotConfigured
+OK     mismo numero de reglas (obtenido: 494)
+OK     mismas reglas activas (obtenido: 240)
+OK     mismos perfiles (obtenido: Domain:True:NotConfigured:NotConfigured Private:True:NotConfigured:NotConfigured Public:True:NotConfigured:NotConfigured)
+OK     no quedan reglas Kronos-aislamiento (obtenido: 0)
+OK     internet funciona (1.1.1.1:443) (obtenido: True)
+OK     quitar de nuevo (no estaba aislado) (obtenido: 0)
+
+== Ultimas lineas de active-responses.log
+2026-11-02T18:17:30Z kronos-deshabilitar-cuenta: ERROR operacion no permitida: borrar
+2026-11-02T18:17:31Z kronos-deshabilitar-cuenta: ERROR sin entrada JSON
+2026-11-02T18:17:31Z kronos-deshabilitar-cuenta: ERROR la entrada no es JSON
+2026-11-02T18:22:01Z kronos-aislar-equipo: ERROR se esperaba 1 argumento y llegaron 2
+2026-11-02T18:22:02Z kronos-aislar-equipo: ERROR se esperaba 1 argumento y llegaron 0
+2026-11-02T18:22:03Z kronos-aislar-equipo: ERROR operacion no permitida: borrar
+2026-11-02T18:22:05Z kronos-aislar-equipo: ERROR sin entrada JSON
+2026-11-02T18:22:06Z kronos-aislar-equipo: ERROR la entrada no es JSON
+2026-11-02T18:23:12Z kronos-aislar-equipo: aplicar OK; manager permitido: 203.0.113.10 (203.0.113.10) TCP/1514
+2026-11-02T18:23:39Z kronos-aislar-equipo: aplicar OK (ya estaba aislado)
+2026-11-02T18:26:55Z kronos-aislar-equipo: quitar OK; politica restaurada
+2026-11-02T18:28:36Z kronos-aislar-equipo: quitar OK (no estaba aislado)
+
+== RESULTADO: todo OK (verificar)
+**********************
+Fin de la transcripción de Windows PowerShell
+Hora de finalización: 20261102152836
+**********************

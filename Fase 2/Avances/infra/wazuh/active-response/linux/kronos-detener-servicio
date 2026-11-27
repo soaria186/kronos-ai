@@ -1,0 +1,168 @@
+#!/usr/bin/python3
+"""Kronos: detiene o vuelve a iniciar un servicio de systemd. Uso por Active Response:
+extra_args = ["aplicar" | "iniciar", "<servicio>"] (exactamente dos argumentos).
+
+Aplicar detiene el servicio (systemctl stop); iniciar lo vuelve a poner en marcha
+(systemctl start). Nunca toca los servicios que mantienen al equipo administrable o
+conectado con Kronos: el agente de Wazuh, SSH, NetBird, la red, el firewall, systemd,
+el registro del sistema ni la base de datos y los contenedores del servidor.
+
+Solo revierte lo que hizo Kronos: la marca del servicio queda en el archivo de marcas
+antes de detenerlo, e iniciar solo actua si existe esa marca (no pone en marcha un
+servicio que el encargado de TI habia detenido por su cuenta). Aplicar o iniciar dos
+veces no cambia nada.
+
+No detiene los servicios que dependen de este: si alguno estaba en marcha, systemd puede
+detenerlo tambien. Por eso la lista de protegidos incluye los servicios de los que
+dependen el agente y la red."""
+import datetime, grp, json, os, re, subprocess, sys
+
+LOG = "/var/ossec/logs/active-responses.log"
+MARCAS = "/var/ossec/active-response/kronos-servicios.json"
+# Nombre base del servicio (sin .service), en minusculas.
+PROTEGIDOS = {
+    "wazuh-agent", "ossec", "ssh", "sshd", "netbird", "dbus", "dbus-broker", "networking",
+    "networkmanager", "network", "ufw", "iptables", "ip6tables", "netfilter-persistent",
+    "nftables", "firewalld", "cron", "crond", "rsyslog", "syslog", "auditd", "polkit",
+    "ollama", "docker", "containerd", "kronos", "getty", "serial-getty", "user",
+}
+# Prefijos protegidos: todo systemd, la base de datos y las unidades de usuario.
+PREFIJOS_PROTEGIDOS = ("systemd-", "postgresql", "user@", "getty@", "serial-getty@")
+
+
+def ahora():
+    return datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
+def log(msg):
+    with open(LOG, "a") as f:
+        f.write(f"{ahora()} kronos-detener-servicio: {msg}\n")
+
+
+def correr(cmd):
+    """Corre el comando (siempre como lista, sin shell). Devuelve el resultado."""
+    return subprocess.run(cmd, capture_output=True, text=True)
+
+
+def protegido(unidad):
+    base = unidad[: -len(".service")].lower()
+    return base in PROTEGIDOS or base.split("@")[0] in PROTEGIDOS or base.startswith(PREFIJOS_PROTEGIDOS)
+
+
+def existe(unidad):
+    """El servicio esta cargado en systemd (LoadState=loaded)."""
+    r = correr(["systemctl", "show", "-p", "LoadState", "--value", unidad])
+    if r.returncode != 0:
+        log(f"ERROR systemctl show {unidad} (codigo {r.returncode}): {r.stderr.strip()}")
+        sys.exit(1)
+    return r.stdout.strip() == "loaded"
+
+
+def activo(unidad):
+    """True si el servicio esta en marcha (o arrancando). `is-active` devuelve distinto de 0
+    cuando no lo esta, asi que se mira el texto y no el codigo."""
+    estado = correr(["systemctl", "is-active", unidad]).stdout.strip()
+    return estado in ("active", "activating", "reloading")
+
+
+def leer_marcas():
+    """Servicios que detuvo Kronos. Si el archivo no es JSON valido, no se actua."""
+    try:
+        with open(MARCAS) as f:
+            texto = f.read()
+    except FileNotFoundError:
+        return {}
+    try:
+        marcas = json.loads(texto)
+    except ValueError as e:
+        marcas = e
+    if not isinstance(marcas, dict) or not all(isinstance(m, dict) for m in marcas.values()):
+        log(f"ERROR {MARCAS} no es JSON valido; no se toca el servicio")
+        sys.exit(1)
+    return marcas
+
+
+def guardar_marcas(marcas):
+    """Escritura atomica: archivo temporal en la misma carpeta y os.replace, root:wazuh 640."""
+    tmp = f"{MARCAS}.{os.getpid()}.tmp"
+    try:
+        with open(tmp, "x") as f:
+            f.write(json.dumps(marcas, indent=2, sort_keys=True) + "\n")
+        os.chmod(tmp, 0o640)
+        os.chown(tmp, 0, grp.getgrnam("wazuh").gr_gid)
+        os.replace(tmp, MARCAS)
+    except (OSError, KeyError) as e:
+        try:
+            os.unlink(tmp)
+        except OSError:
+            pass
+        log(f"ERROR no se pudo guardar {MARCAS}: {e}")
+        sys.exit(1)
+
+
+try:
+    args = json.loads(sys.stdin.readline())["parameters"]["extra_args"]
+except Exception as e:
+    log(f"entrada invalida: {e}")
+    sys.exit(1)
+
+if not isinstance(args, list) or len(args) != 2 or not all(isinstance(a, str) for a in args):
+    cantidad = len(args) if isinstance(args, list) else "?"
+    log(f"entrada invalida: se esperaban 2 argumentos y llegaron {cantidad}")
+    sys.exit(1)
+
+op, nombre = args
+if op not in ("aplicar", "iniciar"):
+    log(f"entrada invalida: operacion desconocida: {op}")
+    sys.exit(1)
+# Mismo patron que ejecucion/ordenes.py; ademas no puede empezar con guion (seria una opcion).
+if not re.fullmatch(r"[A-Za-z0-9._@][A-Za-z0-9._@-]{0,127}", nombre):
+    log(f"entrada invalida: nombre de servicio no permitido: {nombre!r}")
+    sys.exit(1)
+unidad = nombre if nombre.endswith(".service") else f"{nombre}.service"
+if protegido(unidad):
+    log(f"servicio protegido: {unidad}")
+    sys.exit(1)
+if not existe(unidad):
+    log(f"ERROR no existe el servicio: {unidad}")
+    sys.exit(1)
+
+marcas = leer_marcas()
+
+if op == "aplicar":
+    if not activo(unidad):
+        if unidad in marcas:
+            log(f"aplicar {unidad} OK (sin cambios: ya lo habia detenido Kronos)")
+        else:
+            log(f"aplicar {unidad} OK (sin cambios: ya estaba detenido; no lo detuvo Kronos)")
+        sys.exit(0)
+    marcas[unidad] = {"desde": ahora()}
+    guardar_marcas(marcas)  # la marca va antes del cambio
+    r = correr(["systemctl", "stop", unidad])
+    if r.returncode != 0 or activo(unidad):
+        marcas.pop(unidad, None)
+        guardar_marcas(marcas)
+        detalle = r.stderr.strip() if r.returncode != 0 else "sigue en marcha despues de detenerlo"
+        log(f"ERROR systemctl stop {unidad} (codigo {r.returncode}): {detalle}")
+        sys.exit(1)
+    log(f"aplicar {unidad} OK")
+    sys.exit(0)
+
+# iniciar
+if unidad not in marcas:
+    log(f"iniciar {unidad} OK (sin cambios: no lo detuvo Kronos)")
+    sys.exit(0)
+if activo(unidad):
+    marcas.pop(unidad)
+    guardar_marcas(marcas)
+    log(f"iniciar {unidad} OK (sin cambios: ya estaba en marcha)")
+    sys.exit(0)
+r = correr(["systemctl", "start", unidad])
+if r.returncode != 0 or not activo(unidad):
+    detalle = r.stderr.strip() if r.returncode != 0 else "no quedo en marcha"
+    log(f"ERROR systemctl start {unidad} (codigo {r.returncode}): {detalle}")
+    sys.exit(1)  # la marca se conserva: se puede reintentar
+marcas.pop(unidad)
+guardar_marcas(marcas)
+log(f"iniciar {unidad} OK")
+sys.exit(0)

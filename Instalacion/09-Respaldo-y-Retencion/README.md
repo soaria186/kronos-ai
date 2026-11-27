@@ -5,7 +5,7 @@ guardadas a los 90 días (04:45 UTC).
 
 | Parte | Tema | Requisitos | Estado |
 | :-: | :--- | :--- | :--- |
-| [12](12-respaldo-y-retencion.md) | Respaldo, restauración y retención | Parte 07 | Borrador |
+| [12](12-respaldo-y-retencion.md) | Respaldo, restauración y retención | Parte 07 | Vigente |
 
 **En el repositorio:** [`Fase 2/Avances/infra/docker/respaldo`](../../Fase%202/Avances/infra/docker/respaldo/) y
 [`Fase 2/Avances/infra/docker/retencion`](../../Fase%202/Avances/infra/docker/retencion/).
